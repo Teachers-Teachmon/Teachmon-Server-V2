@@ -38,13 +38,13 @@ class TeacherValidateServiceTest {
     }
 
     @Test
-    @DisplayName("이름으로 선생님을 검증할 수 있다")
-    void shouldValidateTeacherByName() {
+    @DisplayName("메일로 선생님을 검증할 수 있다")
+    void shouldValidateTeacherByMail() {
         // Given: 선생님이 존재할 때
-        given(teacherRepository.findByName("김선생")).willReturn(Optional.of(teacher));
+        given(teacherRepository.findByMail("kim@teacher.com")).willReturn(Optional.of(teacher));
 
-        // When: 이름으로 선생님을 검증하면
-        TeacherEntity result = teacherValidateService.validateByName("김선생");
+        // When: 메일로 선생님을 검증하면
+        TeacherEntity result = teacherValidateService.validateByMail("kim@teacher.com");
 
         // Then: 해당 선생님이 반환된다
         assertThat(result).isNotNull();
@@ -55,10 +55,10 @@ class TeacherValidateServiceTest {
     @DisplayName("존재하지 않는 선생님을 검증하면 예외가 발생한다")
     void shouldThrowExceptionWhenTeacherNotExists() {
         // Given: 선생님이 존재하지 않을 때
-        given(teacherRepository.findByName("없는선생님")).willReturn(Optional.empty());
+        given(teacherRepository.findByMail("nomail@nomail.com")).willReturn(Optional.empty());
 
         // When & Then: 검증하면 예외가 발생한다
-        assertThatThrownBy(() -> teacherValidateService.validateByName("없는선생님"))
+        assertThatThrownBy(() -> teacherValidateService.validateByMail("nomail@nomail.com"))
                 .isInstanceOf(TeacherNotFoundException.class);
     }
 }
