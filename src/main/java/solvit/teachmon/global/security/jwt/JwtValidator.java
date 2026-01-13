@@ -23,7 +23,7 @@ public class JwtValidator {
         );
     }
 
-    private String getNicknameFromToken(String token) {
+    private String getMailFromToken(String token) {
         validateAccessToken(token);
 
         return Jwts.parser()
@@ -34,10 +34,10 @@ public class JwtValidator {
                 .getSubject();
     }
 
-    public String getNicknameFromAuthorizationHeader(String authorizationHeader) {
+    public String getMailFromAuthorizationHeader(String authorizationHeader) {
         String accessToken = authorizationHeader.substring(JwtConstants.AUTHORIZATION_HEADER_PREFIX.length());
 
-        return getNicknameFromToken(accessToken);
+        return getMailFromToken(accessToken);
     }
 
     public boolean isInvalidAuthorizationHeader(String authorizationHeader) {
@@ -45,7 +45,7 @@ public class JwtValidator {
     }
 
     private void validateAccessToken(String accessToken) {
-        String madeBy = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload().get(JwtConstants.CLAIM_MADY_BY_KEY, String.class);
-        if(!madeBy.equals(JwtConstants.CLAIM_MADY_BY_VALUE)) throw new InvalidJsonWebTokenException();
+        String madeBy = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload().get(JwtConstants.CLAIM_MADE_BY_KEY, String.class);
+        if(!madeBy.equals(JwtConstants.CLAIM_MADE_BY_VALUE)) throw new InvalidJsonWebTokenException();
     }
 }

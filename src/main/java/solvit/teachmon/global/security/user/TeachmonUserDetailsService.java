@@ -16,7 +16,7 @@ public class TeachmonUserDetailsService implements UserDetailsService {
     @NonNull
     @Override
     public TeachmonUserDetails loadUserByUsername(@NonNull String nickname) throws TeacherNotFoundException {
-        TeacherEntity teacher = teacherValidateService.validateByName(nickname);
+        TeacherEntity teacher = teacherValidateService.validateByMail(nickname);
         return new TeachmonUserDetails(teacher);
     }
 }

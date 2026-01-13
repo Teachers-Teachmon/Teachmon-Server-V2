@@ -22,8 +22,8 @@ class TeacherRepositoryTest {
     private TeacherRepository teacherRepository;
 
     @Test
-    @DisplayName("이름으로 선생님을 찾을 수 있다")
-    void shouldFindTeacherByName() {
+    @DisplayName("메일로 선생님을 찾을 수 있다")
+    void shouldFindTeacherByMail() {
         // Given: 선생님 정보가 데이터베이스에 저장되어 있을 때
         TeacherEntity teacher = TeacherEntity.builder()
                 .name("김선생")
@@ -32,8 +32,8 @@ class TeacherRepositoryTest {
                 .build();
         teacherRepository.save(teacher);
 
-        // When: 이름으로 선생님을 찾으면
-        Optional<TeacherEntity> result = teacherRepository.findByName("김선생");
+        // When: 메일로 선생님을 찾으면
+        Optional<TeacherEntity> result = teacherRepository.findByMail("kim@teacher.com");
 
         // Then: 해당 선생님이 조회된다
         assertThat(result).isPresent();
@@ -42,12 +42,12 @@ class TeacherRepositoryTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 이름으로 찾으면 빈 결과가 반환된다")
+    @DisplayName("존재하지 않는 메일로 찾으면 빈 결과가 반환된다")
     void shouldReturnEmptyWhenTeacherNotExists() {
         // Given: 데이터베이스에 선생님이 없을 때
         
-        // When: 존재하지 않는 이름으로 선생님을 찾으면
-        Optional<TeacherEntity> result = teacherRepository.findByName("없는선생님");
+        // When: 존재하지 않는 메일로 선생님을 찾으면
+        Optional<TeacherEntity> result = teacherRepository.findByMail("nomail@nomail.com");
 
         // Then: 빈 결과가 반환된다
         assertThat(result).isEmpty();

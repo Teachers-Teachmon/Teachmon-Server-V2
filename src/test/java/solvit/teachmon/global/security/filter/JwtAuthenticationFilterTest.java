@@ -58,8 +58,8 @@ class JwtAuthenticationFilterTest {
 
     private void setupValidTokenMocks() {
         given(jwtValidator.isInvalidAuthorizationHeader("Bearer valid-token")).willReturn(false);
-        given(jwtValidator.getNicknameFromAuthorizationHeader("Bearer valid-token")).willReturn("김선생");
-        given(teachmonUserDetailsService.loadUserByUsername("김선생")).willReturn(userDetails);
+        given(jwtValidator.getMailFromAuthorizationHeader("Bearer valid-token")).willReturn("kim@teacher.com");
+        given(teachmonUserDetailsService.loadUserByUsername("kim@teacher.com")).willReturn(userDetails);
     }
 
     private void verifySuccessfulAuthentication() {
@@ -98,7 +98,7 @@ class JwtAuthenticationFilterTest {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication).isNull();
         verify(filterChain).doFilter(request, response);
-        verify(jwtValidator, never()).getNicknameFromAuthorizationHeader(any());
+        verify(jwtValidator, never()).getMailFromAuthorizationHeader(any());
     }
 
     @Test
@@ -115,6 +115,6 @@ class JwtAuthenticationFilterTest {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication).isNull();
         verify(filterChain).doFilter(request, response);
-        verify(jwtValidator, never()).getNicknameFromAuthorizationHeader(any());
+        verify(jwtValidator, never()).getMailFromAuthorizationHeader(any());
     }
 }
