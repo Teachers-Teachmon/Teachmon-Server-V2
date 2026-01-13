@@ -47,7 +47,7 @@ class JwtValidatorTest {
         // 유효한 토큰 생성
         validToken = Jwts.builder()
                 .subject("김선생")
-                .claim(JwtConstants.CLAIM_MADY_BY_KEY, JwtConstants.CLAIM_MADY_BY_VALUE)
+                .claim(JwtConstants.CLAIM_MADE_BY_KEY, JwtConstants.CLAIM_MADE_BY_VALUE)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 3600000))
                 .signWith(secretKey)
@@ -111,7 +111,7 @@ class JwtValidatorTest {
         // Given: 잘못된 발급자 정보가 있는 토큰이 있을 때
         String invalidToken = Jwts.builder()
                 .subject("김선생")
-                .claim(JwtConstants.CLAIM_MADY_BY_KEY, "invalid-issuer")
+                .claim(JwtConstants.CLAIM_MADE_BY_KEY, "invalid-issuer")
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 3600000))
                 .signWith(secretKey)
