@@ -46,7 +46,7 @@ class JwtValidatorTest {
         
         // 유효한 토큰 생성
         validToken = Jwts.builder()
-                .subject("김선생")
+                .subject("kim@teacher.com")
                 .claim(JwtConstants.CLAIM_MADE_BY_KEY, JwtConstants.CLAIM_MADE_BY_VALUE)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 3600000))
@@ -55,16 +55,16 @@ class JwtValidatorTest {
     }
 
     @Test
-    @DisplayName("유효한 Authorization 헤더에서 닉네임을 추출할 수 있다")
-    void shouldExtractNicknameFromValidAuthorizationHeader() {
+    @DisplayName("유효한 Authorization 헤더에서 메일을 추출할 수 있다")
+    void shouldExtractMailFromValidAuthorizationHeader() {
         // Given: 유효한 Authorization 헤더가 있을 때
         String authHeader = JwtConstants.AUTHORIZATION_HEADER_PREFIX + validToken;
 
-        // When: 닉네임을 추출하면
-        String nickname = jwtValidator.getNicknameFromAuthorizationHeader(authHeader);
+        // When: 메일을 추출하면
+        String mail = jwtValidator.getMailFromAuthorizationHeader(authHeader);
 
-        // Then: 올바른 닉네임이 반환된다
-        assertThat(nickname).isEqualTo("김선생");
+        // Then: 올바른 메일이 반환된다
+        assertThat(mail).isEqualTo("kim@teacher.com");
     }
 
     @Test
@@ -110,7 +110,7 @@ class JwtValidatorTest {
     void shouldThrowExceptionWhenTokenHasInvalidIssuer() {
         // Given: 잘못된 발급자 정보가 있는 토큰이 있을 때
         String invalidToken = Jwts.builder()
-                .subject("김선생")
+                .subject("kim@teacher.com")
                 .claim(JwtConstants.CLAIM_MADE_BY_KEY, "invalid-issuer")
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 3600000))
@@ -118,8 +118,8 @@ class JwtValidatorTest {
                 .compact();
         String authHeader = JwtConstants.AUTHORIZATION_HEADER_PREFIX + invalidToken;
 
-        // When & Then: 닉네임을 추출하면 예외가 발생한다
-        assertThatThrownBy(() -> jwtValidator.getNicknameFromAuthorizationHeader(authHeader))
+        // When & Then: 메일을 추출하면 예외가 발생한다
+        assertThatThrownBy(() -> jwtValidator.getMailFromAuthorizationHeader(authHeader))
                 .isInstanceOf(InvalidJsonWebTokenException.class);
     }
 }
