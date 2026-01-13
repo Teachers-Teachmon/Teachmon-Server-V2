@@ -13,7 +13,7 @@ public class TeacherValidateService {
     private final TeacherRepository teacherRepository;
 
     @Transactional(readOnly = true)
-    public TeacherEntity validateByName(String name) {
-        return teacherRepository.findByName(name).orElseThrow(TeacherNotFoundException::new);
+    public TeacherEntity validateByMail(String mail) {
+        return teacherRepository.findByMail(mail).orElseThrow(TeacherNotFoundException::new);
     }
 }
