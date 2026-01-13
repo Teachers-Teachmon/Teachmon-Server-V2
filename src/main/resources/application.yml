@@ -1,4 +1,3 @@
 spring:
-  application:
-    name:
-      Teachmon-Server-V2
+  profiles:
+    active: ${ENVIRONMENT:local}
