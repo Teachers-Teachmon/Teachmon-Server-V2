@@ -34,8 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String nickname = jwtValidator.getNicknameFromAuthorizationHeader(authHeader);
-        TeachmonUserDetails teachmonUserDetails = teachmonUserDetailsService.loadUserByUsername(nickname);
+        String mail = jwtValidator.getMailFromAuthorizationHeader(authHeader);
+        TeachmonUserDetails teachmonUserDetails = teachmonUserDetailsService.loadUserByUsername(mail);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(teachmonUserDetails, null, teachmonUserDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
