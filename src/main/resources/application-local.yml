@@ -3,7 +3,7 @@ spring:
     name: teachmon-local
   config:
     import:
-      - file:secrets/env/local.env[.properties]
+      - file:env/local.env[.properties]
 
   datasource:
     driver-class-name: ${MYSQL_DRIVER_NAME}
