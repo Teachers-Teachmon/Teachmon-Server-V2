@@ -45,7 +45,7 @@ public class JwtValidator {
     }
 
     private void validateAccessToken(String accessToken) {
-        String madeBy = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload().get(JwtConstants.CLAIM_MADY_BY_KEY, String.class);
-        if(!madeBy.equals(JwtConstants.CLAIM_MADY_BY_VALUE)) throw new InvalidJsonWebTokenException();
+        String madeBy = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload().get(JwtConstants.CLAIM_MADE_BY_KEY, String.class);
+        if(!madeBy.equals(JwtConstants.CLAIM_MADE_BY_VALUE)) throw new InvalidJsonWebTokenException();
     }
 }
