@@ -23,7 +23,7 @@ public class JwtValidator {
         );
     }
 
-    private String getNicknameFromToken(String token) {
+    private String getMailFromToken(String token) {
         validateAccessToken(token);
 
         return Jwts.parser()
@@ -34,10 +34,10 @@ public class JwtValidator {
                 .getSubject();
     }
 
-    public String getNicknameFromAuthorizationHeader(String authorizationHeader) {
+    public String getMailFromAuthorizationHeader(String authorizationHeader) {
         String accessToken = authorizationHeader.substring(JwtConstants.AUTHORIZATION_HEADER_PREFIX.length());
 
-        return getNicknameFromToken(accessToken);
+        return getMailFromToken(accessToken);
     }
 
     public boolean isInvalidAuthorizationHeader(String authorizationHeader) {
