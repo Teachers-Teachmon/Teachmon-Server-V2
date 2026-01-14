@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import solvit.teachmon.domain.management.teacher.application.service.ManagementTeacherService;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 
