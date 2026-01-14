@@ -60,7 +60,7 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacher3, LocalDate.of(2024, 1, 16), SchoolPeriod.SEVEN_PERIOD);
 
         // When: 선생님별 감독 일정 수를 카운트하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision();
+        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision(null);
 
         // Then: 각 선생님의 감독 일정 수가 정확하게 카운트된다
         assertThat(result).isNotNull();
@@ -94,7 +94,7 @@ class SupervisionScheduleRepositoryGetTest {
         // Given: 감독 일정이 없을 때
 
         // When: 선생님별 감독 일정 수를 카운트하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision();
+        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision(null);
 
         // Then: 빈 목록이 반환된다
         assertThat(result).isNotNull();
@@ -110,7 +110,7 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacher, LocalDate.of(2024, 1, 11), SchoolPeriod.EIGHT_AND_NINE_PERIOD);
 
         // When: 선생님별 감독 일정 수를 카운트하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision();
+        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision(null);
 
         // Then: 해당 선생님의 감독 일정 수가 정확하게 반환된다
         assertThat(result).isNotNull();
@@ -130,12 +130,122 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacher, today, SchoolPeriod.TEN_AND_ELEVEN_PERIOD);
 
         // When: 선생님별 감독 일정 수를 카운트하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision();
+        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision(null);
 
         // Then: 모든 감독 일정이 카운트된다
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().supervisionCount()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("이름으로 선생님을 검색할 수 있다")
+    void shouldSearchTeachersByName() {
+        // Given: 여러 선생님이 감독 일정을 가지고 있을 때
+        TeacherEntity teacher1 = createAndSaveTeacher("김선생", "kim@teacher.com");
+        TeacherEntity teacher2 = createAndSaveTeacher("이선생", "lee@teacher.com");
+        TeacherEntity teacher3 = createAndSaveTeacher("김영희", "kim.young@teacher.com");
+
+        createAndSaveSupervision(teacher1, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
+        createAndSaveSupervision(teacher1, LocalDate.of(2024, 1, 11), SchoolPeriod.EIGHT_AND_NINE_PERIOD);
+        createAndSaveSupervision(teacher2, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
+        createAndSaveSupervision(teacher3, LocalDate.of(2024, 1, 10), SchoolPeriod.TEN_AND_ELEVEN_PERIOD);
+
+        // When: "김"으로 검색하면
+        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision("김");
+
+        // Then: 이름에 "김"이 포함된 선생님만 반환된다
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(TeacherListResponse::name)
+                .containsExactlyInAnyOrder("김선생", "김영희");
+    }
+
+    @Test
+    @DisplayName("빈 문자열로 검색하면 모든 선생님이 조회된다")
+    void shouldGetAllTeachersWhenQueryIsEmpty() {
+        // Given: 여러 선생님이 감독 일정을 가지고 있을 때
+        TeacherEntity teacher1 = createAndSaveTeacher("김선생", "kim@teacher.com");
+        TeacherEntity teacher2 = createAndSaveTeacher("이선생", "lee@teacher.com");
+        TeacherEntity teacher3 = createAndSaveTeacher("박선생", "park@teacher.com");
+
+        createAndSaveSupervision(teacher1, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
+        createAndSaveSupervision(teacher2, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
+        createAndSaveSupervision(teacher3, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
+
+        // When: 빈 문자열로 검색하면
+        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision("");
+
+        // Then: 모든 선생님이 반환된다
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(3);
+        assertThat(result).extracting(TeacherListResponse::name)
+                .containsExactlyInAnyOrder("김선생", "이선생", "박선생");
+    }
+
+    @Test
+    @DisplayName("검색 결과가 없으면 빈 목록을 반환한다")
+    void shouldReturnEmptyListWhenNoMatchingTeachers() {
+        // Given: 여러 선생님이 감독 일정을 가지고 있을 때
+        TeacherEntity teacher1 = createAndSaveTeacher("김선생", "kim@teacher.com");
+        TeacherEntity teacher2 = createAndSaveTeacher("이선생", "lee@teacher.com");
+
+        createAndSaveSupervision(teacher1, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
+        createAndSaveSupervision(teacher2, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
+
+        // When: 존재하지 않는 이름으로 검색하면
+        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision("최");
+
+        // Then: 빈 목록이 반환된다
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("대소문자를 구분하지 않고 검색할 수 있다")
+    void shouldSearchCaseInsensitive() {
+        // Given: 영문 이름을 가진 선생님이 감독 일정을 가지고 있을 때
+        TeacherEntity teacher1 = createAndSaveTeacher("John Smith", "john@teacher.com");
+        TeacherEntity teacher2 = createAndSaveTeacher("Jane Doe", "jane@teacher.com");
+
+        createAndSaveSupervision(teacher1, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
+        createAndSaveSupervision(teacher2, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
+
+        // When: 소문자로 검색하면
+        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision("john");
+
+        // Then: 대소문자 구분 없이 검색된다
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().name()).isEqualTo("John Smith");
+    }
+
+    @Test
+    @DisplayName("감독 일정이 없는 선생님도 조회된다")
+    void shouldIncludeTeachersWithoutSupervision() {
+        // Given: 감독 일정이 있는 선생님과 없는 선생님이 있을 때
+        TeacherEntity teacherWithSchedule = createAndSaveTeacher("김선생", "kim@teacher.com");
+        TeacherEntity teacherWithoutSchedule = createAndSaveTeacher("이선생", "lee@teacher.com");
+
+        createAndSaveSupervision(teacherWithSchedule, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
+
+        // When: 모든 선생님을 조회하면
+        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision(null);
+
+        // Then: 감독 일정이 없는 선생님도 포함된다 (supervisionCount = 0)
+        assertThat(result).hasSize(2);
+
+        TeacherListResponse withSchedule = result.stream()
+                .filter(r -> r.name().equals("김선생"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(withSchedule.supervisionCount()).isEqualTo(1);
+
+        TeacherListResponse withoutSchedule = result.stream()
+                .filter(r -> r.name().equals("이선생"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(withoutSchedule.supervisionCount()).isEqualTo(0);
     }
 
     private TeacherEntity createAndSaveTeacher(String name, String email) {

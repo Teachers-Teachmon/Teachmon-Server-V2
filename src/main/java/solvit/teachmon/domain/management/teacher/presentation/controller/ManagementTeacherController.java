@@ -2,6 +2,7 @@ package solvit.teachmon.domain.management.teacher.presentation.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,15 @@ public class ManagementTeacherController {
     private final ManagementTeacherService managementTeacherService;
 
     @GetMapping
-    public ResponseEntity<List<TeacherListResponse>> getTeachers() {
+    public ResponseEntity<List<TeacherListResponse>> getTeachers(
+            @RequestParam("query") String query
+    ) {
+
+        List<TeacherListResponse> teachers = managementTeacherService.getAllTeachers(query);
+
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(managementTeacherService.getAllTeachers());
+                .body(teachers);
     }
 
     @PatchMapping("/{teacher_id}")

@@ -19,8 +19,8 @@ public class ManagementTeacherService {
     private final SupervisionScheduleRepository supervisionScheduleRepository;
 
     @Trace
-    public List<TeacherListResponse> getAllTeachers() {
-        return supervisionScheduleRepository.countTeacherSupervision();
+    public List<TeacherListResponse> getAllTeachers(String query) {
+        return supervisionScheduleRepository.countTeacherSupervision(query);
     }
 
     @Trace

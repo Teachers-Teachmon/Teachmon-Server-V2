@@ -5,5 +5,5 @@ import solvit.teachmon.domain.management.teacher.presentation.dto.response.Teach
 import java.util.List;
 
 public interface SupervisionScheduleRepositoryCustom {
-    List<TeacherListResponse> countTeacherSupervision();
+    List<TeacherListResponse> countTeacherSupervision(String query);
 }

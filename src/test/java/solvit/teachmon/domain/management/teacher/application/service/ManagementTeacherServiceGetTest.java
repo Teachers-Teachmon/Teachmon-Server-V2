@@ -46,10 +46,10 @@ class ManagementTeacherServiceGetTest {
     @DisplayName("모든 선생님 목록과 감독 횟수를 조회할 수 있다")
     void shouldGetAllTeachersWithSupervisionCount() {
         // Given: 선생님 목록과 각 선생님의 감독 횟수가 있을 때
-        given(supervisionScheduleRepository.countTeacherSupervision()).willReturn(mockTeacherList);
+        given(supervisionScheduleRepository.countTeacherSupervision(null)).willReturn(mockTeacherList);
 
         // When: 모든 선생님 목록을 조회하면
-        List<TeacherListResponse> result = managementTeacherService.getAllTeachers();
+        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(null);
 
         // Then: 선생님 목록과 감독 횟수가 반환된다
         assertThat(result).isNotNull();
@@ -62,24 +62,24 @@ class ManagementTeacherServiceGetTest {
         assertThat(result.get(2).supervisionCount()).isEqualTo(7);
 
         // 리포지토리 메서드가 한 번 호출되었는지 검증
-        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision();
+        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(null);
     }
 
     @Test
     @DisplayName("선생님이 없을 때 빈 목록을 반환한다")
     void shouldReturnEmptyListWhenNoTeachersExist() {
         // Given: 선생님이 없을 때
-        given(supervisionScheduleRepository.countTeacherSupervision()).willReturn(List.of());
+        given(supervisionScheduleRepository.countTeacherSupervision(null)).willReturn(List.of());
 
         // When: 모든 선생님 목록을 조회하면
-        List<TeacherListResponse> result = managementTeacherService.getAllTeachers();
+        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(null);
 
         // Then: 빈 목록이 반환된다
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
         // 리포지토리 메서드가 한 번 호출되었는지 검증
-        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision();
+        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(null);
     }
 
     @Test
@@ -90,15 +90,74 @@ class ManagementTeacherServiceGetTest {
                 new TeacherListResponse(1L, Role.TEACHER, "김선생", "kim@teacher.com", 0),
                 new TeacherListResponse(2L, Role.TEACHER, "이선생", "lee@teacher.com", 5)
         );
-        given(supervisionScheduleRepository.countTeacherSupervision()).willReturn(teachersWithZeroCount);
+        given(supervisionScheduleRepository.countTeacherSupervision(null)).willReturn(teachersWithZeroCount);
 
         // When: 모든 선생님 목록을 조회하면
-        List<TeacherListResponse> result = managementTeacherService.getAllTeachers();
+        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(null);
 
         // Then: 감독 횟수가 0인 선생님도 포함되어 반환된다
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
         assertThat(result.get(0).supervisionCount()).isEqualTo(0);
         assertThat(result.get(1).supervisionCount()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("이름으로 선생님을 검색할 수 있다")
+    void shouldSearchTeachersByName() {
+        // Given: "김"으로 검색했을 때 "김선생"만 반환되는 상황
+        String query = "김";
+        List<TeacherListResponse> filteredList = List.of(
+                new TeacherListResponse(1L, Role.TEACHER, "김선생", "kim@teacher.com", 5)
+        );
+        given(supervisionScheduleRepository.countTeacherSupervision(query)).willReturn(filteredList);
+
+        // When: 이름으로 검색하면
+        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(query);
+
+        // Then: 검색어가 포함된 선생님만 반환된다
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).name()).isEqualTo("김선생");
+        assertThat(result.get(0).supervisionCount()).isEqualTo(5);
+
+        // 리포지토리 메서드가 올바른 query와 함께 호출되었는지 검증
+        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(query);
+    }
+
+    @Test
+    @DisplayName("빈 문자열로 검색하면 모든 선생님이 조회된다")
+    void shouldGetAllTeachersWhenQueryIsEmpty() {
+        // Given: 빈 문자열로 검색했을 때 모든 선생님이 반환되는 상황
+        String query = "";
+        given(supervisionScheduleRepository.countTeacherSupervision(query)).willReturn(mockTeacherList);
+
+        // When: 빈 문자열로 검색하면
+        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(query);
+
+        // Then: 모든 선생님이 반환된다
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(3);
+
+        // 리포지토리 메서드가 빈 문자열과 함께 호출되었는지 검증
+        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(query);
+    }
+
+    @Test
+    @DisplayName("검색 결과가 없으면 빈 목록을 반환한다")
+    void shouldReturnEmptyListWhenNoMatchingTeachers() {
+        // Given: 검색어에 해당하는 선생님이 없을 때
+        String query = "존재하지않는이름";
+        given(supervisionScheduleRepository.countTeacherSupervision(query)).willReturn(List.of());
+
+        // When: 검색하면
+        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(query);
+
+        // Then: 빈 목록이 반환된다
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+
+        // 리포지토리 메서드가 query와 함께 호출되었는지 검증
+        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(query);
     }
 }

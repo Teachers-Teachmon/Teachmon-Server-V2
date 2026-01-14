@@ -45,7 +45,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/reissue").permitAll()
                         .requestMatchers("/login/oauth2").permitAll()
                         .requestMatchers("/api/healthcheck").permitAll()
-                        .requestMatchers("/teacher/**").hasAnyAuthority(Role.ADMIN.getValue())
+                        .requestMatchers("/teacher/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement((session) -> session
