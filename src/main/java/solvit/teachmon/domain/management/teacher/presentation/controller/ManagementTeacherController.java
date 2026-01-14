@@ -37,4 +37,15 @@ public class ManagementTeacherController {
                 .status(HttpStatus.OK)
                 .body("선생님 정보를 수정하였습니다");
     }
+
+    @DeleteMapping("/{teacher_id}")
+    public ResponseEntity<String> deleteTeacher(
+            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1이상입니다") Long teacherId
+    ) {
+        managementTeacherService.deleteTeacher(teacherId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("선생님 정보를 삭제하였습니다");
+    }
 }

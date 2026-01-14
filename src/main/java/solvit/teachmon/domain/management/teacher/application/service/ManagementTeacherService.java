@@ -32,4 +32,10 @@ public class ManagementTeacherService {
         teacher.changeRole(updateRequest.role());
         teacher.changeName(updateRequest.name());
     }
+
+    @Trace
+    @Transactional
+    public void deleteTeacher(Long teacherId) {
+        teacherRepository.deleteById(teacherId);
+    }
 }
