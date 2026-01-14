@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.management.teacher.application.service;
+package solvit.teachmon.domain.management.teacher.application.facade;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import solvit.teachmon.domain.management.teacher.application.service.ManagementTeacherService;
 import solvit.teachmon.domain.management.teacher.presentation.dto.response.TeacherListResponse;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
 import solvit.teachmon.domain.user.domain.enums.Role;
@@ -20,7 +21,7 @@ import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("선생님 관리 서비스 - 전체 선생님 조회 테스트")
-class ManagementTeacherServiceGetTest {
+class ManagementTeacherFacadeServiceGetTest {
 
     @Mock
     private TeacherRepository teacherRepository;
@@ -29,7 +30,7 @@ class ManagementTeacherServiceGetTest {
     private SupervisionScheduleRepository supervisionScheduleRepository;
 
     @InjectMocks
-    private ManagementTeacherService managementTeacherService;
+    private ManagementTeacherFacadeService managementTeacherFacadeService;
 
     private List<TeacherListResponse> mockTeacherList;
 
@@ -49,7 +50,7 @@ class ManagementTeacherServiceGetTest {
         given(supervisionScheduleRepository.countTeacherSupervision(null)).willReturn(mockTeacherList);
 
         // When: 모든 선생님 목록을 조회하면
-        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(null);
+        List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(null);
 
         // Then: 선생님 목록과 감독 횟수가 반환된다
         assertThat(result).isNotNull();
@@ -72,7 +73,7 @@ class ManagementTeacherServiceGetTest {
         given(supervisionScheduleRepository.countTeacherSupervision(null)).willReturn(List.of());
 
         // When: 모든 선생님 목록을 조회하면
-        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(null);
+        List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(null);
 
         // Then: 빈 목록이 반환된다
         assertThat(result).isNotNull();
@@ -93,7 +94,7 @@ class ManagementTeacherServiceGetTest {
         given(supervisionScheduleRepository.countTeacherSupervision(null)).willReturn(teachersWithZeroCount);
 
         // When: 모든 선생님 목록을 조회하면
-        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(null);
+        List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(null);
 
         // Then: 감독 횟수가 0인 선생님도 포함되어 반환된다
         assertThat(result).isNotNull();
@@ -113,13 +114,13 @@ class ManagementTeacherServiceGetTest {
         given(supervisionScheduleRepository.countTeacherSupervision(query)).willReturn(filteredList);
 
         // When: 이름으로 검색하면
-        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(query);
+        List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(query);
 
         // Then: 검색어가 포함된 선생님만 반환된다
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).name()).isEqualTo("김선생");
-        assertThat(result.get(0).supervisionCount()).isEqualTo(5);
+        assertThat(result.getFirst().name()).isEqualTo("김선생");
+        assertThat(result.getFirst().supervisionCount()).isEqualTo(5);
 
         // 리포지토리 메서드가 올바른 query와 함께 호출되었는지 검증
         verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(query);
@@ -133,7 +134,7 @@ class ManagementTeacherServiceGetTest {
         given(supervisionScheduleRepository.countTeacherSupervision(query)).willReturn(mockTeacherList);
 
         // When: 빈 문자열로 검색하면
-        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(query);
+        List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(query);
 
         // Then: 모든 선생님이 반환된다
         assertThat(result).isNotNull();
@@ -151,7 +152,7 @@ class ManagementTeacherServiceGetTest {
         given(supervisionScheduleRepository.countTeacherSupervision(query)).willReturn(List.of());
 
         // When: 검색하면
-        List<TeacherListResponse> result = managementTeacherService.getAllTeachers(query);
+        List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(query);
 
         // Then: 빈 목록이 반환된다
         assertThat(result).isNotNull();

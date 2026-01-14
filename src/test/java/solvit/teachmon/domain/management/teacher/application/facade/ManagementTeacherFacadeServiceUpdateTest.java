@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.management.teacher.application.service;
+package solvit.teachmon.domain.management.teacher.application.facade;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import solvit.teachmon.domain.management.teacher.application.service.ManagementTeacherService;
 import solvit.teachmon.domain.management.teacher.presentation.dto.request.TeacherUpdateRequest;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
@@ -19,7 +20,7 @@ import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("선생님 관리 서비스 - 선생님 정보 수정 테스트")
-class ManagementTeacherServiceUpdateTest {
+class ManagementTeacherFacadeServiceUpdateTest {
 
     @Mock
     private TeacherRepository teacherRepository;
@@ -28,7 +29,7 @@ class ManagementTeacherServiceUpdateTest {
     private SupervisionScheduleRepository supervisionScheduleRepository;
 
     @InjectMocks
-    private ManagementTeacherService managementTeacherService;
+    private ManagementTeacherFacadeService managementTeacherFacadeService;
 
     @Test
     @DisplayName("선생님 정보를 업데이트할 수 있다")
@@ -45,7 +46,7 @@ class ManagementTeacherServiceUpdateTest {
         given(teacherRepository.findById(teacherId)).willReturn(Optional.of(teacher));
 
         // When: 선생님 정보를 업데이트하면
-        managementTeacherService.updateTeacher(updateRequest, teacherId);
+        managementTeacherFacadeService.updateTeacher(updateRequest, teacherId);
 
         // Then: 선생님의 역할과 이름이 변경된다
         assertThat(teacher.getRole()).isEqualTo(Role.ADMIN);
@@ -63,9 +64,9 @@ class ManagementTeacherServiceUpdateTest {
         given(teacherRepository.findById(teacherId)).willReturn(Optional.empty());
 
         // When & Then: 업데이트하면 예외가 발생한다
-        assertThatThrownBy(() -> managementTeacherService.updateTeacher(updateRequest, teacherId))
+        assertThatThrownBy(() -> managementTeacherFacadeService.updateTeacher(updateRequest, teacherId))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("해당 ID의 교사를 찾을 수 없습니다.");
+                .hasMessage("해당 ID의 교사를 찾을 수 없습니다");
 
         verify(teacherRepository, times(1)).findById(teacherId);
     }
@@ -85,7 +86,7 @@ class ManagementTeacherServiceUpdateTest {
         given(teacherRepository.findById(teacherId)).willReturn(Optional.of(teacher));
 
         // When: 역할을 업데이트하면
-        managementTeacherService.updateTeacher(updateRequest, teacherId);
+        managementTeacherFacadeService.updateTeacher(updateRequest, teacherId);
 
         // Then: 역할만 변경되고 이름은 유지된다
         assertThat(teacher.getRole()).isEqualTo(Role.ADMIN);
@@ -107,7 +108,7 @@ class ManagementTeacherServiceUpdateTest {
         given(teacherRepository.findById(teacherId)).willReturn(Optional.of(teacher));
 
         // When: 이름을 업데이트하면
-        managementTeacherService.updateTeacher(updateRequest, teacherId);
+        managementTeacherFacadeService.updateTeacher(updateRequest, teacherId);
 
         // Then: 이름만 변경되고 역할은 유지된다
         assertThat(teacher.getName()).isEqualTo("김교사");
@@ -129,7 +130,7 @@ class ManagementTeacherServiceUpdateTest {
         given(teacherRepository.findById(teacherId)).willReturn(Optional.of(teacher));
 
         // When: GUEST로 역할을 변경하면
-        managementTeacherService.updateTeacher(updateRequest, teacherId);
+        managementTeacherFacadeService.updateTeacher(updateRequest, teacherId);
 
         // Then: 역할이 GUEST로 변경된다
         assertThat(teacher.getRole()).isEqualTo(Role.GUEST);
