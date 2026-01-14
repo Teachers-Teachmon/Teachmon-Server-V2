@@ -115,8 +115,8 @@ class SupervisionScheduleRepositoryTest {
         // Then: 해당 선생님의 감독 일정 수가 정확하게 반환된다
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).name()).isEqualTo("김선생");
-        assertThat(result.get(0).supervisionCount()).isEqualTo(2);
+        assertThat(result.getFirst().name()).isEqualTo("김선생");
+        assertThat(result.getFirst().supervisionCount()).isEqualTo(2);
     }
 
     @Test
@@ -135,7 +135,7 @@ class SupervisionScheduleRepositoryTest {
         // Then: 모든 감독 일정이 카운트된다
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).supervisionCount()).isEqualTo(3);
+        assertThat(result.getFirst().supervisionCount()).isEqualTo(3);
     }
 
     private TeacherEntity createAndSaveTeacher(String name, String email) {
