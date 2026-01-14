@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-@DisplayName("감독 일정 저장소 테스트")
-class SupervisionScheduleRepositoryTest {
+@DisplayName("감독 일정 저장소 - 선생님별 감독 일정 카운트 테스트")
+class SupervisionScheduleRepositoryGetTest {
 
     @Autowired
     private SupervisionScheduleRepository supervisionScheduleRepository;

@@ -1,12 +1,13 @@
 package solvit.teachmon.domain.management.teacher.presentation.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import solvit.teachmon.domain.management.teacher.application.service.ManagementTeacherService;
+import solvit.teachmon.domain.management.teacher.presentation.dto.request.TeacherUpdateRequest;
 import solvit.teachmon.domain.management.teacher.presentation.dto.response.TeacherListResponse;
 
 import java.util.List;
@@ -23,5 +24,17 @@ public class ManagementTeacherController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(managementTeacherService.getAllTeachers());
+    }
+
+    @PatchMapping("/{teacher_id}")
+    public ResponseEntity<String> updateTeacher(
+            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1이상입니다") Long teacherId,
+            @RequestBody @Valid TeacherUpdateRequest updateRequest
+    ) {
+        managementTeacherService.updateTeacher(updateRequest, teacherId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("선생님 정보를 수정하였습니다");
     }
 }

@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("선생님 관리 서비스 테스트")
-class ManagementTeacherServiceTest {
+@DisplayName("선생님 관리 서비스 - 전체 선생님 조회 테스트")
+class ManagementTeacherServiceGetTest {
 
     @Mock
     private TeacherRepository teacherRepository;

@@ -8,6 +8,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST.value())
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(TeachmonException.class)
     public ResponseEntity<ErrorResponse> handleTeachmonException(TeachmonException e) {
         ErrorResponse errorResponse = ErrorResponse.of(e.getStatus().value(), e.getMessage());

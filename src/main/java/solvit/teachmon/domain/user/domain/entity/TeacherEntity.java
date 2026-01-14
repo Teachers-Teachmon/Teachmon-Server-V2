@@ -37,4 +37,12 @@ public class TeacherEntity extends BaseEntity {
         this.role = Role.TEACHER;
         this.isActive = true;
     }
+
+    public void changeRole(Role role) {
+        this.role = role;
+    }
+
+    public void changeName(String name) {
+        this.name = name;
+    }
 }
