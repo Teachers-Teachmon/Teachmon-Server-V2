@@ -2,6 +2,7 @@ package solvit.teachmon.domain.management.teacher.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
@@ -13,7 +14,7 @@ import solvit.teachmon.global.enums.WeekDay;
 @Entity
 @Table(name = "supervision_ban_day")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SupervisionBanDay extends BaseEntity {
+public class SupervisionBanDayEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "teacher_id")
     private TeacherEntity teacher;
@@ -22,7 +23,9 @@ public class SupervisionBanDay extends BaseEntity {
     @Column(name = "week_day", nullable = false)
     private WeekDay weekDay;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "period", nullable = false)
-    private SchoolPeriod period;
+    @Builder
+    public SupervisionBanDayEntity(TeacherEntity teacher, WeekDay weekDay, SchoolPeriod period) {
+        this.teacher = teacher;
+        this.weekDay = weekDay;
+    }
 }

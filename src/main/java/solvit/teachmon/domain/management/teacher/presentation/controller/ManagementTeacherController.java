@@ -67,4 +67,16 @@ public class ManagementTeacherController {
                 .status(HttpStatus.OK)
                 .body(banDays);
     }
+
+    @PostMapping("/{teacher_id}/ban")
+    public ResponseEntity<String> setTeacherBanDay(
+            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1이상입니다") Long teacherId,
+            @RequestBody @Valid List<WeekDay> banDays
+    ) {
+        managementTeacherFacadeService.setTeacherBanDay(teacherId, banDays);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("선생님 금지날이 설정되었습니다");
+    }
 }
