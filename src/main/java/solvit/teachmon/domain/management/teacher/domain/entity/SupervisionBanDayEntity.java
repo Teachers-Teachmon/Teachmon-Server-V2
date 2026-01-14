@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.entity.BaseEntity;
-import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
 
 @Getter
@@ -24,7 +23,7 @@ public class SupervisionBanDayEntity extends BaseEntity {
     private WeekDay weekDay;
 
     @Builder
-    public SupervisionBanDayEntity(TeacherEntity teacher, WeekDay weekDay, SchoolPeriod period) {
+    public SupervisionBanDayEntity(TeacherEntity teacher, WeekDay weekDay) {
         this.teacher = teacher;
         this.weekDay = weekDay;
     }
