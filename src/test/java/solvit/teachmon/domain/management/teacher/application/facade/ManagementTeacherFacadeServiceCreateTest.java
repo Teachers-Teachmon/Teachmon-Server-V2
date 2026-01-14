@@ -136,8 +136,8 @@ class ManagementTeacherFacadeServiceCreateTest {
 
         List<SupervisionBanDayEntity> savedEntities = banDayEntitiesCaptor.getValue();
         assertThat(savedEntities).hasSize(1);
-        assertThat(savedEntities.get(0).getWeekDay()).isEqualTo(WeekDay.TUE);
-        assertThat(savedEntities.get(0).getTeacher()).isEqualTo(teacher);
+        assertThat(savedEntities.getFirst().getWeekDay()).isEqualTo(WeekDay.TUE);
+        assertThat(savedEntities.getFirst().getTeacher()).isEqualTo(teacher);
     }
 
     @Test
