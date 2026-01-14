@@ -23,7 +23,7 @@ public class TeacherEntity extends BaseEntity {
     private String profile;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    @Column(name = "role", nullable = false, columnDefinition = "varchar(255)")
     private Role role;
 
     @Column(name = "is_active", nullable = false)
