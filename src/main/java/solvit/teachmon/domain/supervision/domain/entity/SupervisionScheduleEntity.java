@@ -25,11 +25,11 @@ public class SupervisionScheduleEntity extends BaseEntity {
     private LocalDate day;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "period", nullable = false, columnDefinition = "varchar(255)")
+    @Column(name = "period", nullable = false)
     private SchoolPeriod period;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, columnDefinition = "varchar(255)")
+    @Column(name = "type", nullable = false)
     private SupervisionType type;
 
     @Builder
