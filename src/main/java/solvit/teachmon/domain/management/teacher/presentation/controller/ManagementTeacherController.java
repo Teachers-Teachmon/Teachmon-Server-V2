@@ -18,7 +18,7 @@ public class ManagementTeacherController {
 
     private final ManagementTeacherService managementTeacherService;
 
-    @GetMapping("/teachers")
+    @GetMapping
     public ResponseEntity<List<TeacherListResponse>> getTeachers() {
         return ResponseEntity
                 .status(HttpStatus.OK)
