@@ -61,7 +61,7 @@ class SelfStudyFacadeServiceSetTest {
 
         // Then: 기존 자습이 삭제되고 새로운 자습이 저장된다
         verify(branchRepository, times(1)).findByYearAndBranch(year, branchNumber);
-        verify(selfStudyRepository, times(1)).deleteAllByYearAndBranchAndGrade(year, branchEntity, grade);
+        verify(selfStudyRepository, times(1)).deleteAllByBranchAndGrade(branchEntity, grade);
         verify(selfStudyRepository, times(1)).saveAll(selfStudyEntitiesCaptor.capture());
 
         List<SelfStudyEntity> savedEntities = selfStudyEntitiesCaptor.getValue();
@@ -158,7 +158,7 @@ class SelfStudyFacadeServiceSetTest {
 
         // Then: 기존 자습이 삭제되고 새로운 자습은 저장되지 않는다
         verify(branchRepository, times(1)).findByYearAndBranch(year, branchNumber);
-        verify(selfStudyRepository, times(1)).deleteAllByYearAndBranchAndGrade(year, branchEntity, grade);
+        verify(selfStudyRepository, times(1)).deleteAllByBranchAndGrade(branchEntity, grade);
         verify(selfStudyRepository, times(1)).saveAll(selfStudyEntitiesCaptor.capture());
 
         List<SelfStudyEntity> savedEntities = selfStudyEntitiesCaptor.getValue();
@@ -185,7 +185,7 @@ class SelfStudyFacadeServiceSetTest {
                 .hasMessage("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요");
 
         verify(branchRepository, times(1)).findByYearAndBranch(year, branchNumber);
-        verify(selfStudyRepository, never()).deleteAllByYearAndBranchAndGrade(any(), any(), any());
+        verify(selfStudyRepository, never()).deleteAllByBranchAndGrade(any(), any());
         verify(selfStudyRepository, never()).saveAll(any());
     }
 
@@ -238,13 +238,12 @@ class SelfStudyFacadeServiceSetTest {
         selfStudyFacadeService.setSelfStudy(year, branchNumber, grade, requests);
 
         // Then: 3학년 자습이 저장된다
-        verify(selfStudyRepository, times(1)).deleteAllByYearAndBranchAndGrade(year, branchEntity, grade);
+        verify(selfStudyRepository, times(1)).deleteAllByBranchAndGrade(branchEntity, grade);
         verify(selfStudyRepository, times(1)).saveAll(selfStudyEntitiesCaptor.capture());
 
         List<SelfStudyEntity> savedEntities = selfStudyEntitiesCaptor.getValue();
         assertThat(savedEntities).hasSize(1);
         assertThat(savedEntities.getFirst().getGrade()).isEqualTo(3);
-        assertThat(savedEntities.getFirst().getYear()).isEqualTo(2024);
     }
 
     @Test

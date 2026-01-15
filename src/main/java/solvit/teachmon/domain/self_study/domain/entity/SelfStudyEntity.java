@@ -30,15 +30,11 @@ public class SelfStudyEntity extends BaseEntity {
     @Column(name = "grade", nullable = false)
     private Integer grade;
 
-    @Column(name = "year", nullable = false)
-    private Integer year;
-
     @Builder
-    public SelfStudyEntity(BranchEntity branch, WeekDay weekDay, SchoolPeriod period, Integer grade, Integer year) {
+    public SelfStudyEntity(BranchEntity branch, WeekDay weekDay, SchoolPeriod period, Integer grade) {
         this.branch = branch;
         this.weekDay = weekDay;
         this.period = period;
         this.grade = grade;
-        this.year = year;
     }
 }
