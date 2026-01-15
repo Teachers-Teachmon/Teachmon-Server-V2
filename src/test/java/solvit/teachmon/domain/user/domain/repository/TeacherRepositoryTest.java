@@ -7,12 +7,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
+import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.security.oauth2.client.registration.google.client-id=test",
+        "spring.security.oauth2.client.registration.google.client-secret=test",
+        "spring.security.oauth2.client.registration.google.scope=email,profile",
+        "spring.security.oauth2.client.registration.google.authorization-grant-type=authorization_code",
+        "spring.security.oauth2.client.registration.google.redirect-uri=http://localhost:8080/login/oauth2/code/google"
+})
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("선생님 저장소 테스트")
@@ -29,6 +36,8 @@ class TeacherRepositoryTest {
                 .name("김선생")
                 .mail("kim@teacher.com")
                 .profile("수학 선생님")
+                .providerId("google-12345")
+                .oAuth2Type(OAuth2Type.GOOGLE)
                 .build();
         teacherRepository.save(teacher);
 
