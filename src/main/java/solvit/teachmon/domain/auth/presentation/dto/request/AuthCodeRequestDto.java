@@ -1,4 +1,7 @@
 package solvit.teachmon.domain.auth.presentation.dto.request;
 
-public class AuthCodeRequestDto {
-}
+import jakarta.validation.constraints.NotNull;
+
+public record AuthCodeRequestDto(
+    @NotNull String code
+) {}
