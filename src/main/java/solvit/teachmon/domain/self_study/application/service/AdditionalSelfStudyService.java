@@ -63,4 +63,10 @@ public class AdditionalSelfStudyService {
     }
 
     private record DayAndGradeGroupKey(LocalDate day, Integer grade) {}
+
+    @Trace
+    @Transactional
+    public void deleteAdditionalSelfStudy(Long additionalId) {
+        additionalSelfStudyRepository.deleteById(additionalId);
+    }
 }

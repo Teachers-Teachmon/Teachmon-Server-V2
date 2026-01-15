@@ -1,6 +1,7 @@
 package solvit.teachmon.domain.self_study.presentation.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,5 +38,16 @@ public class AdditionalSelfStudyController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(results);
+    }
+
+    @DeleteMapping("/{additional_id}")
+    public ResponseEntity<String> deleteAdditionalSelfStudy(
+            @PathVariable("additional_id") @Min(value = 1, message = "올바르지 않은 id 입니다") Long additionalId
+    ) {
+        additionalSelfStudyService.deleteAdditionalSelfStudy(additionalId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("일별 자습을 삭제하였습니다");
     }
 }
