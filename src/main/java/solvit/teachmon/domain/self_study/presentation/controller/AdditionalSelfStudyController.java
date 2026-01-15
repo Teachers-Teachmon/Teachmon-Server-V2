@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solvit.teachmon.domain.self_study.application.service.AdditionalSelfStudyService;
 import solvit.teachmon.domain.self_study.presentation.dto.request.AdditionalSelfStudySetRequest;
+import solvit.teachmon.domain.self_study.presentation.dto.response.AdditionalSelfStudyGetResponse;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/self-study/additional")
@@ -24,5 +27,15 @@ public class AdditionalSelfStudyController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body("일별 자습을 추가 설정하였습니다");
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AdditionalSelfStudyGetResponse>> getAdditionalSelfStudy(
+            @RequestParam("year") Integer year
+    ) {
+        List<AdditionalSelfStudyGetResponse> results = additionalSelfStudyService.getAdditionalSelfStudy(year);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(results);
     }
 }
