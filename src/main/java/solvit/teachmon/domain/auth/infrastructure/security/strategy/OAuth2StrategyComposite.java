@@ -1,7 +1,7 @@
-package solvit.teachmon.domain.oauth2.infrastructure.security.strategy;
+package solvit.teachmon.domain.auth.infrastructure.security.strategy;
 
 import org.springframework.stereotype.Component;
-import solvit.teachmon.domain.oauth2.exception.UnsupportedOAuth2ProviderException;
+import solvit.teachmon.domain.auth.exception.UnsupportedOAuth2ProviderException;
 import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 
 import java.util.Map;
