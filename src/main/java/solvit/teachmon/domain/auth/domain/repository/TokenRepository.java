@@ -1,9 +1,9 @@
-package solvit.teachmon.domain.oauth2.domain.repository;
+package solvit.teachmon.domain.auth.domain.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import solvit.teachmon.domain.oauth2.domain.entity.TokenEntity;
+import solvit.teachmon.domain.auth.domain.entity.TokenEntity;
 
 @Repository
-public interface TokenRepository extends JpaRepository<TokenEntity, String> {
+public interface TokenRepository extends CrudRepository<TokenEntity, String> {
 }
