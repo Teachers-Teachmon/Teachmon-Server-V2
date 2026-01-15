@@ -46,7 +46,7 @@ class JwtAuthenticationFilterTest {
     @BeforeEach
     void setUp() {
         SecurityContextHolder.clearContext();
-        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtValidator, teachmonUserDetailsService);
+        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtValidator, teachmonUserDetailsService, new String[]{"test"});
 
         TeacherEntity teacher = TeacherEntity.builder()
                 .name("김선생")
