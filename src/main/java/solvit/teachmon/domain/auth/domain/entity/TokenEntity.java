@@ -1,22 +1,22 @@
-package solvit.teachmon.domain.oauth2.domain.entity;
+package solvit.teachmon.domain.auth.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
 import lombok.Builder;
+import lombok.Getter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 
 
+@Getter
 @RedisHash(value = "token")
 public class TokenEntity {
     @Id
-    private String mail;
+    private final String token;
 
-    @Column(unique = true, nullable = false)
-    private String token;
+    private final String mail;
 
     @TimeToLive
-    private Long expiration;
+    private final Long expiration;
 
     @Builder
     public TokenEntity(String mail, String token, Long expiration) {
