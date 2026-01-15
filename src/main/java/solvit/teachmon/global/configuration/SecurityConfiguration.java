@@ -12,6 +12,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import solvit.teachmon.domain.auth.infrastructure.security.facade.TeachmonOAuth2UserFacade;
+import solvit.teachmon.domain.auth.infrastructure.security.handler.TeachmonOAuth2FailureHandler;
+import solvit.teachmon.domain.auth.infrastructure.security.handler.TeachmonOAuth2SuccessHandler;
 import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.global.security.filter.JwtAuthenticationExceptionFilter;
 import solvit.teachmon.global.security.filter.JwtAuthenticationFilter;
@@ -28,6 +31,16 @@ public class SecurityConfiguration {
     private final ObjectMapper objectMapper;
     private final JwtValidator jwtValidator;
     private final TeachmonUserDetailsService teachmonUserDetailsService;
+    private final TeachmonOAuth2UserFacade teachmonOAuth2UserFacade;
+    private final TeachmonOAuth2SuccessHandler teachmonOAuth2SuccessHandler;
+    private final TeachmonOAuth2FailureHandler teachmonOAuth2FailureHandler;
+    private static final String[] EXCLUDED_PATHS = {
+            "/auth/reissue",
+            "/auth/code",
+            "/oauth2/callback/**",
+            "/oauth2/login/**",
+            "/api/healthcheck"
+    };
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,9 +55,7 @@ public class SecurityConfiguration {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/reissue").permitAll()
-                        .requestMatchers("/login/oauth2").permitAll()
-                        .requestMatchers("/api/healthcheck").permitAll()
+                        .requestMatchers(EXCLUDED_PATHS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement((session) -> session
@@ -53,8 +64,18 @@ public class SecurityConfiguration {
                         .principal(Role.GUEST.name())
                         .authorities(Role.GUEST.getValue())
                 )
-                .addFilterBefore(new JwtAuthenticationFilter(jwtValidator, teachmonUserDetailsService), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new JwtAuthenticationExceptionFilter(objectMapper), JwtAuthenticationFilter.class);
+                .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(authorization -> authorization
+                                .baseUri("/oauth2/login")
+                        )
+                        .successHandler(teachmonOAuth2SuccessHandler)
+                        .failureHandler(teachmonOAuth2FailureHandler)
+                        .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
+                                .userService(teachmonOAuth2UserFacade)
+                        )
+                )
+                .addFilterBefore(new JwtAuthenticationFilter(jwtValidator, teachmonUserDetailsService, EXCLUDED_PATHS), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationExceptionFilter(objectMapper, EXCLUDED_PATHS), JwtAuthenticationFilter.class);
 
         return http.build();
     }
