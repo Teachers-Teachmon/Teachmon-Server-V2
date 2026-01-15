@@ -28,7 +28,7 @@ public class SelfStudyFacadeService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요"));
 
         // 기존 자습 설정 제거
-        selfStudyRepository.deleteAllByYearAndBranchAndGrade(year, branchEntity, grade);
+        selfStudyRepository.deleteAllByBranchAndGrade(branchEntity, grade);
 
         // 새로운 자습 설정 추가 리스트
         List<SelfStudyEntity> selfStudyEntities = new ArrayList<>();
@@ -40,7 +40,6 @@ public class SelfStudyFacadeService {
             weekDaySelfStudyDto.periods().stream()
                     .distinct() // 중복 제거
                     .map(p -> SelfStudyEntity.builder()
-                            .year(year)
                             .branch(branchEntity)
                             .grade(grade)
                             .weekDay(weekDay)
@@ -60,7 +59,7 @@ public class SelfStudyFacadeService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요"));
 
         // 자습 설정 가져오기
-        List<SelfStudyEntity> selfStudyEntities = selfStudyRepository.findAllByYearAndBranchAndGrade(year, branchEntity, grade);
+        List<SelfStudyEntity> selfStudyEntities = selfStudyRepository.findAllByBranchAndGrade(branchEntity, grade);
 
         // WeekDay로 그룹화 시키기
         Map<WeekDay, List<SelfStudyEntity>> groupedByWeekDay = selfStudyEntities.stream()
