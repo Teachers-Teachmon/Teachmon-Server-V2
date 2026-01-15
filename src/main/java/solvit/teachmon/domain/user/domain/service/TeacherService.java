@@ -3,13 +3,13 @@ package solvit.teachmon.domain.user.domain.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import solvit.teachmon.domain.oauth2.infrastructure.security.vo.TeachmonOAuth2UserInfo;
+import solvit.teachmon.domain.auth.infrastructure.security.vo.TeachmonOAuth2UserInfo;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 
 @Service
 @RequiredArgsConstructor
-public class TeacherSaveService {
+public class TeacherService {
     private final TeacherRepository teacherRepository;
 
     @Transactional
