@@ -1,4 +1,8 @@
 package solvit.teachmon.domain.auth.application.dto.response;
 
-public class TokenResponseDto {
-}
+import org.springframework.http.ResponseCookie;
+
+public record TokenResponseDto(
+        String accessToken,
+        ResponseCookie refreshTokenCookie
+) {}
