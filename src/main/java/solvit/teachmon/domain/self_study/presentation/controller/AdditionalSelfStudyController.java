@@ -2,6 +2,7 @@ package solvit.teachmon.domain.self_study.presentation.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,7 @@ public class AdditionalSelfStudyController {
 
     @GetMapping
     public ResponseEntity<List<AdditionalSelfStudyGetResponse>> getAdditionalSelfStudy(
+            @NotNull(message = "일별 자습 추가 조회에서 year(년도)는 필수 입니다")
             @RequestParam("year") Integer year
     ) {
         List<AdditionalSelfStudyGetResponse> results = additionalSelfStudyService.getAdditionalSelfStudy(year);
