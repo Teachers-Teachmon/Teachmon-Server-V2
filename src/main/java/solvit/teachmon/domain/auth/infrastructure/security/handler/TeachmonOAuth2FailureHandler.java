@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.oauth2.infrastructure.security.handler;
+package solvit.teachmon.domain.auth.infrastructure.security.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,9 +24,9 @@ public class TeachmonOAuth2FailureHandler implements AuthenticationFailureHandle
             @NonNull HttpServletResponse response,
             @NonNull AuthenticationException exception
     ) throws IOException {
-        String errorMessage = URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8);
+        String errorMessage = URLEncoder.encode(exception.getClass().getSimpleName(), StandardCharsets.UTF_8);
         
-        String frontendUrl = webProperties.getFrontEndUrl() + "/oauth2/callback?error=" + errorMessage;
+        String frontendUrl = webProperties.getFrontEndUrl() + "/oauth2/callback#error=" + errorMessage;
         response.sendRedirect(frontendUrl);
     }
 }
