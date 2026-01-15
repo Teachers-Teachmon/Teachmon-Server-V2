@@ -1,9 +1,9 @@
-package solvit.teachmon.domain.oauth2.domain.service;
+package solvit.teachmon.domain.auth.domain.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import solvit.teachmon.domain.oauth2.domain.entity.TokenEntity;
-import solvit.teachmon.domain.oauth2.domain.repository.TokenRepository;
+import solvit.teachmon.domain.auth.domain.entity.TokenEntity;
+import solvit.teachmon.domain.auth.domain.repository.TokenRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -17,5 +17,13 @@ public class TokenService {
                 .expiration(expiration)
                 .build();
         tokenRepository.save(tokenEntity);
+    }
+
+    public void deleteToken(String token) {
+        tokenRepository.deleteById(token);
+    }
+
+    public boolean isInvalidToken(String token) {
+        return !tokenRepository.existsById(token);
     }
 }
