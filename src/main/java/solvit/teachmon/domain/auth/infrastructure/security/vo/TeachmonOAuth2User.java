@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.oauth2.infrastructure.security.vo;
+package solvit.teachmon.domain.auth.infrastructure.security.vo;
 
 import lombok.Builder;
 import lombok.NonNull;
