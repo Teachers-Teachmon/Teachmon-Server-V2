@@ -7,12 +7,12 @@ import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
-import solvit.teachmon.domain.self_study.presentation.dto.request.SelfStudySetRequest;
+import solvit.teachmon.domain.self_study.presentation.dto.common.WeekDaySelfStudyDto;
 import solvit.teachmon.global.annotation.Trace;
 import solvit.teachmon.global.enums.WeekDay;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ public class SelfStudyFacadeService {
 
     @Trace
     @Transactional
-    public void setSelfStudy(Integer year, Integer branch, Integer grade, List<SelfStudySetRequest> request) {
+    public void setSelfStudy(Integer year, Integer branch, Integer grade, List<WeekDaySelfStudyDto> request) {
         // 분기 가져오기
         BranchEntity branchEntity = branchRepository.findByYearAndBranch(year, branch)
                 .orElseThrow(() -> new IllegalArgumentException("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요"));
@@ -33,11 +33,11 @@ public class SelfStudyFacadeService {
         // 새로운 자습 설정 추가 리스트
         List<SelfStudyEntity> selfStudyEntities = new ArrayList<>();
 
-        for(SelfStudySetRequest selfStudySetRequest : request) {    // 각 요일별 자습 설정 가져오기
-            WeekDay weekDay = selfStudySetRequest.weekDay();
+        for(WeekDaySelfStudyDto weekDaySelfStudyDto : request) {    // 각 요일별 자습 설정 가져오기
+            WeekDay weekDay = weekDaySelfStudyDto.weekDay();
 
             // 각 교시별 자습 설정 가져온 후 entity 생성
-            selfStudySetRequest.periods().stream()
+            weekDaySelfStudyDto.periods().stream()
                     .distinct() // 중복 제거
                     .map(p -> SelfStudyEntity.builder()
                             .year(year)
@@ -51,5 +51,30 @@ public class SelfStudyFacadeService {
 
         // 일괄 저장하기
         selfStudyRepository.saveAll(selfStudyEntities);
+    }
+
+    @Trace
+    public List<WeekDaySelfStudyDto> getSelfStudy(Integer year, Integer branch, Integer grade) {
+        // 분기 가져오기
+        BranchEntity branchEntity = branchRepository.findByYearAndBranch(year, branch)
+                .orElseThrow(() -> new IllegalArgumentException("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요"));
+
+        // 자습 설정 가져오기
+        List<SelfStudyEntity> selfStudyEntities = selfStudyRepository.findAllByYearAndBranchAndGrade(year, branchEntity, grade);
+
+        // WeekDay로 그룹화 시키기
+        Map<WeekDay, List<SelfStudyEntity>> groupedByWeekDay = selfStudyEntities.stream()
+                .collect(Collectors.groupingBy(SelfStudyEntity::getWeekDay));
+
+        // 모든 요일(MON~FRI)에 대해 WeekDaySelfStudyDto 생성
+        return Arrays.stream(WeekDay.values())
+                .map(weekDay -> new WeekDaySelfStudyDto(
+                        weekDay,
+                        // 해당하는 요일의 자습 교시 가져오기 (없으면 빈 리스트)
+                        groupedByWeekDay.getOrDefault(weekDay, Collections.emptyList()).stream()
+                                .map(SelfStudyEntity::getPeriod)
+                                .toList()
+                ))
+                .toList();
     }
 }
