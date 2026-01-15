@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import solvit.teachmon.domain.self_study.application.service.AdditionalSelfStudyService;
 import solvit.teachmon.domain.self_study.presentation.dto.request.AdditionalSelfStudySetRequest;
@@ -13,6 +14,7 @@ import solvit.teachmon.domain.self_study.presentation.dto.response.AdditionalSel
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/self-study/additional")
 @RequiredArgsConstructor
