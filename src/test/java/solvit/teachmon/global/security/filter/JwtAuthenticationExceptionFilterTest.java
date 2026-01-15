@@ -37,7 +37,7 @@ class JwtAuthenticationExceptionFilterTest {
 
     @BeforeEach
     void setUp() {
-        jwtAuthenticationExceptionFilter = new JwtAuthenticationExceptionFilter(objectMapper);
+        jwtAuthenticationExceptionFilter = new JwtAuthenticationExceptionFilter(objectMapper, new String[]{"test"});
     }
 
     private void setupMocksForErrorResponse() throws Exception {
