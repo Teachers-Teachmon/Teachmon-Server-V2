@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import solvit.teachmon.domain.auth.domain.service.TokenService;
+import solvit.teachmon.domain.auth.exception.RefreshTokenNotFoundException;
 import solvit.teachmon.global.constants.JwtConstants;
 import solvit.teachmon.global.properties.JwtProperties;
 
@@ -19,13 +19,13 @@ import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
-public class JwtProvider {
+public class JwtManager {
     private final JwtProperties jwtProperties;
     private final TokenService tokenService;
     private final SecretKey secretKey;
 
     @Autowired
-    public JwtProvider(JwtProperties jwtProperties, TokenService tokenService) {
+    public JwtManager(JwtProperties jwtProperties, TokenService tokenService) {
         this.jwtProperties = jwtProperties;
         this.tokenService = tokenService;
         this.secretKey = new SecretKeySpec(
@@ -47,7 +47,6 @@ public class JwtProvider {
                 .compact();
     }
 
-    @Transactional
     public ResponseCookie createRefreshToken(String mail) {
         long now = System.currentTimeMillis();
         Date expiration = new Date(now + jwtProperties.getRefreshExpiration());
@@ -69,5 +68,22 @@ public class JwtProvider {
                 .secure(true)
                 .sameSite("Strict")
                 .build();
+    }
+
+    public ResponseCookie deleteRefreshTokenCookie(String refreshToken) {
+        deleteRefreshToken(refreshToken);
+
+        return ResponseCookie.from("refresh_token", refreshToken)
+                .maxAge(0)
+                .path("/")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .build();
+    }
+
+    public void deleteRefreshToken(String refreshToken) {
+        if(tokenService.isInvalidToken(refreshToken)) throw new RefreshTokenNotFoundException();
+        tokenService.deleteToken(refreshToken);
     }
 }
