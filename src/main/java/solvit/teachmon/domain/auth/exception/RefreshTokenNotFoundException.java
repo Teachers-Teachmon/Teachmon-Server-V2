@@ -1,7 +1,9 @@
 package solvit.teachmon.domain.auth.exception;
 
-public class RefreshTokenNotFoundException extends RuntimeException {
-  public RefreshTokenNotFoundException(String message) {
-    super(message);
-  }
+import solvit.teachmon.global.entity.exception.ResourceNotFoundException;
+
+public class RefreshTokenNotFoundException extends ResourceNotFoundException {
+    public RefreshTokenNotFoundException() {
+        super("Refresh Token이 존재하지 않습니다.");
+    }
 }

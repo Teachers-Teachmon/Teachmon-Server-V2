@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.oauth2.exception;
+package solvit.teachmon.domain.auth.exception;
 
 import org.springframework.security.core.AuthenticationException;
 
