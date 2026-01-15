@@ -49,7 +49,7 @@ class ManagementTeacherFacadeServiceCreateTest {
                 .mail("kim@teacher.com")
                 .profile("https://profile.url/image.png")
                 .build();
-        List<WeekDay> banDays = Arrays.asList(WeekDay.MON, WeekDay.WED, WeekDay.FRI);
+        List<WeekDay> banDays = Arrays.asList(WeekDay.MON, WeekDay.WED, WeekDay.THU);
 
         given(teacherRepository.findById(teacherId)).willReturn(Optional.of(teacher));
 
@@ -64,7 +64,7 @@ class ManagementTeacherFacadeServiceCreateTest {
         List<SupervisionBanDayEntity> savedEntities = banDayEntitiesCaptor.getValue();
         assertThat(savedEntities).hasSize(3);
         assertThat(savedEntities).extracting(SupervisionBanDayEntity::getWeekDay)
-                .containsExactlyInAnyOrder(WeekDay.MON, WeekDay.WED, WeekDay.FRI);
+                .containsExactlyInAnyOrder(WeekDay.MON, WeekDay.WED, WeekDay.THU);
         assertThat(savedEntities).allMatch(e -> e.getTeacher().equals(teacher));
     }
 
@@ -99,7 +99,7 @@ class ManagementTeacherFacadeServiceCreateTest {
     void shouldThrowExceptionWhenTeacherNotFoundOnSetBanDay() {
         // Given: 존재하지 않는 선생님 ID가 있을 때
         Long teacherId = 999L;
-        List<WeekDay> banDays = Arrays.asList(WeekDay.MON, WeekDay.FRI);
+        List<WeekDay> banDays = Arrays.asList(WeekDay.MON, WeekDay.THU);
 
         given(teacherRepository.findById(teacherId)).willReturn(Optional.empty());
 
@@ -150,21 +150,21 @@ class ManagementTeacherFacadeServiceCreateTest {
                 .mail("kim@teacher.com")
                 .profile("https://profile.url/image.png")
                 .build();
-        List<WeekDay> banDays = Arrays.asList(WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU, WeekDay.FRI);
+        List<WeekDay> banDays = Arrays.asList(WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU);
 
         given(teacherRepository.findById(teacherId)).willReturn(Optional.of(teacher));
 
         // When: 모든 평일을 금지날로 설정하면
         managementTeacherFacadeService.setTeacherBanDay(teacherId, banDays);
 
-        // Then: 5개의 금지날이 저장된다
+        // Then: 4개의 금지날이 저장된다
         verify(teacherRepository, times(1)).findById(teacherId);
         verify(supervisionBanDayRepository, times(1)).deleteAllByTeacherId(teacherId);
         verify(supervisionBanDayRepository, times(1)).saveAll(banDayEntitiesCaptor.capture());
 
         List<SupervisionBanDayEntity> savedEntities = banDayEntitiesCaptor.getValue();
-        assertThat(savedEntities).hasSize(5);
+        assertThat(savedEntities).hasSize(4);
         assertThat(savedEntities).extracting(SupervisionBanDayEntity::getWeekDay)
-                .containsExactlyInAnyOrder(WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU, WeekDay.FRI);
+                .containsExactlyInAnyOrder(WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU);
     }
 }

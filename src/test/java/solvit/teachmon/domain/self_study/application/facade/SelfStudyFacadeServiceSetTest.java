@@ -12,7 +12,7 @@ import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
-import solvit.teachmon.domain.self_study.presentation.dto.request.SelfStudySetRequest;
+import solvit.teachmon.domain.self_study.presentation.dto.common.WeekDaySelfStudyDto;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
 
@@ -49,9 +49,9 @@ class SelfStudyFacadeServiceSetTest {
         Integer grade = 1;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudySetRequest> requests = Arrays.asList(
-                new SelfStudySetRequest(WeekDay.MON, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
-                new SelfStudySetRequest(WeekDay.TUE, Arrays.asList(SchoolPeriod.EIGHT_AND_NINE_PERIOD))
+        List<WeekDaySelfStudyDto> requests = Arrays.asList(
+                new WeekDaySelfStudyDto(WeekDay.MON, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
+                new WeekDaySelfStudyDto(WeekDay.TUE, Arrays.asList(SchoolPeriod.EIGHT_AND_NINE_PERIOD))
         );
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));
@@ -81,8 +81,8 @@ class SelfStudyFacadeServiceSetTest {
         Integer grade = 2;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudySetRequest> requests = Collections.singletonList(
-                new SelfStudySetRequest(WeekDay.WED, Arrays.asList(
+        List<WeekDaySelfStudyDto> requests = Collections.singletonList(
+                new WeekDaySelfStudyDto(WeekDay.WED, Arrays.asList(
                         SchoolPeriod.SEVEN_PERIOD,
                         SchoolPeriod.EIGHT_AND_NINE_PERIOD,
                         SchoolPeriod.TEN_AND_ELEVEN_PERIOD
@@ -117,8 +117,8 @@ class SelfStudyFacadeServiceSetTest {
         Integer grade = 1;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudySetRequest> requests = Collections.singletonList(
-                new SelfStudySetRequest(WeekDay.THU, Arrays.asList(
+        List<WeekDaySelfStudyDto> requests = Collections.singletonList(
+                new WeekDaySelfStudyDto(WeekDay.THU, Arrays.asList(
                         SchoolPeriod.SEVEN_PERIOD,
                         SchoolPeriod.SEVEN_PERIOD,
                         SchoolPeriod.EIGHT_AND_NINE_PERIOD,
@@ -149,7 +149,7 @@ class SelfStudyFacadeServiceSetTest {
         Integer grade = 3;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudySetRequest> requests = Collections.emptyList();
+        List<WeekDaySelfStudyDto> requests = Collections.emptyList();
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));
 
@@ -173,8 +173,8 @@ class SelfStudyFacadeServiceSetTest {
         Integer branchNumber = 999;
         Integer grade = 1;
 
-        List<SelfStudySetRequest> requests = Collections.singletonList(
-                new SelfStudySetRequest(WeekDay.MON, Arrays.asList(SchoolPeriod.SEVEN_PERIOD))
+        List<WeekDaySelfStudyDto> requests = Collections.singletonList(
+                new WeekDaySelfStudyDto(WeekDay.MON, Arrays.asList(SchoolPeriod.SEVEN_PERIOD))
         );
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.empty());
@@ -198,12 +198,11 @@ class SelfStudyFacadeServiceSetTest {
         Integer grade = 1;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudySetRequest> requests = Arrays.asList(
-                new SelfStudySetRequest(WeekDay.MON, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
-                new SelfStudySetRequest(WeekDay.TUE, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
-                new SelfStudySetRequest(WeekDay.WED, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
-                new SelfStudySetRequest(WeekDay.THU, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
-                new SelfStudySetRequest(WeekDay.FRI, Arrays.asList(SchoolPeriod.SEVEN_PERIOD))
+        List<WeekDaySelfStudyDto> requests = Arrays.asList(
+                new WeekDaySelfStudyDto(WeekDay.MON, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
+                new WeekDaySelfStudyDto(WeekDay.TUE, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
+                new WeekDaySelfStudyDto(WeekDay.WED, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
+                new WeekDaySelfStudyDto(WeekDay.THU, Arrays.asList(SchoolPeriod.SEVEN_PERIOD))
         );
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));
@@ -211,13 +210,13 @@ class SelfStudyFacadeServiceSetTest {
         // When: 모든 요일에 자습을 설정하면
         selfStudyFacadeService.setSelfStudy(year, branchNumber, grade, requests);
 
-        // Then: 5개의 자습이 저장된다
+        // Then: 4개의 자습이 저장된다
         verify(selfStudyRepository, times(1)).saveAll(selfStudyEntitiesCaptor.capture());
 
         List<SelfStudyEntity> savedEntities = selfStudyEntitiesCaptor.getValue();
-        assertThat(savedEntities).hasSize(5);
+        assertThat(savedEntities).hasSize(4);
         assertThat(savedEntities).extracting(SelfStudyEntity::getWeekDay)
-                .containsExactlyInAnyOrder(WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU, WeekDay.FRI);
+                .containsExactlyInAnyOrder(WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU);
     }
 
     @Test
@@ -229,8 +228,8 @@ class SelfStudyFacadeServiceSetTest {
         Integer grade = 3;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudySetRequest> requests = Collections.singletonList(
-                new SelfStudySetRequest(WeekDay.FRI, Arrays.asList(SchoolPeriod.TEN_AND_ELEVEN_PERIOD))
+        List<WeekDaySelfStudyDto> requests = Collections.singletonList(
+                new WeekDaySelfStudyDto(WeekDay.THU, Arrays.asList(SchoolPeriod.TEN_AND_ELEVEN_PERIOD))
         );
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));
@@ -257,9 +256,9 @@ class SelfStudyFacadeServiceSetTest {
         Integer grade = 1;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudySetRequest> requests = Arrays.asList(
-                new SelfStudySetRequest(WeekDay.MON, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
-                new SelfStudySetRequest(WeekDay.TUE, Collections.emptyList())  // 빈 교시 리스트
+        List<WeekDaySelfStudyDto> requests = Arrays.asList(
+                new WeekDaySelfStudyDto(WeekDay.MON, Arrays.asList(SchoolPeriod.SEVEN_PERIOD)),
+                new WeekDaySelfStudyDto(WeekDay.TUE, Collections.emptyList())  // 빈 교시 리스트
         );
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));

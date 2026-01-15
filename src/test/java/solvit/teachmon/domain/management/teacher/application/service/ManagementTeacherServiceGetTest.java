@@ -31,7 +31,7 @@ class ManagementTeacherServiceGetTest {
     void shouldGetTeacherBanDays() {
         // Given: 선생님 ID와 여러 개의 금지날이 있을 때
         Long teacherId = 1L;
-        List<WeekDay> expectedBanDays = Arrays.asList(WeekDay.MON, WeekDay.WED, WeekDay.FRI);
+        List<WeekDay> expectedBanDays = Arrays.asList(WeekDay.MON, WeekDay.WED, WeekDay.THU);
 
         given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
 
@@ -40,7 +40,7 @@ class ManagementTeacherServiceGetTest {
 
         // Then: 금지날 목록이 반환된다
         assertThat(result).hasSize(3);
-        assertThat(result).containsExactly(WeekDay.MON, WeekDay.WED, WeekDay.FRI);
+        assertThat(result).containsExactly(WeekDay.MON, WeekDay.WED, WeekDay.THU);
         verify(supervisionBanDayRepository, times(1)).findWeekDaysByTeacherId(teacherId);
     }
 
@@ -84,7 +84,7 @@ class ManagementTeacherServiceGetTest {
         // Given: 모든 평일이 금지날인 선생님 ID가 있을 때
         Long teacherId = 1L;
         List<WeekDay> expectedBanDays = Arrays.asList(
-                WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU, WeekDay.FRI
+                WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU
         );
 
         given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
@@ -93,9 +93,9 @@ class ManagementTeacherServiceGetTest {
         List<WeekDay> result = managementTeacherService.getTeacherBanDay(teacherId);
 
         // Then: 모든 평일이 반환된다
-        assertThat(result).hasSize(5);
+        assertThat(result).hasSize(4);
         assertThat(result).containsExactlyInAnyOrder(
-                WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU, WeekDay.FRI
+                WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU
         );
         verify(supervisionBanDayRepository, times(1)).findWeekDaysByTeacherId(teacherId);
     }
