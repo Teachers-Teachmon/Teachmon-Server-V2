@@ -2,7 +2,6 @@ package solvit.teachmon.global.configuration;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -26,7 +25,6 @@ public class WebConfiguration implements WebMvcConfigurer {
                         HttpMethod.OPTIONS.name()
                 )
                 .allowedHeaders("*")
-                .exposedHeaders(HttpHeaders.AUTHORIZATION)
                 .allowCredentials(true);
     }
 }
