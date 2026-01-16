@@ -10,7 +10,6 @@ import solvit.teachmon.domain.management.teacher.presentation.dto.response.Teach
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
-import solvit.teachmon.global.annotation.Trace;
 import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.ArrayList;
@@ -23,12 +22,10 @@ public class ManagementTeacherFacadeService {
     private final SupervisionScheduleRepository supervisionScheduleRepository;
     private final SupervisionBanDayRepository supervisionBanDayRepository;
 
-    @Trace
     public List<TeacherListResponse> getAllTeachers(String query) {
         return supervisionScheduleRepository.countTeacherSupervision(query);
     }
 
-    @Trace
     @Transactional
     public void updateTeacher(TeacherUpdateRequest updateRequest, Long teacherId) {
         TeacherEntity teacher = teacherRepository.findById(teacherId)
@@ -38,13 +35,11 @@ public class ManagementTeacherFacadeService {
         teacher.changeName(updateRequest.name());
     }
 
-    @Trace
     @Transactional
     public void deleteTeacher(Long teacherId) {
         teacherRepository.deleteById(teacherId);
     }
 
-    @Trace
     @Transactional
     public void setTeacherBanDay(Long teacherId, List<WeekDay> banDays) {
         TeacherEntity teacher = teacherRepository.findById(teacherId)

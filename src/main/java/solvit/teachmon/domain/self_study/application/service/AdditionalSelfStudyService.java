@@ -8,7 +8,6 @@ import solvit.teachmon.domain.self_study.domain.repository.AdditionalSelfStudyRe
 import solvit.teachmon.domain.self_study.presentation.dto.request.AdditionalSelfStudySetRequest;
 import solvit.teachmon.domain.self_study.presentation.dto.response.AdditionalSelfStudyGetResponse;
 import solvit.teachmon.domain.self_study.presentation.dto.response.AdditionalSelfStudyPeriodResponse;
-import solvit.teachmon.global.annotation.Trace;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
 public class AdditionalSelfStudyService {
     private final AdditionalSelfStudyRepository additionalSelfStudyRepository;
 
-    @Trace
     @Transactional
     public void setAdditionalSelfStudy(AdditionalSelfStudySetRequest request) {
         List<AdditionalSelfStudyEntity> additionalSelfStudyEntities = new ArrayList<>();
@@ -39,7 +37,6 @@ public class AdditionalSelfStudyService {
         additionalSelfStudyRepository.saveAll(additionalSelfStudyEntities);
     }
 
-    @Trace
     public List<AdditionalSelfStudyGetResponse> getAdditionalSelfStudy(Integer year) {
         // 년도로 전체 추가 자습 조회
         List<AdditionalSelfStudyEntity> additionalSelfStudyEntities = additionalSelfStudyRepository.findByYear(year);
@@ -64,7 +61,6 @@ public class AdditionalSelfStudyService {
 
     private record DayAndGradeGroupKey(LocalDate day, Integer grade) {}
 
-    @Trace
     @Transactional
     public void deleteAdditionalSelfStudy(Long additionalId) {
         additionalSelfStudyRepository.deleteById(additionalId);

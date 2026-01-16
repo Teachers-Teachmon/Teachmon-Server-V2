@@ -3,12 +3,11 @@ package solvit.teachmon.domain.self_study.application.facade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import solvit.teachmon.domain.branch.application.service.BranchService;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
-import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
 import solvit.teachmon.domain.self_study.presentation.dto.common.WeekDaySelfStudyDto;
-import solvit.teachmon.global.annotation.Trace;
 import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.*;
@@ -18,14 +17,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SelfStudyFacadeService {
     private final SelfStudyRepository selfStudyRepository;
-    private final BranchRepository branchRepository;
+    private final BranchService branchService;
 
-    @Trace
     @Transactional
     public void setSelfStudy(Integer year, Integer branch, Integer grade, List<WeekDaySelfStudyDto> request) {
         // 분기 가져오기
-        BranchEntity branchEntity = branchRepository.findByYearAndBranch(year, branch)
-                .orElseThrow(() -> new IllegalArgumentException("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요"));
+        BranchEntity branchEntity = branchService.getBranch(year, branch);
 
         // 기존 자습 설정 제거
         selfStudyRepository.deleteAllByBranchAndGrade(branchEntity, grade);
@@ -52,11 +49,9 @@ public class SelfStudyFacadeService {
         selfStudyRepository.saveAll(selfStudyEntities);
     }
 
-    @Trace
     public List<WeekDaySelfStudyDto> getSelfStudy(Integer year, Integer branch, Integer grade) {
         // 분기 가져오기
-        BranchEntity branchEntity = branchRepository.findByYearAndBranch(year, branch)
-                .orElseThrow(() -> new IllegalArgumentException("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요"));
+        BranchEntity branchEntity = branchService.getBranch(year, branch);
 
         // 자습 설정 가져오기
         List<SelfStudyEntity> selfStudyEntities = selfStudyRepository.findAllByBranchAndGrade(branchEntity, grade);
