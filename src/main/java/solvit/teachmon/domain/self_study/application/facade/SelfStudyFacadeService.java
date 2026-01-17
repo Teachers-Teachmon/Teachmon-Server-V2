@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
+import solvit.teachmon.domain.self_study.application.mapper.SelfStudyMapper;
 import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
 import solvit.teachmon.domain.self_study.presentation.dto.common.WeekDaySelfStudyDto;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 public class SelfStudyFacadeService {
     private final SelfStudyRepository selfStudyRepository;
     private final BranchRepository branchRepository;
+    private final SelfStudyMapper selfStudyMapper;
 
     @Transactional
     public void setSelfStudy(Integer year, Integer branch, Integer grade, List<WeekDaySelfStudyDto> request) {
@@ -30,22 +32,7 @@ public class SelfStudyFacadeService {
         selfStudyRepository.deleteAllByBranchAndGrade(branchEntity, grade);
 
         // 새로운 자습 설정 추가 리스트
-        List<SelfStudyEntity> selfStudyEntities = new ArrayList<>();
-
-        for(WeekDaySelfStudyDto weekDaySelfStudyDto : request) {    // 각 요일별 자습 설정 가져오기
-            WeekDay weekDay = weekDaySelfStudyDto.weekDay();
-
-            // 각 교시별 자습 설정 가져온 후 entity 생성
-            weekDaySelfStudyDto.periods().stream()
-                    .distinct() // 중복 제거
-                    .map(p -> SelfStudyEntity.builder()
-                            .branch(branchEntity)
-                            .grade(grade)
-                            .weekDay(weekDay)
-                            .period(p)
-                            .build())
-                    .forEach(selfStudyEntities::add);
-        }
+        List<SelfStudyEntity> selfStudyEntities = selfStudyMapper.toEntities(request, branchEntity, grade);
 
         // 일괄 저장하기
         selfStudyRepository.saveAll(selfStudyEntities);
