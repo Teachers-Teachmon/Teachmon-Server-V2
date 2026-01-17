@@ -7,8 +7,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
-import solvit.teachmon.domain.management.student.domain.exception.InvalidStudentInfoException;
-import solvit.teachmon.domain.management.student.domain.exception.StudentNotFoundException;
+import solvit.teachmon.domain.management.student.exception.InvalidStudentInfoException;
+import solvit.teachmon.domain.management.student.exception.StudentNotFoundException;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 import solvit.teachmon.domain.management.student.presentation.dto.request.StudentRequest;
 

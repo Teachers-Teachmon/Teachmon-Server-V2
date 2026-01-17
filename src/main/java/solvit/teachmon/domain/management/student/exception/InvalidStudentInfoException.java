@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.management.student.domain.exception;
+package solvit.teachmon.domain.management.student.exception;
 
 import org.springframework.http.HttpStatus;
 import solvit.teachmon.global.exception.TeachmonBusinessException;

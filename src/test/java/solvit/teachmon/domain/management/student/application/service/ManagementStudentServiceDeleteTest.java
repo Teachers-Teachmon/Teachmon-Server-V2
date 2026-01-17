@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import solvit.teachmon.domain.management.student.domain.exception.StudentNotFoundException;
+import solvit.teachmon.domain.management.student.exception.StudentNotFoundException;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;

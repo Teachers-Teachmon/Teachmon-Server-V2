@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.management.student.domain.exception;
+package solvit.teachmon.domain.management.student.exception;
 
 import solvit.teachmon.global.entity.exception.ResourceNotFoundException;
 

@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import solvit.teachmon.domain.management.student.domain.exception.InvalidStudentInfoException;
+import solvit.teachmon.domain.management.student.exception.InvalidStudentInfoException;
 import solvit.teachmon.global.entity.BaseEntity;
 
 @Getter
