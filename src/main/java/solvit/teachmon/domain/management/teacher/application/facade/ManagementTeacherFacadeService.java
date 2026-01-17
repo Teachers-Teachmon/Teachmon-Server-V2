@@ -24,14 +24,18 @@ public class ManagementTeacherFacadeService {
 
     public List<TeacherListResponse> getAllTeachers(String query) {
         return supervisionService.getTeacherSupervisionCounts(query).stream()
-                .map(dto -> new TeacherListResponse(
-                        dto.teacherId(),
-                        dto.role(),
-                        dto.name(),
-                        dto.email(),
-                        dto.supervisionCount()
-                ))
+                .map(this::toTeacherListResponse)
                 .toList();
+    }
+
+    private TeacherListResponse toTeacherListResponse(solvit.teachmon.domain.supervision.application.dto.TeacherSupervisionCountDto dto) {
+        return new TeacherListResponse(
+                dto.teacherId(),
+                dto.role(),
+                dto.name(),
+                dto.email(),
+                dto.supervisionCount()
+        );
     }
 
     @Transactional

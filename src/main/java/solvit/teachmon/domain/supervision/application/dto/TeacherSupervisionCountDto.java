@@ -11,5 +11,11 @@ public record TeacherSupervisionCountDto(
         Integer supervisionCount
 ) {
     @QueryProjection
-    public TeacherSupervisionCountDto {}
+    public TeacherSupervisionCountDto(Long teacherId, Role role, String name, String email, Integer supervisionCount) {
+        this.teacherId = teacherId;
+        this.role = role;
+        this.name = name;
+        this.email = email;
+        this.supervisionCount = supervisionCount;
+    }
 }
