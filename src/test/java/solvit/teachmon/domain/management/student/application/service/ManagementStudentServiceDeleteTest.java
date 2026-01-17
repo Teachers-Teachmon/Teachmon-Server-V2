@@ -6,8 +6,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import solvit.teachmon.domain.management.student.exception.StudentNotFoundException;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,11 +27,13 @@ class ManagementStudentServiceDeleteTest {
     void shouldDeleteStudent() {
         // Given: 학생 ID가 있을 때
         Long studentId = 1L;
+        given(studentRepository.existsById(studentId)).willReturn(true);
 
         // When: 학생을 삭제하면
         managementStudentService.deleteStudent(studentId);
 
         // Then: 해당 ID의 학생이 삭제된다
+        verify(studentRepository, times(1)).existsById(studentId);
         verify(studentRepository, times(1)).deleteById(studentId);
     }
 
@@ -40,6 +44,7 @@ class ManagementStudentServiceDeleteTest {
         Long studentId1 = 1L;
         Long studentId2 = 2L;
         Long studentId3 = 3L;
+        given(studentRepository.existsById(anyLong())).willReturn(true);
 
         // When: 학생들을 삭제하면
         managementStudentService.deleteStudent(studentId1);
@@ -53,15 +58,17 @@ class ManagementStudentServiceDeleteTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 학생 ID로도 삭제 메서드가 호출된다")
-    void shouldCallDeleteMethodEvenWithNonExistentId() {
+    @DisplayName("존재하지 않는 학생 ID로 삭제하면 예외가 발생한다")
+    void shouldThrowExceptionWhenStudentNotFoundOnDelete() {
         // Given: 존재하지 않는 학생 ID가 있을 때
         Long nonExistentId = 999L;
+        given(studentRepository.existsById(nonExistentId)).willReturn(false);
 
-        // When: 삭제를 시도하면
-        managementStudentService.deleteStudent(nonExistentId);
+        // When & Then: 삭제를 시도하면 예외가 발생한다
+        assertThatThrownBy(() -> managementStudentService.deleteStudent(nonExistentId))
+                .isInstanceOf(StudentNotFoundException.class);
 
-        // Then: deleteById 메서드가 호출된다 (JPA가 처리)
-        verify(studentRepository, times(1)).deleteById(nonExistentId);
+        verify(studentRepository, times(1)).existsById(nonExistentId);
+        verify(studentRepository, never()).deleteById(nonExistentId);
     }
 }

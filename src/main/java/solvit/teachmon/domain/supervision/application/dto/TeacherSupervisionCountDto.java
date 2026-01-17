@@ -9,5 +9,6 @@ public record TeacherSupervisionCountDto(
         Role role,
         String name,
         String email,
+        String profile,
         Integer supervisionCount
 ) {}

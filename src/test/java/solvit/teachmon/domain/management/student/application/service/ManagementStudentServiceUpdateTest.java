@@ -7,6 +7,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
+import solvit.teachmon.domain.management.student.exception.InvalidStudentInfoException;
+import solvit.teachmon.domain.management.student.exception.StudentNotFoundException;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 import solvit.teachmon.domain.management.student.presentation.dto.request.StudentRequest;
 
@@ -64,8 +66,7 @@ class ManagementStudentServiceUpdateTest {
 
         // When & Then: 수정하면 예외가 발생한다
         assertThatThrownBy(() -> managementStudentService.updateStudent(studentId, updateRequest))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("해당 ID의 학생을 찾을 수 없습니다.");
+                .isInstanceOf(StudentNotFoundException.class);
 
         verify(studentRepository, times(1)).findById(studentId);
     }
@@ -166,7 +167,7 @@ class ManagementStudentServiceUpdateTest {
 
         // When & Then: 수정하면 예외가 발생한다
         assertThatThrownBy(() -> managementStudentService.updateStudent(studentId, updateRequest))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidStudentInfoException.class)
                 .hasMessage("학년은 1 ~ 3 사이여야 합니다");
     }
 
@@ -188,7 +189,7 @@ class ManagementStudentServiceUpdateTest {
 
         // When & Then: 수정하면 예외가 발생한다
         assertThatThrownBy(() -> managementStudentService.updateStudent(studentId, updateRequest))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidStudentInfoException.class)
                 .hasMessage("반은 1 이상이어야 합니다");
     }
 
@@ -210,7 +211,7 @@ class ManagementStudentServiceUpdateTest {
 
         // When & Then: 수정하면 예외가 발생한다
         assertThatThrownBy(() -> managementStudentService.updateStudent(studentId, updateRequest))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidStudentInfoException.class)
                 .hasMessage("번호는 1 이상이어야 합니다");
     }
 
@@ -232,7 +233,7 @@ class ManagementStudentServiceUpdateTest {
 
         // When & Then: 수정하면 예외가 발생한다
         assertThatThrownBy(() -> managementStudentService.updateStudent(studentId, updateRequest))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidStudentInfoException.class)
                 .hasMessage("이름은 비어 있을 수 없습니다");
     }
 }

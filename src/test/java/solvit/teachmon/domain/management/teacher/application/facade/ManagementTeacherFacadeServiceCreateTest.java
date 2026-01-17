@@ -10,6 +10,7 @@ import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDay
 import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
+import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
 import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.Arrays;
@@ -104,8 +105,7 @@ class ManagementTeacherFacadeServiceCreateTest {
 
         // When & Then: 금지날을 설정하면 예외가 발생한다
         assertThatThrownBy(() -> managementTeacherFacadeService.setTeacherBanDay(teacherId, banDays))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("해당 ID의 교사를 찾을 수 없습니다");
+                .isInstanceOf(TeacherNotFoundException.class);
 
         verify(teacherRepository, times(1)).findById(teacherId);
         verify(supervisionBanDayRepository, never()).deleteAllByTeacherId(any());

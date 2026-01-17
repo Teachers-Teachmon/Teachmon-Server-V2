@@ -8,6 +8,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import solvit.teachmon.domain.management.student.application.mapper.StudentMapper;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 import solvit.teachmon.domain.management.student.presentation.dto.request.StudentRequest;
@@ -24,6 +25,9 @@ class ManagementStudentServiceCreateTest {
     @Mock
     private StudentRepository studentRepository;
 
+    @Mock
+    private StudentMapper studentMapper;
+
     @InjectMocks
     private ManagementStudentService managementStudentService;
 
@@ -35,6 +39,13 @@ class ManagementStudentServiceCreateTest {
     void shouldCreateStudent() {
         // Given: 학생 정보가 있을 때
         StudentRequest request = new StudentRequest(1, 1, 1, "김학생");
+        StudentEntity studentEntity = StudentEntity.builder()
+                .grade(1)
+                .classNumber(1)
+                .number(1)
+                .name("김학생")
+                .build();
+        given(studentMapper.toEntity(request)).willReturn(studentEntity);
 
         // When: 학생을 생성하면
         managementStudentService.createStudent(request);
@@ -55,6 +66,13 @@ class ManagementStudentServiceCreateTest {
     void shouldCreateSecondGradeStudent() {
         // Given: 2학년 학생 정보가 있을 때
         StudentRequest request = new StudentRequest(2, 3, 15, "이학생");
+        StudentEntity studentEntity = StudentEntity.builder()
+                .grade(2)
+                .classNumber(3)
+                .number(15)
+                .name("이학생")
+                .build();
+        given(studentMapper.toEntity(request)).willReturn(studentEntity);
 
         // When: 학생을 생성하면
         managementStudentService.createStudent(request);
@@ -75,6 +93,13 @@ class ManagementStudentServiceCreateTest {
     void shouldCreateThirdGradeStudent() {
         // Given: 3학년 학생 정보가 있을 때
         StudentRequest request = new StudentRequest(3, 5, 20, "박학생");
+        StudentEntity studentEntity = StudentEntity.builder()
+                .grade(3)
+                .classNumber(5)
+                .number(20)
+                .name("박학생")
+                .build();
+        given(studentMapper.toEntity(request)).willReturn(studentEntity);
 
         // When: 학생을 생성하면
         managementStudentService.createStudent(request);
@@ -95,6 +120,13 @@ class ManagementStudentServiceCreateTest {
     void shouldCreateStudentWithCurrentYear() {
         // Given: 학생 정보가 있을 때
         StudentRequest request = new StudentRequest(1, 1, 1, "최학생");
+        StudentEntity studentEntity = StudentEntity.builder()
+                .grade(1)
+                .classNumber(1)
+                .number(1)
+                .name("최학생")
+                .build();
+        given(studentMapper.toEntity(request)).willReturn(studentEntity);
         int currentYear = LocalDate.now().getYear();
 
         // When: 학생을 생성하면
@@ -112,6 +144,13 @@ class ManagementStudentServiceCreateTest {
     void shouldCreateStudentWithVariousClassAndNumber() {
         // Given: 다양한 반과 번호의 학생 정보가 있을 때
         StudentRequest request = new StudentRequest(2, 8, 25, "정학생");
+        StudentEntity studentEntity = StudentEntity.builder()
+                .grade(2)
+                .classNumber(8)
+                .number(25)
+                .name("정학생")
+                .build();
+        given(studentMapper.toEntity(request)).willReturn(studentEntity);
 
         // When: 학생을 생성하면
         managementStudentService.createStudent(request);

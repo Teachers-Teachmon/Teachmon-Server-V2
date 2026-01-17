@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
+import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -30,26 +31,28 @@ class ManagementTeacherFacadeServiceDeleteTest {
     void shouldDeleteTeacher() {
         // Given
         Long teacherId = 1L;
+        given(teacherRepository.existsById(teacherId)).willReturn(true);
 
         // When
         managementTeacherFacadeService.deleteTeacher(teacherId);
 
         // Then
+        verify(teacherRepository, times(1)).existsById(teacherId);
         verify(teacherRepository, times(1)).deleteById(teacherId);
     }
 
     @Test
-    @DisplayName("repository에서 삭제 중 예외가 발생하면 예외가 전파된다")
-    void shouldPropagateExceptionWhenDeleteFails() {
+    @DisplayName("존재하지 않는 선생님을 삭제하면 예외가 발생한다")
+    void shouldThrowExceptionWhenTeacherNotFoundOnDelete() {
         // Given
-        Long teacherId = 2L;
-        doThrow(new RuntimeException("delete failed")).when(teacherRepository).deleteById(teacherId);
+        Long teacherId = 999L;
+        given(teacherRepository.existsById(teacherId)).willReturn(false);
 
         // When & Then
         assertThatThrownBy(() -> managementTeacherFacadeService.deleteTeacher(teacherId))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("delete failed");
+                .isInstanceOf(TeacherNotFoundException.class);
 
-        verify(teacherRepository, times(1)).deleteById(teacherId);
+        verify(teacherRepository, times(1)).existsById(teacherId);
+        verify(teacherRepository, never()).deleteById(teacherId);
     }
 }

@@ -28,6 +28,7 @@ public class SupervisionScheduleRepositoryImpl implements SupervisionScheduleRep
                         teacher.role,
                         teacher.name,
                         teacher.mail,
+                        teacher.profile,
                         schedule.id.count().intValue()
                 ))
                 .from(teacher)

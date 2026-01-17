@@ -10,6 +10,7 @@ import solvit.teachmon.domain.management.teacher.presentation.dto.response.Teach
 import solvit.teachmon.domain.supervision.application.service.SupervisionService;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
+import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
 import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.ArrayList;
@@ -22,26 +23,17 @@ public class ManagementTeacherFacadeService {
     private final SupervisionService supervisionService;
     private final SupervisionBanDayRepository supervisionBanDayRepository;
 
+    @Transactional(readOnly = true)
     public List<TeacherListResponse> getAllTeachers(String query) {
-        return supervisionService.getTeacherSupervisionCounts(query).stream()
-                .map(this::toTeacherListResponse)
+        return supervisionService.searchTeacherWithSupervisionCounts(query).stream()
+                .map(TeacherListResponse::from)
                 .toList();
-    }
-
-    private TeacherListResponse toTeacherListResponse(solvit.teachmon.domain.supervision.application.dto.TeacherSupervisionCountDto dto) {
-        return new TeacherListResponse(
-                dto.teacherId(),
-                dto.role(),
-                dto.name(),
-                dto.email(),
-                dto.supervisionCount()
-        );
     }
 
     @Transactional
     public void updateTeacher(TeacherUpdateRequest updateRequest, Long teacherId) {
         TeacherEntity teacher = teacherRepository.findById(teacherId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 교사를 찾을 수 없습니다"));
+                .orElseThrow(TeacherNotFoundException::new);
 
         teacher.changeRole(updateRequest.role());
         teacher.changeName(updateRequest.name());
@@ -49,13 +41,16 @@ public class ManagementTeacherFacadeService {
 
     @Transactional
     public void deleteTeacher(Long teacherId) {
+        if (!teacherRepository.existsById(teacherId)) {
+            throw new TeacherNotFoundException();
+        }
         teacherRepository.deleteById(teacherId);
     }
 
     @Transactional
     public void setTeacherBanDay(Long teacherId, List<WeekDay> banDays) {
         TeacherEntity teacher = teacherRepository.findById(teacherId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 교사를 찾을 수 없습니다"));
+                .orElseThrow(TeacherNotFoundException::new);
 
         supervisionBanDayRepository.deleteAllByTeacherId(teacherId);
 

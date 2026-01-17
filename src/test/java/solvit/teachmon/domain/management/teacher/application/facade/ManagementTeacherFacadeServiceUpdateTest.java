@@ -11,6 +11,7 @@ import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleR
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
+import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
 
 import java.util.Optional;
 
@@ -64,8 +65,7 @@ class ManagementTeacherFacadeServiceUpdateTest {
 
         // When & Then: 업데이트하면 예외가 발생한다
         assertThatThrownBy(() -> managementTeacherFacadeService.updateTeacher(updateRequest, teacherId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("해당 ID의 교사를 찾을 수 없습니다");
+                .isInstanceOf(TeacherNotFoundException.class);
 
         verify(teacherRepository, times(1)).findById(teacherId);
     }
