@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository

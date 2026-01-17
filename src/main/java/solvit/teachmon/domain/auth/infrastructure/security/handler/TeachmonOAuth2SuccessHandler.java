@@ -42,7 +42,7 @@ public class TeachmonOAuth2SuccessHandler implements AuthenticationSuccessHandle
         ResponseCookie refreshTokenCookie = jwtManager.createRefreshToken(mail);
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());
 
-        log.info(refreshTokenCookie.toString());
+        log.info("Refresh token cookie created for user: {}", mail);
 
         String frontendUrl = webProperties.getFrontEndUrl() + "/oauth2/callback#code=" + authCode;
         response.sendRedirect(frontendUrl);

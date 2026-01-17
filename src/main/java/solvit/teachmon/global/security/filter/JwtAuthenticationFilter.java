@@ -23,6 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtValidator jwtValidator;
     private final TeachmonUserDetailsService teachmonUserDetailsService;
     private final String[] excludedPaths;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -50,6 +51,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         return Arrays.stream(excludedPaths)
-                .anyMatch(pattern -> new AntPathMatcher().match(pattern, path));
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 }

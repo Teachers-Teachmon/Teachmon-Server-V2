@@ -13,12 +13,14 @@ import solvit.teachmon.domain.auth.infrastructure.security.vo.TeachmonOAuth2User
 import solvit.teachmon.domain.user.application.service.TeacherAuthenticationService;
 import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 import solvit.teachmon.domain.user.domain.enums.Role;
+import solvit.teachmon.global.properties.AuthProperties;
 
 @Service
 @RequiredArgsConstructor
 public class TeachmonOAuth2UserFacade extends DefaultOAuth2UserService {
     private final TeacherAuthenticationService teacherAuthenticationService;
     private final OAuth2StrategyComposite oAuth2StrategyComposite;
+    private final AuthProperties authProperties;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -36,11 +38,10 @@ public class TeachmonOAuth2UserFacade extends DefaultOAuth2UserService {
     }
 
     private void checkAccount(String mail) {
-        if(
-                !mail.equals("teachmon08@gmail.com") &&
-                !mail.matches("^teacher\\d{3}@bssm\\.hs\\.kr$") &&
-                !mail.equals("hwansi@bssm.hs.kr")
-        ) {
+        boolean isAllowedEmail = authProperties.getAllowedEmails().contains(mail);
+        boolean matchesPattern = mail.matches(authProperties.getAllowedEmailPattern());
+        
+        if (!isAllowedEmail && !matchesPattern) {
             throw new UnsupportedAccountException();
         }
     }

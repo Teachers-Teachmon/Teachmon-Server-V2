@@ -22,6 +22,7 @@ public class OAuth2StrategyComposite {
 
     public OAuth2Strategy getOAuth2Strategy(OAuth2Type providerType) {
         return Optional.ofNullable(oauth2ProviderMap.get(providerType))
-                .orElseThrow(() -> new UnsupportedOAuth2ProviderException("not supported OAuth2 provider"));
+                .orElseThrow(() -> new UnsupportedOAuth2ProviderException(
+                        "not supported OAuth2 provider: " + providerType));
     }
 }

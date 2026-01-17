@@ -29,6 +29,7 @@ import java.util.Arrays;
 public class JwtAuthenticationExceptionFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
     private final String[] excludedPaths;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -77,6 +78,6 @@ public class JwtAuthenticationExceptionFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         return Arrays.stream(excludedPaths)
-                .anyMatch(pattern -> new AntPathMatcher().match(pattern, path));
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 }

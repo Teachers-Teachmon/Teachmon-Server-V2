@@ -18,7 +18,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
 @Component
-@RequiredArgsConstructor
 public class JwtManager {
     private final JwtProperties jwtProperties;
     private final TokenService tokenService;
@@ -59,7 +58,7 @@ public class JwtManager {
                 .signWith(secretKey)
                 .compact();
 
-        tokenService.saveToken(mail, refreshToken, jwtProperties.getRefreshExpiration());
+        tokenService.saveToken(refreshToken, mail, jwtProperties.getRefreshExpiration());
 
         return ResponseCookie.from("refresh_token", refreshToken)
                 .maxAge(Duration.ofMillis(jwtProperties.getRefreshExpiration()))
@@ -73,7 +72,7 @@ public class JwtManager {
     public ResponseCookie deleteRefreshTokenCookie(String refreshToken) {
         deleteRefreshToken(refreshToken);
 
-        return ResponseCookie.from("refresh_token", refreshToken)
+        return ResponseCookie.from("refresh_token", "")
                 .maxAge(0)
                 .path("/")
                 .httpOnly(true)

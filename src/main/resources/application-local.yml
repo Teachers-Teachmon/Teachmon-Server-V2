@@ -45,6 +45,12 @@ code:
 web:
   front-end-url: ${FRONTEND_URL}
 
+auth:
+  allowed-emails:
+    - teachmon08@gmail.com
+    - hwansi@bssm.hs.kr
+  allowed-email-pattern: ^teacher\d{3}@bssm\.hs\.kr$
+
 google-spreadsheet:
   credentials-path: ${GOOGLE_SPREADSHEET_CREDENTIALS_PATH}
   application-name: ${GOOGLE_SPREADSHEET_APPLICATION_NAME}
