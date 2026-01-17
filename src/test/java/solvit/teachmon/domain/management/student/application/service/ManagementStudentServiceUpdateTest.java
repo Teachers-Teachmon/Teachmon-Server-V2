@@ -66,7 +66,7 @@ class ManagementStudentServiceUpdateTest {
 
         // When & Then: 수정하면 예외가 발생한다
         assertThatThrownBy(() -> managementStudentService.updateStudent(studentId, updateRequest))
-                .isInstanceOf(InvalidStudentInfoException.class)
+                .isInstanceOf(StudentNotFoundException.class);
 
         verify(studentRepository, times(1)).findById(studentId);
     }
