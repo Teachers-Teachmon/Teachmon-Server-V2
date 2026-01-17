@@ -7,8 +7,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
 import solvit.teachmon.domain.management.teacher.presentation.dto.response.TeacherListResponse;
-import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
+import solvit.teachmon.domain.supervision.application.dto.TeacherSupervisionCountDto;
+import solvit.teachmon.domain.supervision.application.service.SupervisionService;
 import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 
@@ -26,19 +28,22 @@ class ManagementTeacherFacadeServiceGetTest {
     private TeacherRepository teacherRepository;
 
     @Mock
-    private SupervisionScheduleRepository supervisionScheduleRepository;
+    private SupervisionService supervisionService;
+
+    @Mock
+    private SupervisionBanDayRepository supervisionBanDayRepository;
 
     @InjectMocks
     private ManagementTeacherFacadeService managementTeacherFacadeService;
 
-    private List<TeacherListResponse> mockTeacherList;
+    private List<TeacherSupervisionCountDto> mockTeacherDtoList;
 
     @BeforeEach
     void setUp() {
-        mockTeacherList = Arrays.asList(
-                new TeacherListResponse(1L, Role.TEACHER, "김선생", "kim@teacher.com", 5),
-                new TeacherListResponse(2L, Role.TEACHER, "이선생", "lee@teacher.com", 3),
-                new TeacherListResponse(3L, Role.TEACHER, "박선생", "park@teacher.com", 7)
+        mockTeacherDtoList = Arrays.asList(
+                new TeacherSupervisionCountDto(1L, Role.TEACHER, "김선생", "kim@teacher.com", "김선생 프로필", 5),
+                new TeacherSupervisionCountDto(2L, Role.TEACHER, "이선생", "lee@teacher.com", "이선생 프로필", 3),
+                new TeacherSupervisionCountDto(3L, Role.TEACHER, "박선생", "park@teacher.com", "박선생 프로필", 7)
         );
     }
 
@@ -46,7 +51,7 @@ class ManagementTeacherFacadeServiceGetTest {
     @DisplayName("모든 선생님 목록과 감독 횟수를 조회할 수 있다")
     void shouldGetAllTeachersWithSupervisionCount() {
         // Given: 선생님 목록과 각 선생님의 감독 횟수가 있을 때
-        given(supervisionScheduleRepository.countTeacherSupervision(null)).willReturn(mockTeacherList);
+        given(supervisionService.searchTeacherWithSupervisionCounts(null)).willReturn(mockTeacherDtoList);
 
         // When: 모든 선생님 목록을 조회하면
         List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(null);
@@ -61,15 +66,15 @@ class ManagementTeacherFacadeServiceGetTest {
         assertThat(result.get(2).name()).isEqualTo("박선생");
         assertThat(result.get(2).supervisionCount()).isEqualTo(7);
 
-        // 리포지토리 메서드가 한 번 호출되었는지 검증
-        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(null);
+        // 서비스 메서드가 한 번 호출되었는지 검증
+        verify(supervisionService, times(1)).searchTeacherWithSupervisionCounts(null);
     }
 
     @Test
     @DisplayName("선생님이 없을 때 빈 목록을 반환한다")
     void shouldReturnEmptyListWhenNoTeachersExist() {
         // Given: 선생님이 없을 때
-        given(supervisionScheduleRepository.countTeacherSupervision(null)).willReturn(List.of());
+        given(supervisionService.searchTeacherWithSupervisionCounts(null)).willReturn(List.of());
 
         // When: 모든 선생님 목록을 조회하면
         List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(null);
@@ -78,19 +83,19 @@ class ManagementTeacherFacadeServiceGetTest {
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
-        // 리포지토리 메서드가 한 번 호출되었는지 검증
-        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(null);
+        // 서비스 메서드가 한 번 호출되었는지 검증
+        verify(supervisionService, times(1)).searchTeacherWithSupervisionCounts(null);
     }
 
     @Test
     @DisplayName("감독 횟수가 0인 선생님도 조회할 수 있다")
     void shouldGetTeachersWithZeroSupervisionCount() {
         // Given: 감독 횟수가 0인 선생님이 포함된 목록이 있을 때
-        List<TeacherListResponse> teachersWithZeroCount = Arrays.asList(
-                new TeacherListResponse(1L, Role.TEACHER, "김선생", "kim@teacher.com", 0),
-                new TeacherListResponse(2L, Role.TEACHER, "이선생", "lee@teacher.com", 5)
+        List<TeacherSupervisionCountDto> teachersWithZeroCount = Arrays.asList(
+                new TeacherSupervisionCountDto(1L, Role.TEACHER, "김선생", "kim@teacher.com", "김선생 프로필", 0),
+                new TeacherSupervisionCountDto(2L, Role.TEACHER, "이선생", "lee@teacher.com", "이선생 프로필", 5)
         );
-        given(supervisionScheduleRepository.countTeacherSupervision(null)).willReturn(teachersWithZeroCount);
+        given(supervisionService.searchTeacherWithSupervisionCounts(null)).willReturn(teachersWithZeroCount);
 
         // When: 모든 선생님 목록을 조회하면
         List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(null);
@@ -107,10 +112,10 @@ class ManagementTeacherFacadeServiceGetTest {
     void shouldSearchTeachersByName() {
         // Given: "김"으로 검색했을 때 "김선생"만 반환되는 상황
         String query = "김";
-        List<TeacherListResponse> filteredList = List.of(
-                new TeacherListResponse(1L, Role.TEACHER, "김선생", "kim@teacher.com", 5)
+        List<TeacherSupervisionCountDto> filteredList = List.of(
+                new TeacherSupervisionCountDto(1L, Role.TEACHER, "김선생", "kim@teacher.com", "김선생 프로필", 5)
         );
-        given(supervisionScheduleRepository.countTeacherSupervision(query)).willReturn(filteredList);
+        given(supervisionService.searchTeacherWithSupervisionCounts(query)).willReturn(filteredList);
 
         // When: 이름으로 검색하면
         List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(query);
@@ -121,8 +126,8 @@ class ManagementTeacherFacadeServiceGetTest {
         assertThat(result.getFirst().name()).isEqualTo("김선생");
         assertThat(result.getFirst().supervisionCount()).isEqualTo(5);
 
-        // 리포지토리 메서드가 올바른 query와 함께 호출되었는지 검증
-        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(query);
+        // 서비스 메서드가 올바른 query와 함께 호출되었는지 검증
+        verify(supervisionService, times(1)).searchTeacherWithSupervisionCounts(query);
     }
 
     @Test
@@ -130,7 +135,7 @@ class ManagementTeacherFacadeServiceGetTest {
     void shouldGetAllTeachersWhenQueryIsEmpty() {
         // Given: 빈 문자열로 검색했을 때 모든 선생님이 반환되는 상황
         String query = "";
-        given(supervisionScheduleRepository.countTeacherSupervision(query)).willReturn(mockTeacherList);
+        given(supervisionService.searchTeacherWithSupervisionCounts(query)).willReturn(mockTeacherDtoList);
 
         // When: 빈 문자열로 검색하면
         List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(query);
@@ -139,8 +144,8 @@ class ManagementTeacherFacadeServiceGetTest {
         assertThat(result).isNotNull();
         assertThat(result).hasSize(3);
 
-        // 리포지토리 메서드가 빈 문자열과 함께 호출되었는지 검증
-        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(query);
+        // 서비스 메서드가 빈 문자열과 함께 호출되었는지 검증
+        verify(supervisionService, times(1)).searchTeacherWithSupervisionCounts(query);
     }
 
     @Test
@@ -148,7 +153,7 @@ class ManagementTeacherFacadeServiceGetTest {
     void shouldReturnEmptyListWhenNoMatchingTeachers() {
         // Given: 검색어에 해당하는 선생님이 없을 때
         String query = "존재하지않는이름";
-        given(supervisionScheduleRepository.countTeacherSupervision(query)).willReturn(List.of());
+        given(supervisionService.searchTeacherWithSupervisionCounts(query)).willReturn(List.of());
 
         // When: 검색하면
         List<TeacherListResponse> result = managementTeacherFacadeService.getAllTeachers(query);
@@ -157,7 +162,7 @@ class ManagementTeacherFacadeServiceGetTest {
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
-        // 리포지토리 메서드가 query와 함께 호출되었는지 검증
-        verify(supervisionScheduleRepository, times(1)).countTeacherSupervision(query);
+        // 서비스 메서드가 query와 함께 호출되었는지 검증
+        verify(supervisionService, times(1)).searchTeacherWithSupervisionCounts(query);
     }
 }

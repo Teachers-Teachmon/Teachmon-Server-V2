@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-import solvit.teachmon.domain.management.teacher.presentation.dto.response.TeacherListResponse;
+import solvit.teachmon.domain.supervision.application.dto.TeacherSupervisionCountDto;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
@@ -60,27 +60,27 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacher3, LocalDate.of(2024, 1, 16), SchoolPeriod.SEVEN_PERIOD);
 
         // When: 선생님별 감독 일정 수를 카운트하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision(null);
+        List<TeacherSupervisionCountDto> result = supervisionScheduleRepository.countTeacherSupervision(null);
 
         // Then: 각 선생님의 감독 일정 수가 정확하게 카운트된다
         assertThat(result).isNotNull();
         assertThat(result).hasSize(3);
 
-        TeacherListResponse kim = result.stream()
+        TeacherSupervisionCountDto kim = result.stream()
                 .filter(r -> r.name().equals("김선생"))
                 .findFirst()
                 .orElseThrow();
         assertThat(kim.supervisionCount()).isEqualTo(5);
         assertThat(kim.email()).isEqualTo("kim@teacher.com");
 
-        TeacherListResponse lee = result.stream()
+        TeacherSupervisionCountDto lee = result.stream()
                 .filter(r -> r.name().equals("이선생"))
                 .findFirst()
                 .orElseThrow();
         assertThat(lee.supervisionCount()).isEqualTo(3);
         assertThat(lee.email()).isEqualTo("lee@teacher.com");
 
-        TeacherListResponse park = result.stream()
+        TeacherSupervisionCountDto park = result.stream()
                 .filter(r -> r.name().equals("박선생"))
                 .findFirst()
                 .orElseThrow();
@@ -94,7 +94,7 @@ class SupervisionScheduleRepositoryGetTest {
         // Given: 감독 일정이 없을 때
 
         // When: 선생님별 감독 일정 수를 카운트하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision(null);
+        List<TeacherSupervisionCountDto> result = supervisionScheduleRepository.countTeacherSupervision(null);
 
         // Then: 빈 목록이 반환된다
         assertThat(result).isNotNull();
@@ -110,7 +110,7 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacher, LocalDate.of(2024, 1, 11), SchoolPeriod.EIGHT_AND_NINE_PERIOD);
 
         // When: 선생님별 감독 일정 수를 카운트하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision(null);
+        List<TeacherSupervisionCountDto> result = supervisionScheduleRepository.countTeacherSupervision(null);
 
         // Then: 해당 선생님의 감독 일정 수가 정확하게 반환된다
         assertThat(result).isNotNull();
@@ -130,7 +130,7 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacher, today, SchoolPeriod.TEN_AND_ELEVEN_PERIOD);
 
         // When: 선생님별 감독 일정 수를 카운트하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision(null);
+        List<TeacherSupervisionCountDto> result = supervisionScheduleRepository.countTeacherSupervision(null);
 
         // Then: 모든 감독 일정이 카운트된다
         assertThat(result).isNotNull();
@@ -152,12 +152,12 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacher3, LocalDate.of(2024, 1, 10), SchoolPeriod.TEN_AND_ELEVEN_PERIOD);
 
         // When: "김"으로 검색하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision("김");
+        List<TeacherSupervisionCountDto> result = supervisionScheduleRepository.countTeacherSupervision("김");
 
         // Then: 이름에 "김"이 포함된 선생님만 반환된다
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result).extracting(TeacherListResponse::name)
+        assertThat(result).extracting(TeacherSupervisionCountDto::name)
                 .containsExactlyInAnyOrder("김선생", "김영희");
     }
 
@@ -174,12 +174,12 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacher3, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
 
         // When: 빈 문자열로 검색하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision("");
+        List<TeacherSupervisionCountDto> result = supervisionScheduleRepository.countTeacherSupervision("");
 
         // Then: 모든 선생님이 반환된다
         assertThat(result).isNotNull();
         assertThat(result).hasSize(3);
-        assertThat(result).extracting(TeacherListResponse::name)
+        assertThat(result).extracting(TeacherSupervisionCountDto::name)
                 .containsExactlyInAnyOrder("김선생", "이선생", "박선생");
     }
 
@@ -194,7 +194,7 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacher2, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
 
         // When: 존재하지 않는 이름으로 검색하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision("최");
+        List<TeacherSupervisionCountDto> result = supervisionScheduleRepository.countTeacherSupervision("최");
 
         // Then: 빈 목록이 반환된다
         assertThat(result).isNotNull();
@@ -212,7 +212,7 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacher2, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
 
         // When: 소문자로 검색하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision("john");
+        List<TeacherSupervisionCountDto> result = supervisionScheduleRepository.countTeacherSupervision("john");
 
         // Then: 대소문자 구분 없이 검색된다
         assertThat(result).isNotNull();
@@ -230,18 +230,18 @@ class SupervisionScheduleRepositoryGetTest {
         createAndSaveSupervision(teacherWithSchedule, LocalDate.of(2024, 1, 10), SchoolPeriod.SEVEN_PERIOD);
 
         // When: 모든 선생님을 조회하면
-        List<TeacherListResponse> result = supervisionScheduleRepository.countTeacherSupervision(null);
+        List<TeacherSupervisionCountDto> result = supervisionScheduleRepository.countTeacherSupervision(null);
 
         // Then: 감독 일정이 없는 선생님도 포함된다 (supervisionCount = 0)
         assertThat(result).hasSize(2);
 
-        TeacherListResponse withSchedule = result.stream()
+        TeacherSupervisionCountDto withSchedule = result.stream()
                 .filter(r -> r.name().equals("김선생"))
                 .findFirst()
                 .orElseThrow();
         assertThat(withSchedule.supervisionCount()).isEqualTo(1);
 
-        TeacherListResponse withoutSchedule = result.stream()
+        TeacherSupervisionCountDto withoutSchedule = result.stream()
                 .filter(r -> r.name().equals("이선생"))
                 .findFirst()
                 .orElseThrow();
