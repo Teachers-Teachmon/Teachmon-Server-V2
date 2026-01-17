@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
+import solvit.teachmon.domain.management.student.exception.StudentNotFoundException;
 import solvit.teachmon.domain.management.student.presentation.dto.request.StudentRequest;
-import solvit.teachmon.global.annotation.Trace;
 
 import java.time.LocalDate;
 
@@ -15,7 +15,6 @@ import java.time.LocalDate;
 public class ManagementStudentService {
     private final StudentRepository studentRepository;
 
-    @Trace
     @Transactional
     public void createStudent(StudentRequest request) {
         StudentEntity student = StudentEntity.builder()
@@ -29,18 +28,19 @@ public class ManagementStudentService {
         studentRepository.save(student);
     }
 
-    @Trace
     @Transactional
     public void updateStudent(Long studentId, StudentRequest request) {
         StudentEntity student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 학생을 찾을 수 없습니다."));
+                .orElseThrow(StudentNotFoundException::new);
 
         student.changeInfo(request.grade(), request.classNumber(), request.number(), request.name());
     }
 
-    @Trace
     @Transactional
     public void deleteStudent(Long studentId) {
+        if (!studentRepository.existsById(studentId)) {
+            throw new StudentNotFoundException();
+        }
         studentRepository.deleteById(studentId);
     }
 }

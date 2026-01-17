@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import solvit.teachmon.domain.management.student.exception.InvalidStudentInfoException;
 import solvit.teachmon.global.entity.BaseEntity;
 
 @Getter
@@ -31,6 +32,11 @@ public class StudentEntity extends BaseEntity {
 
     @Builder
     public StudentEntity(Integer year, Integer grade, Integer classNumber, Integer number, String name) {
+        validateGrade(grade);
+        validateClassNumber(classNumber);
+        validateNumber(number);
+        validateName(name);
+        
         this.year = year;
         this.grade = grade;
         this.classNumber = classNumber;
@@ -52,25 +58,25 @@ public class StudentEntity extends BaseEntity {
 
     private void validateGrade(Integer grade) {
         if (grade == null || grade < 1 || grade > 3) {
-            throw new IllegalArgumentException("학년은 1 ~ 3 사이여야 합니다");
+            throw new InvalidStudentInfoException("학년은 1 ~ 3 사이여야 합니다");
         }
     }
 
     private void validateClassNumber(Integer classNumber) {
         if (classNumber == null || classNumber < 1) {
-            throw new IllegalArgumentException("반은 1 이상이어야 합니다");
+            throw new InvalidStudentInfoException("반은 1 이상이어야 합니다");
         }
     }
 
     private void validateNumber(Integer number) {
         if (number == null || number < 1) {
-            throw new IllegalArgumentException("번호는 1 이상이어야 합니다");
+            throw new InvalidStudentInfoException("번호는 1 이상이어야 합니다");
         }
     }
 
     private void validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("이름은 비어 있을 수 없습니다");
+            throw new InvalidStudentInfoException("이름은 비어 있을 수 없습니다");
         }
     }
 }

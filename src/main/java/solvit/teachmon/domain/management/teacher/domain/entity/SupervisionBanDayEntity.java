@@ -24,6 +24,12 @@ public class SupervisionBanDayEntity extends BaseEntity {
 
     @Builder
     public SupervisionBanDayEntity(TeacherEntity teacher, WeekDay weekDay) {
+        if (teacher == null) {
+            throw new IllegalArgumentException("teacher는 필수입니다");
+        }
+        if (weekDay == null) {
+            throw new IllegalArgumentException("weekDay는 필수입니다");
+        }
         this.teacher = teacher;
         this.weekDay = weekDay;
     }
