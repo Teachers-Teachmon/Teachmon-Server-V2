@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.management.student.exception.InvalidStudentInfoException;
 import solvit.teachmon.global.entity.BaseEntity;
 
+import java.time.LocalDate;
+
 @Getter
 @Entity
 @Table(name = "student")
@@ -37,6 +39,10 @@ public class StudentEntity extends BaseEntity {
         this.classNumber = classNumber;
         this.number = number;
         this.name = name;
+    }
+
+    public void setNowYear() {
+        this.year = LocalDate.now().getYear();
     }
 
     public void changeInfo(Integer grade, Integer classNumber, Integer number, String name) {
