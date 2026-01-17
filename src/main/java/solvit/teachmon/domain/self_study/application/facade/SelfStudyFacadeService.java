@@ -9,11 +9,10 @@ import solvit.teachmon.domain.self_study.application.mapper.SelfStudyMapper;
 import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
 import solvit.teachmon.domain.self_study.presentation.dto.common.WeekDaySelfStudyDto;
-import solvit.teachmon.global.annotation.Trace;
+import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,22 +42,10 @@ public class SelfStudyFacadeService {
         BranchEntity branchEntity = branchRepository.findByYearAndBranch(year, branch)
                 .orElseThrow(() -> new IllegalArgumentException("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요"));
 
-        // 자습 설정 가져오기
-        List<SelfStudyEntity> selfStudyEntities = selfStudyRepository.findAllByBranchAndGrade(branchEntity, grade);
+        // WeekDay 로 그룹화된 데이터 가져오기
+        Map<WeekDay, List<SchoolPeriod>> groupedByWeekDay = selfStudyRepository.findGroupedByWeekDay(branchEntity, grade);
 
-        // WeekDay로 그룹화 시키기
-        Map<WeekDay, List<SelfStudyEntity>> groupedByWeekDay = selfStudyEntities.stream()
-                .collect(Collectors.groupingBy(SelfStudyEntity::getWeekDay));
-
-        // 모든 요일(MON~FRI)에 대해 WeekDaySelfStudyDto 생성
-        return Arrays.stream(WeekDay.values())
-                .map(weekDay -> new WeekDaySelfStudyDto(
-                        weekDay,
-                        // 해당하는 요일의 자습 교시 가져오기 (없으면 빈 리스트)
-                        groupedByWeekDay.getOrDefault(weekDay, Collections.emptyList()).stream()
-                                .map(SelfStudyEntity::getPeriod)
-                                .toList()
-                ))
-                .toList();
+        // 모든 요일에 대해 Dto 변환
+        return selfStudyMapper.toWeekDaySelfStudyDtos(groupedByWeekDay);
     }
 }

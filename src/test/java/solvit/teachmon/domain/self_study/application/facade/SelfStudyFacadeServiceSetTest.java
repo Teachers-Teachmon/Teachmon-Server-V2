@@ -1,15 +1,16 @@
 package solvit.teachmon.domain.self_study.application.facade;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
+import solvit.teachmon.domain.self_study.application.mapper.SelfStudyMapper;
 import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
 import solvit.teachmon.domain.self_study.presentation.dto.common.WeekDaySelfStudyDto;
@@ -34,11 +35,19 @@ class SelfStudyFacadeServiceSetTest {
     @Mock
     private BranchRepository branchRepository;
 
-    @InjectMocks
+    private SelfStudyMapper selfStudyMapper;
+
     private SelfStudyFacadeService selfStudyFacadeService;
 
     @Captor
     private ArgumentCaptor<List<SelfStudyEntity>> selfStudyEntitiesCaptor;
+
+    @BeforeEach
+    void setUp() {
+        // SelfStudyMapper의 default 메서드를 사용하기 위한 간단한 구현
+        selfStudyMapper = new SelfStudyMapper() {};
+        selfStudyFacadeService = new SelfStudyFacadeService(selfStudyRepository, branchRepository, selfStudyMapper);
+    }
 
     @Test
     @DisplayName("자습을 설정할 수 있다")

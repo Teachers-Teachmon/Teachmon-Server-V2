@@ -1,23 +1,20 @@
 package solvit.teachmon.domain.self_study.application.facade;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
-import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
+import solvit.teachmon.domain.self_study.application.mapper.SelfStudyMapper;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
 import solvit.teachmon.domain.self_study.presentation.dto.common.WeekDaySelfStudyDto;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -32,8 +29,15 @@ class SelfStudyFacadeServiceGetTest {
     @Mock
     private BranchRepository branchRepository;
 
-    @InjectMocks
+    private SelfStudyMapper selfStudyMapper;
     private SelfStudyFacadeService selfStudyFacadeService;
+
+    @BeforeEach
+    void setUp() {
+        // SelfStudyMapper의 default 메서드를 사용하기 위한 간단한 구현
+        selfStudyMapper = new SelfStudyMapper() {};
+        selfStudyFacadeService = new SelfStudyFacadeService(selfStudyRepository, branchRepository, selfStudyMapper);
+    }
 
     @Test
     @DisplayName("자습 설정을 조회할 수 있다")
@@ -44,37 +48,20 @@ class SelfStudyFacadeServiceGetTest {
         Integer grade = 1;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudyEntity> selfStudyEntities = Arrays.asList(
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.MON)
-                        .period(SchoolPeriod.SEVEN_PERIOD)
-                        .build(),
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.MON)
-                        .period(SchoolPeriod.EIGHT_AND_NINE_PERIOD)
-                        .build(),
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.TUE)
-                        .period(SchoolPeriod.SEVEN_PERIOD)
-                        .build()
-        );
+        Map<WeekDay, List<SchoolPeriod>> groupedData = new HashMap<>();
+        groupedData.put(WeekDay.MON, Arrays.asList(SchoolPeriod.SEVEN_PERIOD, SchoolPeriod.EIGHT_AND_NINE_PERIOD));
+        groupedData.put(WeekDay.TUE, List.of(SchoolPeriod.SEVEN_PERIOD));
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));
-        given(selfStudyRepository.findAllByBranchAndGrade(branchEntity, grade))
-                .willReturn(selfStudyEntities);
+        given(selfStudyRepository.findGroupedByWeekDay(branchEntity, grade))
+                .willReturn(groupedData);
 
         // When: 자습 설정을 조회하면
         List<WeekDaySelfStudyDto> result = selfStudyFacadeService.getSelfStudy(year, branchNumber, grade);
 
         // Then: 모든 요일이 포함되어 반환된다
         verify(branchRepository, times(1)).findByYearAndBranch(year, branchNumber);
-        verify(selfStudyRepository, times(1)).findAllByBranchAndGrade(branchEntity, grade);
+        verify(selfStudyRepository, times(1)).findGroupedByWeekDay(branchEntity, grade);
 
         assertThat(result).hasSize(4);  // 모든 요일 (MON~THU)
 
@@ -121,15 +108,15 @@ class SelfStudyFacadeServiceGetTest {
         BranchEntity branchEntity = mock(BranchEntity.class);
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));
-        given(selfStudyRepository.findAllByBranchAndGrade(branchEntity, grade))
-                .willReturn(Collections.emptyList());
+        given(selfStudyRepository.findGroupedByWeekDay(branchEntity, grade))
+                .willReturn(Collections.emptyMap());
 
         // When: 자습 설정을 조회하면
         List<WeekDaySelfStudyDto> result = selfStudyFacadeService.getSelfStudy(year, branchNumber, grade);
 
         // Then: 모든 요일이 빈 periods로 반환된다
         verify(branchRepository, times(1)).findByYearAndBranch(year, branchNumber);
-        verify(selfStudyRepository, times(1)).findAllByBranchAndGrade(branchEntity, grade);
+        verify(selfStudyRepository, times(1)).findGroupedByWeekDay(branchEntity, grade);
 
         assertThat(result).hasSize(4);  // 모든 요일 (MON~THU)
         assertThat(result).allMatch(dto -> dto.periods().isEmpty());  // 모든 요일의 periods가 비어있음
@@ -151,7 +138,7 @@ class SelfStudyFacadeServiceGetTest {
                 .hasMessage("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요");
 
         verify(branchRepository, times(1)).findByYearAndBranch(year, branchNumber);
-        verify(selfStudyRepository, never()).findAllByBranchAndGrade(any(), any());
+        verify(selfStudyRepository, never()).findGroupedByWeekDay(any(), any());
     }
 
     @Test
@@ -163,30 +150,16 @@ class SelfStudyFacadeServiceGetTest {
         Integer grade = 2;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudyEntity> selfStudyEntities = Arrays.asList(
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.MON)
-                        .period(SchoolPeriod.SEVEN_PERIOD)
-                        .build(),
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.MON)
-                        .period(SchoolPeriod.EIGHT_AND_NINE_PERIOD)
-                        .build(),
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.MON)
-                        .period(SchoolPeriod.TEN_AND_ELEVEN_PERIOD)
-                        .build()
-        );
+        Map<WeekDay, List<SchoolPeriod>> groupedData = new HashMap<>();
+        groupedData.put(WeekDay.MON, Arrays.asList(
+                SchoolPeriod.SEVEN_PERIOD,
+                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
+                SchoolPeriod.TEN_AND_ELEVEN_PERIOD
+        ));
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));
-        given(selfStudyRepository.findAllByBranchAndGrade(branchEntity, grade))
-                .willReturn(selfStudyEntities);
+        given(selfStudyRepository.findGroupedByWeekDay(branchEntity, grade))
+                .willReturn(groupedData);
 
         // When: 자습 설정을 조회하면
         List<WeekDaySelfStudyDto> result = selfStudyFacadeService.getSelfStudy(year, branchNumber, grade);
@@ -220,36 +193,15 @@ class SelfStudyFacadeServiceGetTest {
         Integer grade = 1;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudyEntity> selfStudyEntities = Arrays.asList(
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.MON)
-                        .period(SchoolPeriod.SEVEN_PERIOD)
-                        .build(),
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.TUE)
-                        .period(SchoolPeriod.EIGHT_AND_NINE_PERIOD)
-                        .build(),
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.WED)
-                        .period(SchoolPeriod.TEN_AND_ELEVEN_PERIOD)
-                        .build(),
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.THU)
-                        .period(SchoolPeriod.SEVEN_PERIOD)
-                        .build()
-        );
+        Map<WeekDay, List<SchoolPeriod>> groupedData = new HashMap<>();
+        groupedData.put(WeekDay.MON, List.of(SchoolPeriod.SEVEN_PERIOD));
+        groupedData.put(WeekDay.TUE, List.of(SchoolPeriod.EIGHT_AND_NINE_PERIOD));
+        groupedData.put(WeekDay.WED, List.of(SchoolPeriod.TEN_AND_ELEVEN_PERIOD));
+        groupedData.put(WeekDay.THU, List.of(SchoolPeriod.SEVEN_PERIOD));
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));
-        given(selfStudyRepository.findAllByBranchAndGrade(branchEntity, grade))
-                .willReturn(selfStudyEntities);
+        given(selfStudyRepository.findGroupedByWeekDay(branchEntity, grade))
+                .willReturn(groupedData);
 
         // When: 자습 설정을 조회하면
         List<WeekDaySelfStudyDto> result = selfStudyFacadeService.getSelfStudy(year, branchNumber, grade);
@@ -289,25 +241,19 @@ class SelfStudyFacadeServiceGetTest {
         Integer grade = 3;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudyEntity> selfStudyEntities = Collections.singletonList(
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.WED)
-                        .period(SchoolPeriod.TEN_AND_ELEVEN_PERIOD)
-                        .build()
-        );
+        Map<WeekDay, List<SchoolPeriod>> groupedData = new HashMap<>();
+        groupedData.put(WeekDay.WED, List.of(SchoolPeriod.TEN_AND_ELEVEN_PERIOD));
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));
-        given(selfStudyRepository.findAllByBranchAndGrade(branchEntity, grade))
-                .willReturn(selfStudyEntities);
+        given(selfStudyRepository.findGroupedByWeekDay(branchEntity, grade))
+                .willReturn(groupedData);
 
         // When: 자습 설정을 조회하면
         List<WeekDaySelfStudyDto> result = selfStudyFacadeService.getSelfStudy(year, branchNumber, grade);
 
         // Then: 수요일에만 자습이 포함되어 반환된다
         verify(branchRepository, times(1)).findByYearAndBranch(year, branchNumber);
-        verify(selfStudyRepository, times(1)).findAllByBranchAndGrade(branchEntity, grade);
+        verify(selfStudyRepository, times(1)).findGroupedByWeekDay(branchEntity, grade);
 
         assertThat(result).hasSize(4);
 
@@ -328,24 +274,15 @@ class SelfStudyFacadeServiceGetTest {
         Integer grade = 1;
         BranchEntity branchEntity = mock(BranchEntity.class);
 
-        List<SelfStudyEntity> selfStudyEntities = Arrays.asList(
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.THU)
-                        .period(SchoolPeriod.SEVEN_PERIOD)
-                        .build(),
-                SelfStudyEntity.builder()
-                        .branch(branchEntity)
-                        .grade(grade)
-                        .weekDay(WeekDay.THU)
-                        .period(SchoolPeriod.EIGHT_AND_NINE_PERIOD)
-                        .build()
-        );
+        Map<WeekDay, List<SchoolPeriod>> groupedData = new HashMap<>();
+        groupedData.put(WeekDay.THU, Arrays.asList(
+                SchoolPeriod.SEVEN_PERIOD,
+                SchoolPeriod.EIGHT_AND_NINE_PERIOD
+        ));
 
         given(branchRepository.findByYearAndBranch(year, branchNumber)).willReturn(Optional.of(branchEntity));
-        given(selfStudyRepository.findAllByBranchAndGrade(branchEntity, grade))
-                .willReturn(selfStudyEntities);
+        given(selfStudyRepository.findGroupedByWeekDay(branchEntity, grade))
+                .willReturn(groupedData);
 
         // When: 자습 설정을 조회하면
         List<WeekDaySelfStudyDto> result = selfStudyFacadeService.getSelfStudy(year, branchNumber, grade);

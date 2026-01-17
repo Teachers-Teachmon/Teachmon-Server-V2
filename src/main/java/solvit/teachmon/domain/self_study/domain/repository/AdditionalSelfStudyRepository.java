@@ -8,7 +8,7 @@ import solvit.teachmon.domain.self_study.domain.entity.AdditionalSelfStudyEntity
 import java.util.List;
 
 @Repository
-public interface AdditionalSelfStudyRepository extends JpaRepository<AdditionalSelfStudyEntity, Long> {
+public interface AdditionalSelfStudyRepository extends JpaRepository<AdditionalSelfStudyEntity, Long>, AdditionalSelfStudyRepositoryCustom {
     @Query("SELECT a FROM AdditionalSelfStudyEntity a WHERE YEAR(a.day) = :year")
     List<AdditionalSelfStudyEntity> findByYear(Integer year);
 }

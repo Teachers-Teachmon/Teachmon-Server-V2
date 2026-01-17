@@ -8,7 +8,7 @@ import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import java.util.List;
 
 @Repository
-public interface SelfStudyRepository extends JpaRepository<SelfStudyEntity, Long> {
+public interface SelfStudyRepository extends JpaRepository<SelfStudyEntity, Long>, SelfStudyRepositoryCustom {
     void deleteAllByBranchAndGrade(BranchEntity branch, Integer grade);
 
     List<SelfStudyEntity> findAllByBranchAndGrade(BranchEntity branch, Integer grade);

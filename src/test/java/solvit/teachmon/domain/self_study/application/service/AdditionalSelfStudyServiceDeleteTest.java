@@ -1,11 +1,12 @@
 package solvit.teachmon.domain.self_study.application.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import solvit.teachmon.domain.self_study.application.mapper.AdditionalSelfStudyMapper;
 import solvit.teachmon.domain.self_study.domain.repository.AdditionalSelfStudyRepository;
 
 import static org.mockito.BDDMockito.*;
@@ -17,8 +18,15 @@ class AdditionalSelfStudyServiceDeleteTest {
     @Mock
     private AdditionalSelfStudyRepository additionalSelfStudyRepository;
 
-    @InjectMocks
+    private AdditionalSelfStudyMapper additionalSelfStudyMapper;
     private AdditionalSelfStudyService additionalSelfStudyService;
+
+    @BeforeEach
+    void setUp() {
+        // AdditionalSelfStudyMapper의 default 메서드를 사용하기 위한 간단한 구현
+        additionalSelfStudyMapper = new AdditionalSelfStudyMapper() {};
+        additionalSelfStudyService = new AdditionalSelfStudyService(additionalSelfStudyRepository, additionalSelfStudyMapper);
+    }
 
     @Test
     @DisplayName("추가 자습을 삭제할 수 있다")
