@@ -12,6 +12,12 @@ import java.util.List;
 public class SupervisionService {
     private final SupervisionScheduleRepository supervisionScheduleRepository;
 
+    /**
+     * 교사별 감독 횟수를 조회합니다.
+     *
+     * @param query 교사 이름 검색 쿼리 (선택사항)
+     * @return 교사 목록과 각 교사의 감독 횟수
+     */
     public List<TeacherSupervisionCountDto> getTeacherSupervisionCounts(String query) {
         return supervisionScheduleRepository.countTeacherSupervision(query);
     }
