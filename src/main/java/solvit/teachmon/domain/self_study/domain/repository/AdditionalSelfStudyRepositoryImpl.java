@@ -11,8 +11,6 @@ import solvit.teachmon.domain.self_study.presentation.dto.response.QAdditionalSe
 
 import java.util.List;
 
-import static solvit.teachmon.domain.self_study.domain.entity.QAdditionalSelfStudyEntity.additionalSelfStudyEntity;
-
 @Repository
 @RequiredArgsConstructor
 public class AdditionalSelfStudyRepositoryImpl implements AdditionalSelfStudyRepositoryCustom {
