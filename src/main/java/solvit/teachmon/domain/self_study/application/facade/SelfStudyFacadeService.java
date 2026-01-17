@@ -8,7 +8,6 @@ import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
 import solvit.teachmon.domain.self_study.presentation.dto.common.WeekDaySelfStudyDto;
-import solvit.teachmon.global.annotation.Trace;
 import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.*;
@@ -20,7 +19,6 @@ public class SelfStudyFacadeService {
     private final SelfStudyRepository selfStudyRepository;
     private final BranchRepository branchRepository;
 
-    @Trace
     @Transactional
     public void setSelfStudy(Integer year, Integer branch, Integer grade, List<WeekDaySelfStudyDto> request) {
         // 분기 가져오기
@@ -52,7 +50,6 @@ public class SelfStudyFacadeService {
         selfStudyRepository.saveAll(selfStudyEntities);
     }
 
-    @Trace
     public List<WeekDaySelfStudyDto> getSelfStudy(Integer year, Integer branch, Integer grade) {
         // 분기 가져오기
         BranchEntity branchEntity = branchRepository.findByYearAndBranch(year, branch)

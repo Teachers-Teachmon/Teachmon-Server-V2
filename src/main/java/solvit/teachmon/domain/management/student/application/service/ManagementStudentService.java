@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 import solvit.teachmon.domain.management.student.presentation.dto.request.StudentRequest;
-import solvit.teachmon.global.annotation.Trace;
 
 import java.time.LocalDate;
 
@@ -15,7 +14,6 @@ import java.time.LocalDate;
 public class ManagementStudentService {
     private final StudentRepository studentRepository;
 
-    @Trace
     @Transactional
     public void createStudent(StudentRequest request) {
         StudentEntity student = StudentEntity.builder()
@@ -29,7 +27,6 @@ public class ManagementStudentService {
         studentRepository.save(student);
     }
 
-    @Trace
     @Transactional
     public void updateStudent(Long studentId, StudentRequest request) {
         StudentEntity student = studentRepository.findById(studentId)
@@ -38,7 +35,6 @@ public class ManagementStudentService {
         student.changeInfo(request.grade(), request.classNumber(), request.number(), request.name());
     }
 
-    @Trace
     @Transactional
     public void deleteStudent(Long studentId) {
         studentRepository.deleteById(studentId);

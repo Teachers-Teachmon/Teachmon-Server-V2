@@ -4,8 +4,8 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import solvit.teachmon.domain.management.teacher.presentation.dto.response.QTeacherListResponse;
-import solvit.teachmon.domain.management.teacher.presentation.dto.response.TeacherListResponse;
+import solvit.teachmon.domain.supervision.application.dto.QTeacherSupervisionCountDto;
+import solvit.teachmon.domain.supervision.application.dto.TeacherSupervisionCountDto;
 import solvit.teachmon.domain.supervision.domain.entity.QSupervisionScheduleEntity;
 import solvit.teachmon.domain.user.domain.entity.QTeacherEntity;
 
@@ -18,12 +18,12 @@ public class SupervisionScheduleRepositoryImpl implements SupervisionScheduleRep
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TeacherListResponse> countTeacherSupervision(String query) {
+    public List<TeacherSupervisionCountDto> countTeacherSupervision(String query) {
         QTeacherEntity teacher = QTeacherEntity.teacherEntity;
         QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
 
         return queryFactory
-                .select(new QTeacherListResponse(
+                .select(new QTeacherSupervisionCountDto(
                         teacher.id,
                         teacher.role,
                         teacher.name,

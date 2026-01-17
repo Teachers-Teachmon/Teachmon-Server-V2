@@ -7,10 +7,9 @@ import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDay
 import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
 import solvit.teachmon.domain.management.teacher.presentation.dto.request.TeacherUpdateRequest;
 import solvit.teachmon.domain.management.teacher.presentation.dto.response.TeacherListResponse;
-import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
+import solvit.teachmon.domain.supervision.application.service.SupervisionService;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
-import solvit.teachmon.global.annotation.Trace;
 import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.ArrayList;
@@ -20,15 +19,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ManagementTeacherFacadeService {
     private final TeacherRepository teacherRepository;
-    private final SupervisionScheduleRepository supervisionScheduleRepository;
+    private final SupervisionService supervisionService;
     private final SupervisionBanDayRepository supervisionBanDayRepository;
 
-    @Trace
     public List<TeacherListResponse> getAllTeachers(String query) {
-        return supervisionScheduleRepository.countTeacherSupervision(query);
+        return supervisionService.getTeacherSupervisionCounts(query).stream()
+                .map(dto -> new TeacherListResponse(
+                        dto.teacherId(),
+                        dto.role(),
+                        dto.name(),
+                        dto.email(),
+                        dto.supervisionCount()
+                ))
+                .toList();
     }
 
-    @Trace
     @Transactional
     public void updateTeacher(TeacherUpdateRequest updateRequest, Long teacherId) {
         TeacherEntity teacher = teacherRepository.findById(teacherId)
@@ -38,13 +43,11 @@ public class ManagementTeacherFacadeService {
         teacher.changeName(updateRequest.name());
     }
 
-    @Trace
     @Transactional
     public void deleteTeacher(Long teacherId) {
         teacherRepository.deleteById(teacherId);
     }
 
-    @Trace
     @Transactional
     public void setTeacherBanDay(Long teacherId, List<WeekDay> banDays) {
         TeacherEntity teacher = teacherRepository.findById(teacherId)
