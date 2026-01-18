@@ -7,11 +7,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
+import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AwayScheduleEntity;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.entity.BaseEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Entity
@@ -32,6 +34,9 @@ public class AwayEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "period", nullable = false)
     private SchoolPeriod period;
+
+    @OneToMany(mappedBy = "away", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<AwayScheduleEntity> awaySchedules;
 
     @Builder
     public AwayEntity(StudentEntity student, TeacherEntity teacher, LocalDate day, SchoolPeriod period) {

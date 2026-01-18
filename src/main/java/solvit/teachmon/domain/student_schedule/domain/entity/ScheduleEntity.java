@@ -9,7 +9,6 @@ import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 import solvit.teachmon.domain.student_schedule.domain.exception.IllegalStudentStateChangeException;
 import solvit.teachmon.global.entity.BaseEntity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter

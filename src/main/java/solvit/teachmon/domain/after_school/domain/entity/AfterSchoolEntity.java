@@ -6,10 +6,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
+import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AfterSchoolScheduleEntity;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.entity.BaseEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
+
+import java.util.List;
 
 @Getter
 @Entity
@@ -41,4 +44,7 @@ public class AfterSchoolEntity extends BaseEntity {
 
     @Column(name = "grade", nullable = false)
     private Integer grade;
+
+    @OneToMany(mappedBy = "afterSchool", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<AfterSchoolScheduleEntity> afterSchoolSchedules;
 }

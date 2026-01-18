@@ -5,11 +5,13 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
+import solvit.teachmon.domain.student_schedule.domain.entity.schedules.LeaveSeatScheduleEntity;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.entity.BaseEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Entity
@@ -33,4 +35,7 @@ public class LeaveSeatEntity extends BaseEntity {
 
     @Column(name = "cause", nullable = false)
     private String cause;
+
+    @OneToMany(mappedBy = "leaveSeat", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<LeaveSeatScheduleEntity> leaveSeatSchedules;
 }

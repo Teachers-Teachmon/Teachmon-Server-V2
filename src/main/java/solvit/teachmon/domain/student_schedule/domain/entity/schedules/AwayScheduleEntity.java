@@ -14,7 +14,7 @@ import solvit.teachmon.global.entity.BaseEntity;
 @Table(name = "away_schedule")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AwayScheduleEntity extends BaseEntity {
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @MapsId
     @JoinColumn(name = "id")
     private ScheduleEntity schedule;

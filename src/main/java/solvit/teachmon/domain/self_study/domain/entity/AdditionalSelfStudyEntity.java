@@ -5,10 +5,12 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AdditionalSelfStudyScheduleEntity;
 import solvit.teachmon.global.entity.BaseEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Entity
@@ -24,6 +26,9 @@ public class AdditionalSelfStudyEntity extends BaseEntity {
 
     @Column(name = "grade", nullable = false)
     private Integer grade;
+
+    @OneToMany(mappedBy = "additionalSelfStudy", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<AdditionalSelfStudyScheduleEntity> additionalSelfStudySchedules;
 
     @Builder
     public AdditionalSelfStudyEntity(LocalDate day, SchoolPeriod period, Integer grade) {

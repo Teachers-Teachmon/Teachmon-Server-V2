@@ -13,7 +13,7 @@ import solvit.teachmon.global.entity.BaseEntity;
 @Table(name = "additional_self_study_schedule")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdditionalSelfStudyScheduleEntity extends BaseEntity {
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @MapsId
     @JoinColumn(name = "id")
     private ScheduleEntity schedule;
