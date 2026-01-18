@@ -37,9 +37,4 @@ public class StudentScheduleEntity extends BaseEntity {
             fetch = FetchType.LAZY
     )
     private List<ScheduleEntity> schedules = new ArrayList<>();
-
-    public Optional<ScheduleEntity> getLastSchedule() {
-        return schedules.stream()
-                .max(Comparator.comparing(ScheduleEntity::getStackOrder));
-    }
 }

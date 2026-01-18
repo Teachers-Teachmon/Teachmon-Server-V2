@@ -2,6 +2,7 @@ package solvit.teachmon.domain.student_schedule.domain.entity.schedules;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.student_schedule.domain.entity.ExitEntity;
@@ -21,4 +22,10 @@ public class ExitScheduleEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "exit_id")
     private ExitEntity exit;
+
+    @Builder
+    public ExitScheduleEntity(ScheduleEntity schedule, ExitEntity exit) {
+        this.schedule = schedule;
+        this.exit = exit;
+    }
 }

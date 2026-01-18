@@ -2,6 +2,7 @@ package solvit.teachmon.domain.student_schedule.domain.entity.schedules;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.student_schedule.domain.entity.AwayEntity;
@@ -21,4 +22,10 @@ public class AwayScheduleEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "away_id")
     private AwayEntity away;
+
+    @Builder
+    public AwayScheduleEntity(ScheduleEntity schedule, AwayEntity away) {
+        this.schedule = schedule;
+        this.away = away;
+    }
 }
