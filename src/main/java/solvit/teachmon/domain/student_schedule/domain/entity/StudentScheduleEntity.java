@@ -9,6 +9,10 @@ import solvit.teachmon.global.entity.BaseEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 @Getter
 @Entity
@@ -25,4 +29,17 @@ public class StudentScheduleEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "period", nullable = false)
     private SchoolPeriod period;
+
+    @OneToMany(
+            mappedBy = "studentSchedule",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    private List<ScheduleEntity> schedules = new ArrayList<>();
+
+    public Optional<ScheduleEntity> getLastSchedule() {
+        return schedules.stream()
+                .max(Comparator.comparing(ScheduleEntity::getStackOrder));
+    }
 }

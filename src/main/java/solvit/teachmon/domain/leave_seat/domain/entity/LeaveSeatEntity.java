@@ -24,9 +24,6 @@ public class LeaveSeatEntity extends BaseEntity {
     @JoinColumn(name = "place_id")
     private PlaceEntity place;
 
-    @Column(name = "name", nullable = false)
-    private String name;
-
     @Column(name = "day", nullable = false)
     private LocalDate day;
 
