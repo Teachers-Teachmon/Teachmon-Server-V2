@@ -1,0 +1,106 @@
+name: Deploy-Workflow
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: build/test-results/**/*.xml
+
+  build-and-deploy:
+    name: Build and Deploy
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Extract version from build.gradle
+        id: version
+        run: |
+          VERSION=$(grep "^version" build.gradle | cut -d "'" -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Build JAR with Gradle (bootJar)
+        run: |
+          chmod +x gradlew
+          ./gradlew build -x test
+
+      - name: Docker Login
+        run: |
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker BuildX
+        run: |
+          docker buildx build --platform=linux/amd64 \
+            -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:${{ steps.version.outputs.VERSION }} \
+            -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest \
+            --push .
+
+      - name: Deploy via Cloudflare Tunnel
+        env:
+          CF_SERVICE_TOKEN_ID: ${{ secrets.CF_SERVICE_TOKEN_ID }}
+          CF_SERVICE_TOKEN_SECRET: ${{ secrets.CF_SERVICE_TOKEN_SECRET }}
+        run: |
+          # cloudflared 설치
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+          chmod +x cloudflared
+
+          # SSH 설정
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/
+          chmod 600 ~/.ssh/id_ed25519
+
+          # SSH config 설정
+          echo "Host tc-ssh.zuu3.kr
+            ProxyCommand ./cloudflared access ssh --hostname %h --id $CF_SERVICE_TOKEN_ID --secret $CF_SERVICE_TOKEN_SECRET
+            StrictHostKeyChecking no" > ~/.ssh/config
+
+          # 배포 실행
+          ssh root@tc-ssh.zuu3.kr << 'EOF'
+            IMAGE=${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest
+            echo "${{ secrets.ENV }}" > .env
+            docker-compose down
+            docker pull $IMAGE
+            docker-compose --env-file .env up -d
+            sleep 15
+            docker image prune -f
+            echo "✅ 배포 완료"
+          EOF

@@ -3,21 +3,37 @@ services:
     image: mysql
     container_name: mysql-container
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-teachmon}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-teachmon}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
       TZ: Asia/Seoul
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    networks:
+      - backend
   redis:
     image: redis
     container_name: redis-container
-    command: redis-server --requirepass ${REDIS_PASSWORD:-teachmon}
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    networks:
+      - backend
+  teachmon:
+    image: teachmon08/teachmon-be:latest
+    container_name: teachmon-container
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    networks:
+      - backend
+networks:
+  backend:
+    driver: bridge
 volumes:
   mysql-data:
   redis-data:
