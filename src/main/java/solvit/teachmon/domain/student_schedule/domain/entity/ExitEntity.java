@@ -13,7 +13,7 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "exit")
+@Table(name = "`exit`")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ExitEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

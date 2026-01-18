@@ -12,7 +12,7 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "self_study")
+@Table(name = "student_schedule")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StudentScheduleEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
