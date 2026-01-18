@@ -61,7 +61,7 @@ public class StudentScheduleRepositoryImpl implements StudentScheduleRepositoryC
                                                 student.name,
                                                 studentSchedule.day,
                                                 studentSchedule.period,
-                                                schedule.id,
+                                                studentSchedule.id,
                                                 schedule.type
                                         )
                                 )
