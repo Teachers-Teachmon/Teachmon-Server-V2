@@ -6,10 +6,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import solvit.teachmon.domain.auth.application.dto.response.TokenResponseDto;
 import solvit.teachmon.domain.auth.application.service.AuthService;
 import solvit.teachmon.domain.auth.exception.RefreshTokenNotFoundException;
 import solvit.teachmon.domain.auth.presentation.dto.request.AuthCodeRequestDto;
+import solvit.teachmon.domain.auth.presentation.dto.response.TokenResponseDto;
 
 import java.util.Map;
 

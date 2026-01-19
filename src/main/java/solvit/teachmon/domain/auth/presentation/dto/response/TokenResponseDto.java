@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.auth.application.dto.response;
+package solvit.teachmon.domain.auth.presentation.dto.response;
 
 import org.springframework.http.ResponseCookie;
 
