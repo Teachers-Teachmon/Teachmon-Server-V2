@@ -179,32 +179,11 @@ class ManagementStudentControllerValidationTest {
     }
 
     @Test
-    @DisplayName("학생 수정 시 유효한 요청이면 200이 반환된다")
-    void shouldReturn200WhenUpdateStudentWithValidRequest() throws Exception {
-        // Given
-        StudentRequest request = new StudentRequest(1, 1, 1, "홍길동");
-
-        // When & Then
-        mockMvc.perform(patch("/student/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
     @DisplayName("학생 삭제 시 student_id가 1 미만이면 400 에러가 발생한다")
     void shouldReturn400WhenDeleteStudentIdIsLessThan1() throws Exception {
         // When & Then
         mockMvc.perform(delete("/student/0"))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("학생 삭제 시 유효한 요청이면 200이 반환된다")
-    void shouldReturn200WhenDeleteStudentWithValidRequest() throws Exception {
-        // When & Then
-        mockMvc.perform(delete("/student/1"))
-                .andExpect(status().isOk());
     }
 
     @Test

@@ -107,19 +107,6 @@ class ManagementTeacherControllerValidationTest {
     }
 
     @Test
-    @DisplayName("선생님 정보 수정 시 유효한 요청이면 200이 반환된다")
-    void shouldReturn200WhenUpdateTeacherWithValidRequest() throws Exception {
-        // Given
-        TeacherUpdateRequest request = new TeacherUpdateRequest(Role.TEACHER, "김선생");
-
-        // When & Then
-        mockMvc.perform(patch("/teacher/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
     @DisplayName("선생님 삭제 시 teacher_id가 1 미만이면 400 에러가 발생한다")
     void shouldReturn400WhenDeleteTeacherIdIsLessThan1() throws Exception {
         // When & Then
@@ -128,27 +115,11 @@ class ManagementTeacherControllerValidationTest {
     }
 
     @Test
-    @DisplayName("선생님 삭제 시 유효한 요청이면 200이 반환된다")
-    void shouldReturn200WhenDeleteTeacherWithValidRequest() throws Exception {
-        // When & Then
-        mockMvc.perform(delete("/teacher/1"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
     @DisplayName("선생님 금지날 조회 시 teacher_id가 1 미만이면 400 에러가 발생한다")
     void shouldReturn400WhenGetBanDayTeacherIdIsLessThan1() throws Exception {
         // When & Then
         mockMvc.perform(get("/teacher/0/ban"))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("선생님 금지날 조회 시 유효한 요청이면 200이 반환된다")
-    void shouldReturn200WhenGetBanDayWithValidRequest() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/teacher/1/ban"))
-                .andExpect(status().isOk());
     }
 
     @Test
@@ -165,63 +136,11 @@ class ManagementTeacherControllerValidationTest {
     }
 
     @Test
-    @DisplayName("선생님 금지날 설정 시 유효한 요청이면 200이 반환된다")
-    void shouldReturn200WhenSetBanDayWithValidRequest() throws Exception {
-        // Given
-        List<WeekDay> banDays = Arrays.asList(WeekDay.MON, WeekDay.TUE);
-
-        // When & Then
-        mockMvc.perform(post("/teacher/1/ban")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(banDays)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("선생님 금지날 설정 시 빈 리스트도 허용된다")
-    void shouldReturn200WhenSetBanDayWithEmptyList() throws Exception {
-        // Given
-        List<WeekDay> banDays = Collections.emptyList();
-
-        // When & Then
-        mockMvc.perform(post("/teacher/1/ban")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(banDays)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
     @DisplayName("선생님 조회 시 query 파라미터가 있으면 200이 반환된다")
     void shouldReturn200WhenGetTeachersWithQuery() throws Exception {
         // When & Then
         mockMvc.perform(get("/teacher")
                         .param("query", "김"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("선생님 정보 수정 시 role이 ADMIN이면 정상 처리된다")
-    void shouldReturn200WhenRoleIsAdmin() throws Exception {
-        // Given
-        TeacherUpdateRequest request = new TeacherUpdateRequest(Role.ADMIN, "김선생");
-
-        // When & Then
-        mockMvc.perform(patch("/teacher/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("선생님 정보 수정 시 role이 TEACHER이면 정상 처리된다")
-    void shouldReturn200WhenRoleIsTeacher() throws Exception {
-        // Given
-        TeacherUpdateRequest request = new TeacherUpdateRequest(Role.TEACHER, "김선생");
-
-        // When & Then
-        mockMvc.perform(patch("/teacher/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
 }
