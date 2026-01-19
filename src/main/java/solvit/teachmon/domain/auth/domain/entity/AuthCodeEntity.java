@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
+import solvit.teachmon.domain.auth.exception.InvalidAuthCodeInfoException;
 
 @Getter
 @RedisHash("code")
@@ -19,8 +20,19 @@ public class AuthCodeEntity {
 
     @Builder
     public AuthCodeEntity(String authCode, String accessToken, Long timeToLive) {
+        validateFields(authCode, accessToken, timeToLive);
+
         this.authCode = authCode;
         this.accessToken = accessToken;
         this.timeToLive = timeToLive;
+    }
+
+    private void validateFields(String authCode, String accessToken, Long timeToLive) {
+        if(authCode == null || authCode.trim().isEmpty())
+            throw new InvalidAuthCodeInfoException("인증 코드는 비어 있을 수 없습니다.");
+        if(accessToken == null || accessToken.trim().isEmpty())
+            throw new InvalidAuthCodeInfoException("엑세스 토큰은 비어 있을 수 없습니다.");
+        if(timeToLive == null || timeToLive < 0)
+            throw new InvalidAuthCodeInfoException("TTL 값은 0 이상이어야 합니다.");
     }
 }
