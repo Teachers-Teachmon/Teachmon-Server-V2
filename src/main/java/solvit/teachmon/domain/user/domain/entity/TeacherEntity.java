@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 import solvit.teachmon.domain.user.domain.enums.Role;
+import solvit.teachmon.domain.user.exception.InvalidTeacherInfoException;
 import solvit.teachmon.global.entity.BaseEntity;
 
 @Getter
@@ -42,6 +43,8 @@ public class TeacherEntity extends BaseEntity {
 
     @Builder
     public TeacherEntity(String mail, String name, String profile, String providerId, OAuth2Type oAuth2Type) {
+        validateFields(mail, name, providerId, oAuth2Type);
+
         this.mail = mail;
         this.name = name;
         this.profile = profile;
@@ -51,8 +54,14 @@ public class TeacherEntity extends BaseEntity {
         this.oAuth2Type = oAuth2Type;
     }
 
-    public void update(String name, String profile) {
-        this.name = name;
-        this.profile = profile;
+    private void validateFields(String mail, String name, String providerId, OAuth2Type oAuth2Type) {
+        if(mail == null || mail.trim().isEmpty())
+            throw new InvalidTeacherInfoException("메일은 비어 있을 수 없습니다.");
+        if(name == null || name.trim().isEmpty())
+            throw new InvalidTeacherInfoException("이름은 비어 있을 수 없습니다.");
+        if(providerId == null || providerId.trim().isEmpty())
+            throw new InvalidTeacherInfoException("Provider 아이디는 비어 있을 수 없습니다.");
+        if(oAuth2Type == null)
+            throw new InvalidTeacherInfoException("OAuth2 타입은 비어 있을 수 없습니다.");
     }
 }
