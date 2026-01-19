@@ -4,12 +4,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import solvit.teachmon.domain.self_study.application.facade.SelfStudyFacadeService;
 import solvit.teachmon.domain.self_study.presentation.dto.common.WeekDaySelfStudyDto;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/self-study")
 @RequiredArgsConstructor

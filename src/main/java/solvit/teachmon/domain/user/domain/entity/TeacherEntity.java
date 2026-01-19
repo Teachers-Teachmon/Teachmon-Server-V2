@@ -42,14 +42,14 @@ public class TeacherEntity extends BaseEntity {
 
     public void changeRole(Role role) {
         if(role == null) {
-            throw new TeacherInvalidValueException("Role 은 null 일 수 없습니다", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new TeacherInvalidValueException("role(권한)은 필수입니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         this.role = role;
     }
 
     public void changeName(String name) {
         if(name == null) {
-            throw new TeacherInvalidValueException("name 은 null 일 수 없습니다", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new TeacherInvalidValueException("name(이름)은 필수입니다", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         this.name = name;
     }

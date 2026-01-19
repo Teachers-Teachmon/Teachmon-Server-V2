@@ -168,7 +168,7 @@ class ManagementStudentServiceUpdateTest {
         // When & Then: 수정하면 예외가 발생한다
         assertThatThrownBy(() -> managementStudentService.updateStudent(studentId, updateRequest))
                 .isInstanceOf(InvalidStudentInfoException.class)
-                .hasMessage("학년은 1 ~ 3 사이여야 합니다");
+                .hasMessage("grade(학년)은 1 ~ 3 사이여야 합니다.");
     }
 
     @Test
@@ -190,7 +190,7 @@ class ManagementStudentServiceUpdateTest {
         // When & Then: 수정하면 예외가 발생한다
         assertThatThrownBy(() -> managementStudentService.updateStudent(studentId, updateRequest))
                 .isInstanceOf(InvalidStudentInfoException.class)
-                .hasMessage("반은 1 이상이어야 합니다");
+                .hasMessage("classNumber(반)은 1 이상이어야 합니다.");
     }
 
     @Test
@@ -212,7 +212,7 @@ class ManagementStudentServiceUpdateTest {
         // When & Then: 수정하면 예외가 발생한다
         assertThatThrownBy(() -> managementStudentService.updateStudent(studentId, updateRequest))
                 .isInstanceOf(InvalidStudentInfoException.class)
-                .hasMessage("번호는 1 이상이어야 합니다");
+                .hasMessage("number(번호)는 1 이상이어야 합니다.");
     }
 
     @Test
@@ -234,6 +234,6 @@ class ManagementStudentServiceUpdateTest {
         // When & Then: 수정하면 예외가 발생한다
         assertThatThrownBy(() -> managementStudentService.updateStudent(studentId, updateRequest))
                 .isInstanceOf(InvalidStudentInfoException.class)
-                .hasMessage("이름은 비어 있을 수 없습니다");
+                .hasMessage("name(이름)은 필수입니다.");
     }
 }
