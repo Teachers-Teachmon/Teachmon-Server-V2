@@ -34,15 +34,21 @@ public class StudentEntity extends BaseEntity {
 
     @Builder
     public StudentEntity(Integer year, Integer grade, Integer classNumber, Integer number, String name) {
-        this.year = year;
+        this.year = resolveYear(year);
         this.grade = grade;
         this.classNumber = classNumber;
         this.number = number;
         this.name = name;
     }
 
-    public void setNowYear() {
-        this.year = LocalDate.now().getYear();
+    private Integer resolveYear(Integer year) {
+        // year 이 유효한지 검사
+        return (year != null) ? year : getNowYear();
+    }
+
+    private Integer getNowYear() {
+        // year 설정 도메인 로직
+        return LocalDate.now().getYear();
     }
 
     public void changeInfo(Integer grade, Integer classNumber, Integer number, String name) {

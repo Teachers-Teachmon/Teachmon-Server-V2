@@ -18,7 +18,6 @@ public class ManagementStudentService {
     @Transactional
     public void createStudent(StudentRequest request) {
         StudentEntity student = studentMapper.toEntity(request);
-        student.setNowYear();
 
         studentRepository.save(student);
     }
