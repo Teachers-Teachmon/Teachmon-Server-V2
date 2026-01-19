@@ -29,7 +29,10 @@ public class AuthService {
         String newAccessToken = jwtManager.createAccessToken(mail);
         ResponseCookie newRefreshTokenCookie = jwtManager.createRefreshToken(mail);
 
-        return new TokenResponseDto(newAccessToken, newRefreshTokenCookie);
+        return TokenResponseDto.builder()
+                .accessToken(newAccessToken)
+                .refreshTokenCookie(newRefreshTokenCookie)
+                .build();
     }
 
     public String getAccessTokenByAuthCode(String authCode) {
