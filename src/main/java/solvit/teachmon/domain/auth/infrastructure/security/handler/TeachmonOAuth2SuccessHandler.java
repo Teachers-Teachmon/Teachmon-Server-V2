@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TeachmonOAuth2SuccessHandler implements AuthenticationSuccessHandler {
@@ -43,9 +42,7 @@ public class TeachmonOAuth2SuccessHandler implements AuthenticationSuccessHandle
         createAuthCode(authCode, accessToken);
 
         ResponseCookie refreshTokenCookie = jwtManager.createRefreshToken(mail);
-        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
-
-        log.info(refreshTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
         String frontendUrl = webProperties.getFrontEndUrl() + "/oauth2/callback#code=" + authCode;
         response.sendRedirect(frontendUrl);
