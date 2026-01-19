@@ -85,7 +85,7 @@ jobs:
 
           # SSH 설정
           mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
           # SSH config 설정
@@ -95,11 +95,10 @@ jobs:
 
           # 배포 실행
           ssh root@tc-ssh.zuu3.kr << 'EOF'
-            IMAGE=${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest
             echo "${{ secrets.ENV }}" > .env
             docker-compose down
-            docker pull $IMAGE
-            docker-compose --env-file .env up -d
+            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest
+            docker-compose up -d
             sleep 15
             docker image prune -f
             echo "✅ 배포 완료"
