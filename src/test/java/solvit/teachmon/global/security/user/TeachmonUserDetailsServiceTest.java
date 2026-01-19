@@ -8,8 +8,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
-import solvit.teachmon.domain.user.domain.service.TeacherValidateService;
+import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
+import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -19,7 +22,7 @@ import static org.mockito.BDDMockito.*;
 class TeachmonUserDetailsServiceTest {
 
     @Mock
-    private TeacherValidateService teacherValidateService;
+    private TeacherRepository teacherRepository;
 
     @InjectMocks
     private TeachmonUserDetailsService userDetailsService;
@@ -32,6 +35,8 @@ class TeachmonUserDetailsServiceTest {
                 .name("김선생")
                 .mail("kim@teacher.com")
                 .profile("수학 선생님")
+                .providerId("google-12345")
+                .oAuth2Type(OAuth2Type.GOOGLE)
                 .build();
     }
 
@@ -39,7 +44,7 @@ class TeachmonUserDetailsServiceTest {
     @DisplayName("메일로 유저 정보를 가져올 수 있다")
     void shouldLoadUserByUsername() {
         // Given: 선생님이 존재할 때
-        given(teacherValidateService.validateByMail("kim@teacher.com")).willReturn(teacher);
+        given(teacherRepository.findByMail("kim@teacher.com")).willReturn(Optional.of(teacher));
 
         // When: 메일로 유저 정보를 조회하면
         TeachmonUserDetails result = userDetailsService.loadUserByUsername("kim@teacher.com");
@@ -54,8 +59,8 @@ class TeachmonUserDetailsServiceTest {
     @DisplayName("존재하지 않는 메일로 조회하면 예외가 발생한다")
     void shouldThrowExceptionWhenTeacherNotFound() {
         // Given: 선생님이 존재하지 않을 때
-        given(teacherValidateService.validateByMail("nomail@nomail.com"))
-                .willThrow(new TeacherNotFoundException());
+        given(teacherRepository.findByMail("nomail@nomail.com"))
+                .willReturn(Optional.empty());
 
         // When & Then: 조회하면 예외가 발생한다
         assertThatThrownBy(() -> userDetailsService.loadUserByUsername("nomail@nomail.com"))
