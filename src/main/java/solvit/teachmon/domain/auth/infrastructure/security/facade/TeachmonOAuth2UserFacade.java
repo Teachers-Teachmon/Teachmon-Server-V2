@@ -10,14 +10,16 @@ import solvit.teachmon.domain.auth.exception.UnsupportedAccountException;
 import solvit.teachmon.domain.auth.infrastructure.security.strategy.OAuth2StrategyComposite;
 import solvit.teachmon.domain.auth.infrastructure.security.vo.TeachmonOAuth2User;
 import solvit.teachmon.domain.auth.infrastructure.security.vo.TeachmonOAuth2UserInfo;
-import solvit.teachmon.domain.user.application.service.TeacherAuthenticationService;
+import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
-import solvit.teachmon.domain.user.domain.enums.Role;
+import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class TeachmonOAuth2UserFacade extends DefaultOAuth2UserService {
-    private final TeacherAuthenticationService teacherAuthenticationService;
+    private final TeacherRepository teacherRepository;
     private final OAuth2StrategyComposite oAuth2StrategyComposite;
 
     @Override
@@ -25,23 +27,16 @@ public class TeachmonOAuth2UserFacade extends DefaultOAuth2UserService {
         OAuth2User oauth2User = super.loadUser(userRequest);
         OAuth2Type oAuth2Type = OAuth2Type.of(userRequest.getClientRegistration().getRegistrationId());
         TeachmonOAuth2UserInfo teachmonOAuth2UserInfo = oAuth2StrategyComposite.getOAuth2Strategy(oAuth2Type).getUserInfo(oauth2User);
-        checkAccount(teachmonOAuth2UserInfo.mail());
-        Role role = teacherAuthenticationService.getRole(teachmonOAuth2UserInfo);
+
+        Optional<TeacherEntity> teacherEntityOptional = teacherRepository.findByProviderIdAndOAuth2Type(teachmonOAuth2UserInfo.providerId(), teachmonOAuth2UserInfo.oAuth2Type());
+        if(teacherEntityOptional.isEmpty()) throw new UnsupportedAccountException();
+
+        TeacherEntity teacherEntity = teacherEntityOptional.get();
 
         return TeachmonOAuth2User.builder()
-                .role(role)
+                .role(teacherEntity.getRole())
                 .mail(teachmonOAuth2UserInfo.mail())
                 .attributes(oauth2User.getAttributes())
                 .build();
-    }
-
-    private void checkAccount(String mail) {
-        if(
-                !mail.equals("teachmon08@gmail.com") &&
-                !mail.matches("^teacher\\d{3}@bssm\\.hs\\.kr$") &&
-                !mail.equals("hwansi@bssm.hs.kr")
-        ) {
-            throw new UnsupportedAccountException();
-        }
     }
 }
