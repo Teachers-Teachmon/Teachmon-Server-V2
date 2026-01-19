@@ -7,7 +7,7 @@ import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDay
 import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
 import solvit.teachmon.domain.management.teacher.presentation.dto.request.TeacherUpdateRequest;
 import solvit.teachmon.domain.management.teacher.presentation.dto.response.TeacherListResponse;
-import solvit.teachmon.domain.supervision.application.service.SupervisionService;
+import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
@@ -20,14 +20,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ManagementTeacherFacadeService {
     private final TeacherRepository teacherRepository;
-    private final SupervisionService supervisionService;
+    private final SupervisionScheduleRepository supervisionScheduleRepository;
     private final SupervisionBanDayRepository supervisionBanDayRepository;
 
     @Transactional(readOnly = true)
     public List<TeacherListResponse> getAllTeachers(String query) {
-        return supervisionService.searchTeacherWithSupervisionCounts(query).stream()
-                .map(TeacherListResponse::from)
-                .toList();
+        return supervisionScheduleRepository.countTeacherSupervision(query);
     }
 
     @Transactional

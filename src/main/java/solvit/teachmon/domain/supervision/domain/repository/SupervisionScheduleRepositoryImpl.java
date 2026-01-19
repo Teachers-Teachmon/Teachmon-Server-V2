@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.management.teacher.presentation.dto.response.QTeacherListResponse;
 import solvit.teachmon.domain.management.teacher.presentation.dto.response.TeacherListResponse;
-import solvit.teachmon.domain.supervision.application.dto.QTeacherSupervisionCountDto;
-import solvit.teachmon.domain.supervision.application.dto.TeacherSupervisionCountDto;
 import solvit.teachmon.domain.supervision.domain.entity.QSupervisionScheduleEntity;
 import solvit.teachmon.domain.user.domain.entity.QTeacherEntity;
 
@@ -20,17 +18,16 @@ public class SupervisionScheduleRepositoryImpl implements SupervisionScheduleRep
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TeacherSupervisionCountDto> countTeacherSupervision(String query) {
+    public List<TeacherListResponse> countTeacherSupervision(String query) {
         QTeacherEntity teacher = QTeacherEntity.teacherEntity;
         QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
 
         return queryFactory
-                .select(new QTeacherSupervisionCountDto(
+                .select(new QTeacherListResponse(
                         teacher.id,
                         teacher.role,
                         teacher.name,
                         teacher.mail,
-                        teacher.profile,
                         schedule.id.count().intValue()
                 ))
                 .from(teacher)

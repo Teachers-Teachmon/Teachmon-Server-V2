@@ -1,10 +1,10 @@
 package solvit.teachmon.global.enums;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum SchoolPeriod {
     SEVEN_PERIOD("7교시"),
     EIGHT_AND_NINE_PERIOD("8~9교시"),
