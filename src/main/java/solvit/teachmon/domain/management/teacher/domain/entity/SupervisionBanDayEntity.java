@@ -34,7 +34,7 @@ public class SupervisionBanDayEntity extends BaseEntity {
 
     private void validateTeacher(TeacherEntity teacher) {
         if (teacher == null) {
-            throw new InvalidSupervisionBanDayInfoException("grade(학년)는 1 ~ 3 사이여야 합니다.");
+            throw new InvalidSupervisionBanDayInfoException("teacher(선생님)는 필수입니다.");
         }
     }
 
