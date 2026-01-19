@@ -1,12 +1,13 @@
 package solvit.teachmon.domain.auth.infrastructure.jwt;
 
 import io.jsonwebtoken.Jwts;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
-import solvit.teachmon.domain.auth.domain.service.TokenService;
+import solvit.teachmon.domain.auth.domain.entity.TokenEntity;
+import solvit.teachmon.domain.auth.domain.repository.TokenRepository;
 import solvit.teachmon.domain.auth.exception.RefreshTokenNotFoundException;
+import solvit.teachmon.global.annotation.Trace;
 import solvit.teachmon.global.constants.JwtConstants;
 import solvit.teachmon.global.properties.JwtProperties;
 
@@ -18,22 +19,22 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
 @Component
-@RequiredArgsConstructor
 public class JwtManager {
     private final JwtProperties jwtProperties;
-    private final TokenService tokenService;
+    private final TokenRepository tokenRepository;
     private final SecretKey secretKey;
 
     @Autowired
-    public JwtManager(JwtProperties jwtProperties, TokenService tokenService) {
+    public JwtManager(JwtProperties jwtProperties, TokenRepository tokenRepository) {
         this.jwtProperties = jwtProperties;
-        this.tokenService = tokenService;
+        this.tokenRepository = tokenRepository;
         this.secretKey = new SecretKeySpec(
                 jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8),
                 Jwts.SIG.HS256.key().build().getAlgorithm()
         );
     }
 
+    @Trace
     public String createAccessToken(String mail) {
         long now = System.currentTimeMillis();
         Date expiration = new Date(now + jwtProperties.getAccessExpiration());
@@ -59,7 +60,7 @@ public class JwtManager {
                 .signWith(secretKey)
                 .compact();
 
-        tokenService.saveToken(mail, refreshToken, jwtProperties.getRefreshExpiration());
+        saveRefreshToken(refreshToken, mail);
 
         return ResponseCookie.from("refresh_token", refreshToken)
                 .maxAge(Duration.ofMillis(jwtProperties.getRefreshExpiration()))
@@ -83,7 +84,16 @@ public class JwtManager {
     }
 
     public void deleteRefreshToken(String refreshToken) {
-        if(tokenService.isInvalidToken(refreshToken)) throw new RefreshTokenNotFoundException();
-        tokenService.deleteToken(refreshToken);
+        if(!tokenRepository.existsById(refreshToken)) throw new RefreshTokenNotFoundException();
+        tokenRepository.deleteById(refreshToken);
+    }
+
+    private void saveRefreshToken(String refreshToken, String mail) {
+        TokenEntity tokenEntity = TokenEntity.builder()
+                .token(refreshToken)
+                .mail(mail)
+                .expiration(jwtProperties.getRefreshExpiration())
+                .build();
+        tokenRepository.save(tokenEntity);
     }
 }
