@@ -10,6 +10,8 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    networks:
+      - backend
   redis:
     image: redis
     container_name: redis-container
@@ -18,6 +20,23 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    networks:
+      - backend
+  teachmon:
+    image: teachmon08/teachmon-be:latest
+    container_name: teachmon-container
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    networks:
+      - backend
+    depends_on:
+      - mysql
+      - redis
+networks:
+  backend:
+    driver: bridge
 volumes:
   mysql-data:
   redis-data:
