@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
+import solvit.teachmon.domain.branch.exception.BranchNotFoundException;
 import solvit.teachmon.domain.self_study.application.mapper.SelfStudyMapper;
 import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
@@ -190,8 +191,8 @@ class SelfStudyFacadeServiceSetTest {
 
         // When & Then: 자습을 설정하면 예외가 발생한다
         assertThatThrownBy(() -> selfStudyFacadeService.setSelfStudy(year, branchNumber, grade, requests))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요");
+                .isInstanceOf(BranchNotFoundException.class)
+                .hasMessage("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요.");
 
         verify(branchRepository, times(1)).findByYearAndBranch(year, branchNumber);
         verify(selfStudyRepository, never()).deleteAllByBranchAndGrade(any(), any());

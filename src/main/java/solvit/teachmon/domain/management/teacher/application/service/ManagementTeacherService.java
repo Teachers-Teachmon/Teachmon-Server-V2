@@ -14,7 +14,7 @@ public class ManagementTeacherService {
     private final SupervisionBanDayRepository supervisionBanDayRepository;
 
     @Transactional(readOnly = true)
-    public List<WeekDay> getTeacherBanDay(Long teacherId) {
+    public List<WeekDay> getTeacherBanDays(Long teacherId) {
         return supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId);
     }
 }

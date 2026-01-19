@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import solvit.teachmon.domain.management.teacher.exception.InvalidSupervisionBanDayInfoException;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.entity.BaseEntity;
 import solvit.teachmon.global.enums.WeekDay;
@@ -24,7 +25,22 @@ public class SupervisionBanDayEntity extends BaseEntity {
 
     @Builder
     public SupervisionBanDayEntity(TeacherEntity teacher, WeekDay weekDay) {
+        validateTeacher(teacher);
+        validateWeekDay(weekDay);
+
         this.teacher = teacher;
         this.weekDay = weekDay;
+    }
+
+    private void validateTeacher(TeacherEntity teacher) {
+        if (teacher == null) {
+            throw new InvalidSupervisionBanDayInfoException("teacher(선생님)는 필수입니다.");
+        }
+    }
+
+    private void validateWeekDay(WeekDay weekDay) {
+        if (weekDay == null) {
+            throw new InvalidSupervisionBanDayInfoException("weekDay(요일)는 필수입니다.");
+        }
     }
 }

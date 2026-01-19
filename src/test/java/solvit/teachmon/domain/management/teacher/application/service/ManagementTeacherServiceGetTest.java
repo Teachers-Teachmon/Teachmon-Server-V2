@@ -36,7 +36,7 @@ class ManagementTeacherServiceGetTest {
         given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
 
         // When: 금지날을 조회하면
-        List<WeekDay> result = managementTeacherService.getTeacherBanDay(teacherId);
+        List<WeekDay> result = managementTeacherService.getTeacherBanDays(teacherId);
 
         // Then: 금지날 목록이 반환된다
         assertThat(result).hasSize(3);
@@ -53,7 +53,7 @@ class ManagementTeacherServiceGetTest {
         given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(Collections.emptyList());
 
         // When: 금지날을 조회하면
-        List<WeekDay> result = managementTeacherService.getTeacherBanDay(teacherId);
+        List<WeekDay> result = managementTeacherService.getTeacherBanDays(teacherId);
 
         // Then: 빈 리스트가 반환된다
         assertThat(result).isEmpty();
@@ -70,7 +70,7 @@ class ManagementTeacherServiceGetTest {
         given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
 
         // When: 금지날을 조회하면
-        List<WeekDay> result = managementTeacherService.getTeacherBanDay(teacherId);
+        List<WeekDay> result = managementTeacherService.getTeacherBanDays(teacherId);
 
         // Then: 하나의 금지날이 반환된다
         assertThat(result).hasSize(1);
@@ -90,7 +90,7 @@ class ManagementTeacherServiceGetTest {
         given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
 
         // When: 금지날을 조회하면
-        List<WeekDay> result = managementTeacherService.getTeacherBanDay(teacherId);
+        List<WeekDay> result = managementTeacherService.getTeacherBanDays(teacherId);
 
         // Then: 모든 평일이 반환된다
         assertThat(result).hasSize(4);
@@ -110,7 +110,7 @@ class ManagementTeacherServiceGetTest {
         given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
 
         // When: 금지날을 조회하면
-        List<WeekDay> result = managementTeacherService.getTeacherBanDay(teacherId);
+        List<WeekDay> result = managementTeacherService.getTeacherBanDays(teacherId);
 
         // Then: 연속된 금지날이 반환된다
         assertThat(result).hasSize(2);

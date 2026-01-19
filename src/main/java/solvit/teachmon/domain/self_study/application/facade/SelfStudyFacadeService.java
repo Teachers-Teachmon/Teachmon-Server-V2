@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
+import solvit.teachmon.domain.branch.exception.BranchNotFoundException;
 import solvit.teachmon.domain.self_study.application.mapper.SelfStudyMapper;
 import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
@@ -25,7 +26,7 @@ public class SelfStudyFacadeService {
     public void setSelfStudy(Integer year, Integer branch, Integer grade, List<WeekDaySelfStudyDto> request) {
         // 분기 가져오기
         BranchEntity branchEntity = branchRepository.findByYearAndBranch(year, branch)
-                .orElseThrow(() -> new IllegalArgumentException("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요"));
+                .orElseThrow(BranchNotFoundException::new);
 
         // 기존 자습 설정 제거
         selfStudyRepository.deleteAllByBranchAndGrade(branchEntity, grade);
@@ -40,7 +41,7 @@ public class SelfStudyFacadeService {
     public List<WeekDaySelfStudyDto> getSelfStudy(Integer year, Integer branch, Integer grade) {
         // 분기 가져오기
         BranchEntity branchEntity = branchRepository.findByYearAndBranch(year, branch)
-                .orElseThrow(() -> new IllegalArgumentException("해당 분기를 찾을 수 없습니다. 분기 설정을 먼저 해주세요"));
+                .orElseThrow(BranchNotFoundException::new);
 
         // WeekDay 로 그룹화된 데이터 가져오기
         Map<WeekDay, List<SchoolPeriod>> groupedByWeekDay = selfStudyRepository.findGroupedByWeekDay(branchEntity, grade);

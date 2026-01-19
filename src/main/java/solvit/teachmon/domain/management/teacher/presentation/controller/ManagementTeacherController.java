@@ -60,10 +60,10 @@ public class ManagementTeacherController {
     }
 
     @GetMapping("/{teacher_id}/ban")
-    public ResponseEntity<List<WeekDay>> getTeacherBanDay(
+    public ResponseEntity<List<WeekDay>> getTeacherBanDays(
             @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1이상입니다") Long teacherId
     ) {
-        List<WeekDay> banDays = managementTeacherService.getTeacherBanDay(teacherId);
+        List<WeekDay> banDays = managementTeacherService.getTeacherBanDays(teacherId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
