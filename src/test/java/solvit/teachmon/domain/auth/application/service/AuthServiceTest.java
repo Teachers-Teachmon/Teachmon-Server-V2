@@ -7,8 +7,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseCookie;
-import solvit.teachmon.domain.auth.application.dto.response.TokenResponseDto;
-import solvit.teachmon.domain.auth.domain.service.AuthCodeService;
+import solvit.teachmon.domain.auth.presentation.dto.response.TokenResponseDto;
+import solvit.teachmon.domain.auth.domain.entity.AuthCodeEntity;
+import solvit.teachmon.domain.auth.domain.repository.AuthCodeRepository;
+import solvit.teachmon.domain.auth.exception.AuthCodeNotFoundException;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import solvit.teachmon.domain.auth.infrastructure.jwt.JwtManager;
 import solvit.teachmon.global.security.jwt.JwtValidator;
 
@@ -30,7 +36,7 @@ class AuthServiceTest {
     private JwtValidator jwtValidator;
 
     @Mock
-    private AuthCodeService authCodeService;
+    private AuthCodeRepository authCodeRepository;
 
     @Test
     @DisplayName("리프레시 토큰을 삭제하고 쿠키를 반환한다")
@@ -74,17 +80,33 @@ class AuthServiceTest {
 
     @Test
     @DisplayName("인증 코드로 액세스 토큰을 조회하고 코드를 삭제한다")
-    void getAccessTokenByAuthCode() {
+    void getAccessTokenByAuthCode_Success() {
         // given
         String authCode = "test-auth-code";
         String expectedAccessToken = "test-access-token";
-        given(authCodeService.getAccessTokenByAuthCode(authCode)).willReturn(expectedAccessToken);
+        AuthCodeEntity authCodeEntity = AuthCodeEntity.builder()
+                .authCode(authCode)
+                .accessToken(expectedAccessToken)
+                .timeToLive(300L)
+                .build();
+        given(authCodeRepository.findByAuthCode(authCode)).willReturn(Optional.of(authCodeEntity));
 
         // when
         String actualAccessToken = authService.getAccessTokenByAuthCode(authCode);
 
         // then
         assertThat(actualAccessToken).isEqualTo(expectedAccessToken);
-        then(authCodeService).should(times(1)).delete(authCode);
+        then(authCodeRepository).should(times(1)).delete(authCodeEntity);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 인증 코드로 조회시 예외가 발생한다")
+    void getAccessTokenByAuthCode_NotFound() {
+        // given
+        String authCode = "non-existent-auth-code";
+        given(authCodeRepository.findByAuthCode(authCode)).willReturn(Optional.empty());
+
+        // when & then
+        assertThrows(AuthCodeNotFoundException.class, () -> authService.getAccessTokenByAuthCode(authCode));
     }
 }
