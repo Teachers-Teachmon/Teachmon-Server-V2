@@ -10,6 +10,7 @@ import solvit.teachmon.domain.auth.application.service.AuthService;
 import solvit.teachmon.domain.auth.exception.RefreshTokenNotFoundException;
 import solvit.teachmon.domain.auth.presentation.dto.request.AuthCodeRequestDto;
 import solvit.teachmon.domain.auth.presentation.dto.response.TokenResponseDto;
+import solvit.teachmon.global.constants.JwtConstants;
 
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/reissue")
-    public ResponseEntity<Map<String, String>> reissue(@CookieValue(value = "refresh_token", required = false) String refreshToken) {
+    public ResponseEntity<Map<String, String>> reissue(@CookieValue(value = JwtConstants.REFRESH_TOKEN_COOKIE_HEADER, required = false) String refreshToken) {
         if(refreshToken == null) throw new RefreshTokenNotFoundException();
         TokenResponseDto tokenResponseDto = authService.reissueToken(refreshToken);
         return ResponseEntity.ok()
@@ -29,7 +30,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@CookieValue(value = "refresh_token", required = false) String refreshToken) {
+    public ResponseEntity<Void> logout(@CookieValue(value = JwtConstants.REFRESH_TOKEN_COOKIE_HEADER, required = false) String refreshToken) {
         if(refreshToken == null) throw new RefreshTokenNotFoundException();
         ResponseCookie deletedRefreshTokenCookie = authService.deleteRefreshToken(refreshToken);
 

@@ -8,7 +8,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import solvit.teachmon.global.constants.JwtConstants;
 import solvit.teachmon.global.security.jwt.JwtValidator;
@@ -22,6 +22,7 @@ import java.util.Arrays;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtValidator jwtValidator;
     private final TeachmonUserDetailsService teachmonUserDetailsService;
+    private final PathMatcher pathMatcher;
     private final String[] excludedPaths;
 
     @Override
@@ -50,6 +51,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         return Arrays.stream(excludedPaths)
-                .anyMatch(pattern -> new AntPathMatcher().match(pattern, path));
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 }

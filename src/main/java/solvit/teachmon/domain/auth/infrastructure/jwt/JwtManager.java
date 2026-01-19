@@ -62,7 +62,7 @@ public class JwtManager {
 
         saveRefreshToken(refreshToken, mail);
 
-        return ResponseCookie.from("refresh_token", refreshToken)
+        return ResponseCookie.from(JwtConstants.REFRESH_TOKEN_COOKIE_HEADER, refreshToken)
                 .maxAge(Duration.ofMillis(jwtProperties.getRefreshExpiration()))
                 .path("/")
                 .httpOnly(true)
@@ -74,7 +74,7 @@ public class JwtManager {
     public ResponseCookie deleteRefreshTokenCookie(String refreshToken) {
         deleteRefreshToken(refreshToken);
 
-        return ResponseCookie.from("refresh_token", refreshToken)
+        return ResponseCookie.from(JwtConstants.REFRESH_TOKEN_COOKIE_HEADER, refreshToken)
                 .maxAge(0)
                 .path("/")
                 .httpOnly(true)

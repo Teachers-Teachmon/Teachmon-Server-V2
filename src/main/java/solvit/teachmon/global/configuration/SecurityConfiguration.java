@@ -9,10 +9,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 import solvit.teachmon.domain.auth.infrastructure.security.facade.TeachmonOAuth2UserFacade;
 import solvit.teachmon.domain.auth.infrastructure.security.handler.TeachmonOAuth2FailureHandler;
 import solvit.teachmon.domain.auth.infrastructure.security.handler.TeachmonOAuth2SuccessHandler;
@@ -44,9 +44,7 @@ public class SecurityConfiguration {
     };
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    public PathMatcher antPathMatcher() {return new AntPathMatcher();}
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -75,8 +73,8 @@ public class SecurityConfiguration {
                                 .userService(teachmonOAuth2UserFacade)
                         )
                 )
-                .addFilterBefore(new JwtAuthenticationFilter(jwtValidator, teachmonUserDetailsService, EXCLUDED_PATHS), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new JwtAuthenticationExceptionFilter(objectMapper, EXCLUDED_PATHS), JwtAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtValidator, teachmonUserDetailsService, antPathMatcher(), EXCLUDED_PATHS), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationExceptionFilter(objectMapper, antPathMatcher(), EXCLUDED_PATHS), JwtAuthenticationFilter.class);
 
         return http.build();
     }

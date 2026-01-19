@@ -11,6 +11,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 import solvit.teachmon.global.security.jwt.JwtValidator;
@@ -47,7 +49,9 @@ class JwtAuthenticationFilterTest {
     @BeforeEach
     void setUp() {
         SecurityContextHolder.clearContext();
-        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtValidator, teachmonUserDetailsService, new String[]{"test"});
+        PathMatcher pathMatcher = new AntPathMatcher();
+        String[] excludedPaths = new String[]{"/test"};
+        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtValidator, teachmonUserDetailsService, pathMatcher, excludedPaths);
 
         TeacherEntity teacher = TeacherEntity.builder()
                 .name("김선생")
