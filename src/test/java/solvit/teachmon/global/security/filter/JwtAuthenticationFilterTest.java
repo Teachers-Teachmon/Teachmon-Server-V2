@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
+import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 import solvit.teachmon.global.security.jwt.JwtValidator;
 import solvit.teachmon.global.security.user.TeachmonUserDetails;
 import solvit.teachmon.global.security.user.TeachmonUserDetailsService;
@@ -52,6 +53,8 @@ class JwtAuthenticationFilterTest {
                 .name("김선생")
                 .mail("kim@teacher.com")
                 .profile("수학 선생님")
+                .providerId("google-12345")
+                .oAuth2Type(OAuth2Type.GOOGLE)
                 .build();
         userDetails = new TeachmonUserDetails(teacher);
     }

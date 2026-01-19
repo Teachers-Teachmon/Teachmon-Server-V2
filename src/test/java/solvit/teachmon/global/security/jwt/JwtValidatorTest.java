@@ -4,9 +4,9 @@ import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.global.constants.JwtConstants;
 import solvit.teachmon.global.properties.JwtProperties;
 import solvit.teachmon.global.security.exception.InvalidJsonWebTokenException;
@@ -17,38 +17,30 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 
-@SpringBootTest(properties = {
-        "spring.security.oauth2.client.registration.google.client-id=test",
-        "spring.security.oauth2.client.registration.google.client-secret=test",
-        "spring.security.oauth2.client.registration.google.scope=email,profile",
-        "spring.security.oauth2.client.registration.google.authorization-grant-type=authorization_code",
-        "spring.security.oauth2.client.registration.google.redirect-uri=http://localhost:8080/login/oauth2/code/google"
-})
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 @DisplayName("JWT 검증기 테스트")
 class JwtValidatorTest {
 
-    private JwtValidator jwtValidator;
+    @Mock
+    private JwtProperties jwtProperties;
 
+    private JwtValidator jwtValidator;
     private SecretKey secretKey;
     private String validToken;
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
     @BeforeEach
     void setUp() {
+        String jwtSecret = "testsecretkeytestsecretkeytestsecretkey";
+        given(jwtProperties.getSecret()).willReturn(jwtSecret);
+        
+        jwtValidator = new JwtValidator(jwtProperties);
+        
         secretKey = new SecretKeySpec(
                 jwtSecret.getBytes(StandardCharsets.UTF_8),
                 Jwts.SIG.HS256.key().build().getAlgorithm()
         );
-        
-        // JwtProperties 생성
-        JwtProperties jwtProperties = new JwtProperties(jwtSecret, 3600000L, 86400000L);
-        
-        // JwtValidator 직접 생성
-        jwtValidator = new JwtValidator(jwtProperties);
         
         // 유효한 토큰 생성
         validToken = Jwts.builder()
@@ -127,5 +119,32 @@ class JwtValidatorTest {
         // When & Then: 메일을 추출하면 예외가 발생한다
         assertThatThrownBy(() -> jwtValidator.getMailFromAuthorizationHeader(authHeader))
                 .isInstanceOf(InvalidJsonWebTokenException.class);
+    }
+
+    @Test
+    @DisplayName("빈 Authorization 헤더는 유효하지 않다고 판단한다")
+    void shouldReturnTrueWhenAuthorizationHeaderIsEmpty() {
+        // Given: 빈 Authorization 헤더가 있을 때
+        String emptyHeader = "";
+
+        // When: 헤더 유효성을 검사하면
+        boolean isInvalid = jwtValidator.isInvalidAuthorizationHeader(emptyHeader);
+
+        // Then: 유효하지 않다고 판단한다
+        assertThat(isInvalid).isTrue();
+    }
+
+    @Test
+    @DisplayName("토큰에서 올바른 subject를 추출할 수 있다")
+    void shouldExtractSubjectFromToken() {
+        // Given: 유효한 JWT 토큰이 있을 때
+        String authHeader = JwtConstants.AUTHORIZATION_HEADER_PREFIX + validToken;
+
+        // When: 메일을 추출하면
+        String mail = jwtValidator.getMailFromAuthorizationHeader(authHeader);
+
+        // Then: subject가 메일로 반환된다
+        assertThat(mail).isNotNull();
+        assertThat(mail).contains("@");
     }
 }
