@@ -78,32 +78,21 @@ jobs:
             -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest \
             --push .
 
-      - name: Deploy via Cloudflare Tunnel
-        env:
-          CF_SERVICE_TOKEN_ID: ${{ secrets.CF_SERVICE_TOKEN_ID }}
-          CF_SERVICE_TOKEN_SECRET: ${{ secrets.CF_SERVICE_TOKEN_SECRET }}
-        run: |
-          # cloudflared 설치
-          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
-          chmod +x cloudflared
-
-          # SSH 설정
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-
-          # SSH config 설정
-          echo "Host tc-ssh.zuu3.kr
-            ProxyCommand ./cloudflared access ssh --hostname %h --id $CF_SERVICE_TOKEN_ID --secret $CF_SERVICE_TOKEN_SECRET
-            StrictHostKeyChecking no" > ~/.ssh/config
-
-          # 배포 실행
-          ssh root@tc-ssh.zuu3.kr << 'EOF'
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: 22
+          script: |
             echo "${{ secrets.ENV }}" > .env
+
             docker-compose down
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest
             docker-compose up -d
+
             sleep 15
             docker image prune -f
+
             echo "✅ 배포 완료"
-          EOF
