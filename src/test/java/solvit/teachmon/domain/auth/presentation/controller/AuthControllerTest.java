@@ -9,9 +9,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import solvit.teachmon.domain.auth.application.dto.response.TokenResponseDto;
+import solvit.teachmon.domain.auth.presentation.dto.response.TokenResponseDto;
 import solvit.teachmon.domain.auth.application.service.AuthService;
 import solvit.teachmon.domain.auth.exception.RefreshTokenNotFoundException;
+import solvit.teachmon.domain.auth.exception.AuthCodeNotFoundException;
 import solvit.teachmon.domain.auth.presentation.dto.request.AuthCodeRequestDto;
 
 import java.util.Map;
@@ -81,7 +82,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("인증 코드로 액세스 토큰을 발급받는다")
-    void authCode() {
+    void authCode_Success() {
         // given
         String authCode = "test-auth-code";
         String accessToken = "test-access-token";
@@ -95,5 +96,21 @@ class AuthControllerTest {
         // then
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).containsEntry("access_token", accessToken);
+        then(authService).should(times(1)).getAccessTokenByAuthCode(authCode);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 인증 코드로 요청시 예외가 발생한다")
+    void authCode_NotFound() {
+        // given
+        String authCode = "invalid-auth-code";
+        AuthCodeRequestDto requestDto = new AuthCodeRequestDto(authCode);
+
+        given(authService.getAccessTokenByAuthCode(authCode))
+                .willThrow(new AuthCodeNotFoundException());
+
+        // when & then
+        assertThatThrownBy(() -> authController.authCode(requestDto))
+                .isInstanceOf(AuthCodeNotFoundException.class);
     }
 }
