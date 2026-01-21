@@ -7,4 +7,5 @@ import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 public interface StudentScheduleChangeStrategy {
     ScheduleType getScheduleType();
     void change(StudentScheduleEntity studentSchedule, TeacherEntity teacher);
+    void cancel(StudentScheduleEntity studentSchedule);
 }

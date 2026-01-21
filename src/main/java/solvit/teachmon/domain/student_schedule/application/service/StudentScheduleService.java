@@ -10,6 +10,7 @@ import solvit.teachmon.domain.student_schedule.application.strategy.StudentSched
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.repository.StudentScheduleRepository;
 import solvit.teachmon.domain.student_schedule.exception.StudentScheduleNotFoundException;
+import solvit.teachmon.domain.student_schedule.presentation.dto.request.StudentScheduleCancelRequest;
 import solvit.teachmon.domain.student_schedule.presentation.dto.request.StudentScheduleUpdateRequest;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.ClassStudentScheduleResponse;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
@@ -40,5 +41,14 @@ public class StudentScheduleService {
 
         StudentScheduleChangeStrategy scheduleChanger = studentScheduleChangeStrategyComposite.getStrategy(request.state());
         scheduleChanger.change(studentSchedule, teacher);
+    }
+
+    @Transactional
+    public void cancelStudentSchedule(Long scheduleId, StudentScheduleCancelRequest request) {
+        StudentScheduleEntity studentSchedule = studentScheduleRepository.findById(scheduleId)
+                .orElseThrow(StudentScheduleNotFoundException::new);
+
+        StudentScheduleChangeStrategy scheduleChanger = studentScheduleChangeStrategyComposite.getStrategy(request.state());
+        scheduleChanger.cancel(studentSchedule);
     }
 }

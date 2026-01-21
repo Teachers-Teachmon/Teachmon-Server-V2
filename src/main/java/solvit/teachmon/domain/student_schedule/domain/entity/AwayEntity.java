@@ -5,9 +5,9 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AwayScheduleEntity;
+import solvit.teachmon.domain.student_schedule.domain.exception.ScheduleChangeAccessDeniedException;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.entity.BaseEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
@@ -47,8 +47,8 @@ public class AwayEntity extends BaseEntity {
     }
 
     public static AwayEntity createAwayEntity(StudentScheduleEntity studentSchedule, TeacherEntity teacher) {
-        if(teacher.hasStudentScheduleChangeAuthority()) {
-            throw new AccessDeniedException("이탈 처리할 권한이 없습니다");
+        if(!teacher.hasStudentScheduleChangeAuthority()) {
+            throw new ScheduleChangeAccessDeniedException();
         }
 
         return AwayEntity.builder()

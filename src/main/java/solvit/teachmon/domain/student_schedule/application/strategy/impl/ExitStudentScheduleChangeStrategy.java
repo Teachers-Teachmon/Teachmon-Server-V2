@@ -11,6 +11,8 @@ import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 import solvit.teachmon.domain.student_schedule.domain.repository.ExitRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.ScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.schedules.ExitScheduleRepository;
+import solvit.teachmon.domain.student_schedule.exception.ExitScheduleNotFoundException;
+import solvit.teachmon.domain.student_schedule.exception.ScheduleNotFoundException;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 
 @Component
@@ -28,6 +30,9 @@ public class ExitStudentScheduleChangeStrategy implements StudentScheduleChangeS
 
     @Override
     public void change(StudentScheduleEntity studentSchedule, TeacherEntity teacher) {
+        // 기존 이탈 스케줄 삭제
+        scheduleRepository.deleteByStudentScheduleIdAndType(studentSchedule.getId(), ScheduleType.EXIT);
+
         // 새로운 스케줄 엔티티 생성
         Integer lastStackOrder = scheduleRepository.findLastStackOrderByStudentScheduleId(studentSchedule.getId());
         ScheduleEntity newSchedule = ScheduleEntity.createNewStudentSchedule(studentSchedule, lastStackOrder, ScheduleType.EXIT);
@@ -44,5 +49,23 @@ public class ExitStudentScheduleChangeStrategy implements StudentScheduleChangeS
         scheduleRepository.save(newSchedule);
         exitRepository.save(exit);
         exitScheduleRepository.save(exitSchedule);
+    }
+
+    @Override
+    public void cancel(StudentScheduleEntity studentSchedule) {
+        // 기존 스케줄 조회
+        ScheduleEntity schedule = scheduleRepository.findByStudentScheduleIdAndType(studentSchedule.getId(), ScheduleType.EXIT)
+                .orElseThrow(ScheduleNotFoundException::new);
+
+        // 이탈 스케줄 조회
+        ExitScheduleEntity exitSchedule = exitScheduleRepository.findByScheduleId(schedule.getId())
+                .orElseThrow(ExitScheduleNotFoundException::new);
+
+        // 이탈 조회
+        ExitEntity exit = exitSchedule.getExit();
+
+        // 이탈 삭제시 cascade 로 이탈 스케줄도 함께 삭제됨
+        exitRepository.delete(exit);
+        scheduleRepository.delete(schedule);
     }
 }

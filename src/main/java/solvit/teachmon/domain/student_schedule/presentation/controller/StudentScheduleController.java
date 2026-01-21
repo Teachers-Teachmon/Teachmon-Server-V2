@@ -7,9 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleService;
+import solvit.teachmon.domain.student_schedule.presentation.dto.request.StudentScheduleCancelRequest;
 import solvit.teachmon.domain.student_schedule.presentation.dto.request.StudentScheduleUpdateRequest;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.ClassStudentScheduleResponse;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
+import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
@@ -21,6 +23,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StudentScheduleController {
     private final StudentScheduleService studentScheduleService;
+    // TODO: 인증 로직 추가 후, 실제 TeacherRepository 주입 무조건 삭제!!
+    private final TeacherRepository teacherRepository;
 
     @GetMapping
     public ResponseEntity<List<ClassStudentScheduleResponse>> getGradeStudentSchedules(
@@ -37,16 +41,28 @@ public class StudentScheduleController {
 
     @PatchMapping("/{scheduleId}")
     public ResponseEntity<String> updateStudentSchedule(
-            @PathVariable("scheduleId") Long scheduleId,
+            @PathVariable("scheduleId") @NotNull(message = "학생 상태 변경에서 scheduleId(스케줄 id)는 필수입니다.") Long scheduleId,
             @RequestBody @Valid StudentScheduleUpdateRequest request
     ) {
         // TODO: 인증 로직 추가 후, 실제 TeacherEntity 주입
-        TeacherEntity teacher = null;
+        TeacherEntity teacher = teacherRepository.findById(1L).orElseThrow();
 
         studentScheduleService.updateStudentSchedule(scheduleId, request, teacher);
 
         return ResponseEntity
                 .ok()
                 .body("학생 스케줄을 변경 하였습니다.");
+    }
+
+    @DeleteMapping("/{scheduleId}")
+    public ResponseEntity<String> cancelStudentSchedule(
+            @PathVariable("scheduleId") @NotNull(message = "학생 상태 변경 취소에서 scheduleId(스케줄 id)는 필수입니다.") Long scheduleId,
+            @RequestBody @Valid StudentScheduleCancelRequest request
+    ) {
+        studentScheduleService.cancelStudentSchedule(scheduleId, request);
+
+        return ResponseEntity
+                .ok()
+                .body("학생 스케줄 변경을 취소하였습니다.");
     }
 }
