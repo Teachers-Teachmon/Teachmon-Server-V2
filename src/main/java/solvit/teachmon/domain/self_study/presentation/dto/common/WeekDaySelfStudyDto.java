@@ -11,6 +11,6 @@ public record WeekDaySelfStudyDto(
         @JsonProperty("week_day")
         WeekDay weekDay,
 
-        @NotNull(message = "자습설정에서 periods(교시)는 [] 형식 입니다")
+        @NotNull(message = "자습설정에서 periods(교시)는 [] 형식입니다.")
         List<SchoolPeriod> periods
 ) {}

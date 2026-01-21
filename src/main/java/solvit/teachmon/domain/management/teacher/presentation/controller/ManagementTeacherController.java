@@ -38,7 +38,7 @@ public class ManagementTeacherController {
 
     @PatchMapping("/{teacher_id}")
     public ResponseEntity<String> updateTeacher(
-            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1이상입니다") Long teacherId,
+            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1 이상입니다.") Long teacherId,
             @RequestBody @Valid TeacherUpdateRequest updateRequest
     ) {
         managementTeacherFacadeService.updateTeacher(updateRequest, teacherId);
@@ -50,7 +50,7 @@ public class ManagementTeacherController {
 
     @DeleteMapping("/{teacher_id}")
     public ResponseEntity<String> deleteTeacher(
-            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1이상입니다") Long teacherId
+            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1 이상입니다.") Long teacherId
     ) {
         managementTeacherFacadeService.deleteTeacher(teacherId);
 
@@ -61,7 +61,7 @@ public class ManagementTeacherController {
 
     @GetMapping("/{teacher_id}/ban")
     public ResponseEntity<List<WeekDay>> getTeacherBanDays(
-            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1이상입니다") Long teacherId
+            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1 이상입니다.") Long teacherId
     ) {
         List<WeekDay> banDays = managementTeacherService.getTeacherBanDays(teacherId);
 
@@ -72,7 +72,7 @@ public class ManagementTeacherController {
 
     @PostMapping("/{teacher_id}/ban")
     public ResponseEntity<String> setTeacherBanDay(
-            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1이상입니다") Long teacherId,
+            @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1 이상입니다.") Long teacherId,
             @RequestBody @Valid List<WeekDay> banDays
     ) {
         managementTeacherFacadeService.setTeacherBanDay(teacherId, banDays);
