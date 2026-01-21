@@ -5,4 +5,5 @@ public class JwtConstants {
     public static final String AUTHORIZATION_HEADER_PREFIX = "Bearer ";
     public static final String CLAIM_MADE_BY_KEY = "made_by";
     public static final String CLAIM_MADE_BY_VALUE = "nuri";
+    public static final String REFRESH_TOKEN_COOKIE_HEADER = "refresh_token";
 }

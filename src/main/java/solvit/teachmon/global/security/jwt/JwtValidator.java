@@ -23,8 +23,8 @@ public class JwtValidator {
         );
     }
 
-    private String getMailFromToken(String token) {
-        validateAccessToken(token);
+    public String getMailFromToken(String token) {
+        validateToken(token);
 
         return Jwts.parser()
                 .verifyWith(secretKey)
@@ -44,8 +44,8 @@ public class JwtValidator {
         return authorizationHeader == null || !authorizationHeader.startsWith(JwtConstants.AUTHORIZATION_HEADER_PREFIX);
     }
 
-    private void validateAccessToken(String accessToken) {
-        String madeBy = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload().get(JwtConstants.CLAIM_MADE_BY_KEY, String.class);
+    private void validateToken(String token) {
+        String madeBy = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get(JwtConstants.CLAIM_MADE_BY_KEY, String.class);
         if(!madeBy.equals(JwtConstants.CLAIM_MADE_BY_VALUE)) throw new InvalidJsonWebTokenException();
     }
 }

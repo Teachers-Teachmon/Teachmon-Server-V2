@@ -3,7 +3,6 @@ package solvit.teachmon.global.security.filter;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -13,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.PathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
 import solvit.teachmon.global.constants.HttpResponseConstants;
@@ -21,14 +21,17 @@ import solvit.teachmon.global.security.exception.InvalidJsonWebTokenException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationExceptionFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
+    private final PathMatcher pathMatcher;
+    private final String[] excludedPaths;
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws IOException {
         try {
             filterChain.doFilter(request, response);
         }
@@ -67,5 +70,13 @@ public class JwtAuthenticationExceptionFilter extends OncePerRequestFilter {
         ErrorResponse errorResponse = ErrorResponse.of(httpStatus.value(), message);
 
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        return Arrays.stream(excludedPaths)
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 }
