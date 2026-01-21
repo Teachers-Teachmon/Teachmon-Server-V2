@@ -9,10 +9,10 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class TeamViewQueryDslRepositoryImpl implements TeamQueryDslRepository {
+public class TeamRepositoryImpl implements TeamQueryDslRepository {
 
     @Override
-    public List<TeamResponseDto> searchTeamByQuery(String query) {
+    public List<TeamResponseDto> findTeamsBySearchKeyword(String keyword) {
         // TODO: QueryDSL Q클래스 생성 후 구현
         return List.of();
     }

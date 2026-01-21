@@ -62,7 +62,7 @@ class TeamServiceTest {
                 new TeamResponseDto(1L, "개발팀"),
                 new TeamResponseDto(2L, "개발부서")
         );
-        given(teamRepository.searchTeamByQuery(query)).willReturn(expectedResults);
+        given(teamRepository.findTeamsBySearchKeyword(query)).willReturn(expectedResults);
 
         // When: 쿼리로 팀을 검색하면
         List<TeamResponseDto> results = teamService.searchTeamByQuery(query);
@@ -71,7 +71,7 @@ class TeamServiceTest {
         assertThat(results).hasSize(2);
         assertThat(results.get(0).name()).isEqualTo("개발팀");
         assertThat(results.get(1).name()).isEqualTo("개발부서");
-        verify(teamRepository).searchTeamByQuery(query);
+        verify(teamRepository).findTeamsBySearchKeyword(query);
     }
 
     @Test
