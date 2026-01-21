@@ -43,7 +43,10 @@ public class TeacherEntity extends BaseEntity {
 
     @Builder
     public TeacherEntity(String mail, String name, String profile, String providerId, OAuth2Type oAuth2Type) {
-        validateFields(mail, name, providerId, oAuth2Type);
+        validateMailField(mail);
+        validateProviderIdField(providerId);
+        validateOAuth2TypeField(oAuth2Type);
+        validateNameFiled(name);
 
         this.mail = mail;
         this.name = name;
@@ -54,14 +57,23 @@ public class TeacherEntity extends BaseEntity {
         this.oAuth2Type = oAuth2Type;
     }
 
-    private void validateFields(String mail, String name, String providerId, OAuth2Type oAuth2Type) {
+    private void validateMailField(String mail) {
         if(mail == null || mail.trim().isEmpty())
             throw new InvalidTeacherInfoException("메일은 비어 있을 수 없습니다.");
-        if(name == null || name.trim().isEmpty())
-            throw new InvalidTeacherInfoException("이름은 비어 있을 수 없습니다.");
+    }
+
+    private void validateProviderIdField(String providerId) {
         if(providerId == null || providerId.trim().isEmpty())
             throw new InvalidTeacherInfoException("Provider 아이디는 비어 있을 수 없습니다.");
+    }
+
+    private void validateOAuth2TypeField(OAuth2Type oAuth2Type) {
         if(oAuth2Type == null)
             throw new InvalidTeacherInfoException("OAuth2 타입은 비어 있을 수 없습니다.");
+    }
+
+    private void validateNameFiled(String name) {
+        if(name == null || name.trim().isEmpty())
+            throw new InvalidTeacherInfoException("이름은 비어 있을 수 없습니다.");
     }
 }

@@ -5,12 +5,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
+import solvit.teachmon.domain.user.domain.repository.querydsl.TeacherQueryDslRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TeacherRepository extends JpaRepository<TeacherEntity, Long> {
+public interface TeacherRepository extends JpaRepository<TeacherEntity, Long>, TeacherQueryDslRepository {
     @Query("select t from TeacherEntity t where t.mail = :mail")
     Optional<TeacherEntity> findByMail(String mail);
 
