@@ -1,34 +1,70 @@
 package solvit.teachmon.domain.student_schedule.application.mapper;
 
 import org.mapstruct.Mapper;
+import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
+import solvit.teachmon.domain.student_schedule.application.dto.PeriodScheduleDto;
 import solvit.teachmon.domain.student_schedule.application.dto.StudentScheduleDto;
+import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.ClassStudentScheduleResponse;
+import solvit.teachmon.domain.student_schedule.presentation.dto.response.HistoryStudentScheduleResponse;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.StudentScheduleResponse;
+import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface StudentScheduleMapper {
-    default List<ClassStudentScheduleResponse> toResponse(Map<Integer, List<StudentScheduleDto>> classStudentSchedule) {
-        return classStudentSchedule.entrySet().stream()
-                .map(entry -> ClassStudentScheduleResponse.builder()
-                        // 반 설정
-                        .classNumber(entry.getKey())
-                        .students(entry.getValue().stream()
-                                // 반 학생들 스케줄 설정
-                                .map(dto -> StudentScheduleResponse.builder()
-                                        .studentId(dto.studentId())
-                                        .number(dto.number())
-                                        .name(dto.name())
-                                        .state(dto.state())
-                                        .scheduleId(dto.scheduleId())
-                                        .build()
-                                )
-                                .toList()
-                        )
-                        .build()
-                )
-                .toList();
+    default ClassStudentScheduleResponse toResponse(Integer classNumber, List<StudentScheduleDto> studentSchedulesDtos) {
+        return ClassStudentScheduleResponse.builder()
+                    // 반 설정
+                    .classNumber(classNumber)
+                    .students(studentSchedulesDtos.stream()
+                            // 반 학생들 스케줄 설정
+                            .map(dto -> StudentScheduleResponse.builder()
+                                    .studentId(dto.studentId())
+                                    .number(dto.number())
+                                    .name(dto.name())
+                                    .state(dto.state())
+                                    .scheduleId(dto.scheduleId())
+                                    .build()
+                            )
+                            .toList()
+                    )
+                    .build();
+    }
+
+    default HistoryStudentScheduleResponse toHistoryResponse(StudentEntity student, List<PeriodScheduleDto> scheduleDtos) {
+
+        // 기존 states 맵 생성
+        Map<SchoolPeriod, ScheduleType> scheduleTypes = scheduleDtos.stream()
+                .filter(dto -> dto.period() != null)
+                .collect(Collectors.toMap(
+                        PeriodScheduleDto::period,
+                        PeriodScheduleDto::type
+                ));
+
+        return HistoryStudentScheduleResponse.builder()
+                .studentNumber(calculateStudentNumber(student))
+                .name(student.getName())
+                .onePeriod(scheduleTypes.getOrDefault(SchoolPeriod.ONE_PERIOD, null))
+                .twoPeriod(scheduleTypes.getOrDefault(SchoolPeriod.TWO_PERIOD, null))
+                .threePeriod(scheduleTypes.getOrDefault(SchoolPeriod.THREE_PERIOD, null))
+                .fourPeriod(scheduleTypes.getOrDefault(SchoolPeriod.FOUR_PERIOD, null))
+                .fivePeriod(scheduleTypes.getOrDefault(SchoolPeriod.FIVE_PERIOD, null))
+                .sixPeriod(scheduleTypes.getOrDefault(SchoolPeriod.SIX_PERIOD, null))
+                .sevenPeriod(scheduleTypes.getOrDefault(SchoolPeriod.SEVEN_PERIOD, null))
+                .eightAndNinePeriod(scheduleTypes.getOrDefault(SchoolPeriod.EIGHT_AND_NINE_PERIOD, null))
+                .tenAndElevenPeriod(scheduleTypes.getOrDefault(SchoolPeriod.TEN_AND_ELEVEN_PERIOD, null))
+                .build();
+    }
+
+    private Integer calculateStudentNumber(StudentEntity student) {
+        return Integer.parseInt(
+                String.valueOf(student.getGrade()) +
+                String.valueOf(student.getClassNumber()) +
+                String.format("%02d", student.getNumber())
+        );
     }
 }

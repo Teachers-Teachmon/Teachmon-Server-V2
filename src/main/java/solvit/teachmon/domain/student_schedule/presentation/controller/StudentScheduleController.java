@@ -10,6 +10,7 @@ import solvit.teachmon.domain.student_schedule.application.service.StudentSchedu
 import solvit.teachmon.domain.student_schedule.presentation.dto.request.StudentScheduleCancelRequest;
 import solvit.teachmon.domain.student_schedule.presentation.dto.request.StudentScheduleUpdateRequest;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.ClassStudentScheduleResponse;
+import solvit.teachmon.domain.student_schedule.presentation.dto.response.HistoryStudentScheduleResponse;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
@@ -64,5 +65,17 @@ public class StudentScheduleController {
         return ResponseEntity
                 .ok()
                 .body("학생 스케줄 변경을 취소하였습니다.");
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<?> getStudentScheduleHistory(
+            @RequestParam("day") @NotNull(message = "학생 스케줄 기록 조회에서 day(날짜)는 필수입니다.") LocalDate day,
+            @RequestParam("query") String query
+    ) {
+        List<HistoryStudentScheduleResponse> result = studentScheduleService.getStudentScheduleHistory(query, day);
+
+        return ResponseEntity
+                .ok()
+                .body(result);
     }
 }
