@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class TeamRepositoryImpl implements TeamQueryDslRepository {
+public class TeamQueryDslRepositoryImpl implements TeamQueryDslRepository {
 
     @Override
     public List<TeamResponseDto> findTeamsBySearchKeyword(String keyword) {
