@@ -11,8 +11,24 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test
+            client-secret: test
+            scope: email,profile
+            authorization-grant-type: authorization_code
+            redirect-uri: http://localhost:8080/login/oauth2/code/google
 
 jwt:
-  secret: test-jwt-secret-key-for-testing-purposes-only
-  access-expiration: 3600000
-  refresh-expiration: 86400000
+  secret: testsecretkeytestsecretkeytestsecretkey
+  access-expiration: 1800000
+  refresh-expiration: 604800000
+
+auth-code:
+  expiration: 300000
+
+web:
+  front-end-url: http://localhost:3000

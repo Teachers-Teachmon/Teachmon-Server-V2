@@ -11,7 +11,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
+import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 import solvit.teachmon.global.security.jwt.JwtValidator;
 import solvit.teachmon.global.security.user.TeachmonUserDetails;
 import solvit.teachmon.global.security.user.TeachmonUserDetailsService;
@@ -46,12 +49,16 @@ class JwtAuthenticationFilterTest {
     @BeforeEach
     void setUp() {
         SecurityContextHolder.clearContext();
-        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtValidator, teachmonUserDetailsService);
+        PathMatcher pathMatcher = new AntPathMatcher();
+        String[] excludedPaths = new String[]{"/test"};
+        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtValidator, teachmonUserDetailsService, pathMatcher, excludedPaths);
 
         TeacherEntity teacher = TeacherEntity.builder()
                 .name("김선생")
                 .mail("kim@teacher.com")
                 .profile("수학 선생님")
+                .providerId("google-12345")
+                .oAuth2Type(OAuth2Type.GOOGLE)
                 .build();
         userDetails = new TeachmonUserDetails(teacher);
     }
