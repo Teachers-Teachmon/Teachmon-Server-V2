@@ -15,8 +15,6 @@ import solvit.teachmon.domain.student_schedule.exception.AwayScheduleNotFoundExc
 import solvit.teachmon.domain.student_schedule.exception.ScheduleNotFoundException;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 
-import java.util.Optional;
-
 @Component
 @RequiredArgsConstructor
 public class AwayStudentScheduleChangeStrategy implements StudentScheduleChangeStrategy {
