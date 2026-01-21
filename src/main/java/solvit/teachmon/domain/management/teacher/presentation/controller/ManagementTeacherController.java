@@ -71,11 +71,11 @@ public class ManagementTeacherController {
     }
 
     @PostMapping("/{teacher_id}/ban")
-    public ResponseEntity<String> setTeacherBanDay(
+    public ResponseEntity<String> setTeacherBanDays(
             @PathVariable("teacher_id") @Min(value = 1, message = "teacher_id는 1이상입니다") Long teacherId,
             @RequestBody @Valid List<WeekDay> banDays
     ) {
-        managementTeacherFacadeService.setTeacherBanDay(teacherId, banDays);
+        managementTeacherFacadeService.setTeacherBanDays(teacherId, banDays);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
