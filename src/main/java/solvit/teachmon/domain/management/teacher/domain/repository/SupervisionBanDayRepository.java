@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface SupervisionBanDayRepository extends JpaRepository<SupervisionBanDayEntity, Long> {
     @Query("select s.weekDay from SupervisionBanDayEntity s where s.teacher.id = :teacherId")
-    List<WeekDay> findWeekDaysByTeacherId(Long teacherId);
+    List<WeekDay> findAllWeekDaysByTeacherId(Long teacherId);
 
     @Modifying
     @Query("delete from SupervisionBanDayEntity s where s.teacher.id = :teacherId")

@@ -15,6 +15,6 @@ public class ManagementTeacherService {
 
     @Transactional(readOnly = true)
     public List<WeekDay> getTeacherBanDays(Long teacherId) {
-        return supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId);
+        return supervisionBanDayRepository.findAllWeekDaysByTeacherId(teacherId);
     }
 }
