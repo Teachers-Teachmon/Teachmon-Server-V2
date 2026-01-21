@@ -46,7 +46,7 @@ public class ManagementTeacherFacadeService {
     }
 
     @Transactional
-    public void setTeacherBanDay(Long teacherId, List<WeekDay> banDays) {
+    public void setTeacherBanDays(Long teacherId, List<WeekDay> banDays) {
         TeacherEntity teacher = teacherRepository.findById(teacherId)
                 .orElseThrow(TeacherNotFoundException::new);
 

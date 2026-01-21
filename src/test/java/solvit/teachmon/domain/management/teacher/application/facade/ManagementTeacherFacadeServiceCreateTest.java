@@ -54,7 +54,7 @@ class ManagementTeacherFacadeServiceCreateTest {
         given(teacherRepository.findById(teacherId)).willReturn(Optional.of(teacher));
 
         // When: 금지날을 설정하면
-        managementTeacherFacadeService.setTeacherBanDay(teacherId, banDays);
+        managementTeacherFacadeService.setTeacherBanDays(teacherId, banDays);
 
         // Then: 기존 금지날이 삭제되고 새로운 금지날이 저장된다
         verify(teacherRepository, times(1)).findById(teacherId);
@@ -83,7 +83,7 @@ class ManagementTeacherFacadeServiceCreateTest {
         given(teacherRepository.findById(teacherId)).willReturn(Optional.of(teacher));
 
         // When: 빈 금지날 목록을 설정하면
-        managementTeacherFacadeService.setTeacherBanDay(teacherId, banDays);
+        managementTeacherFacadeService.setTeacherBanDays(teacherId, banDays);
 
         // Then: 기존 금지날이 모두 삭제되고 새로운 금지날은 저장되지 않는다
         verify(teacherRepository, times(1)).findById(teacherId);
@@ -104,7 +104,7 @@ class ManagementTeacherFacadeServiceCreateTest {
         given(teacherRepository.findById(teacherId)).willReturn(Optional.empty());
 
         // When & Then: 금지날을 설정하면 예외가 발생한다
-        assertThatThrownBy(() -> managementTeacherFacadeService.setTeacherBanDay(teacherId, banDays))
+        assertThatThrownBy(() -> managementTeacherFacadeService.setTeacherBanDays(teacherId, banDays))
                 .isInstanceOf(TeacherNotFoundException.class);
 
         verify(teacherRepository, times(1)).findById(teacherId);
@@ -127,7 +127,7 @@ class ManagementTeacherFacadeServiceCreateTest {
         given(teacherRepository.findById(teacherId)).willReturn(Optional.of(teacher));
 
         // When: 하나의 금지날을 설정하면
-        managementTeacherFacadeService.setTeacherBanDay(teacherId, banDays);
+        managementTeacherFacadeService.setTeacherBanDays(teacherId, banDays);
 
         // Then: 하나의 금지날만 저장된다
         verify(teacherRepository, times(1)).findById(teacherId);
@@ -155,7 +155,7 @@ class ManagementTeacherFacadeServiceCreateTest {
         given(teacherRepository.findById(teacherId)).willReturn(Optional.of(teacher));
 
         // When: 모든 평일을 금지날로 설정하면
-        managementTeacherFacadeService.setTeacherBanDay(teacherId, banDays);
+        managementTeacherFacadeService.setTeacherBanDays(teacherId, banDays);
 
         // Then: 5개의 금지날이 저장된다
         verify(teacherRepository, times(1)).findById(teacherId);
