@@ -56,9 +56,8 @@ class ManagementTeacherFacadeServiceCreateTest {
         // When: 금지날을 설정하면
         managementTeacherFacadeService.setTeacherBanDays(teacherId, banDays);
 
-        // Then: 기존 금지날이 삭제되고 새로운 금지날이 저장된다
+        // Then: 새로운 금지날이 저장된다
         verify(teacherRepository, times(1)).findById(teacherId);
-        verify(supervisionBanDayRepository, times(1)).deleteAllByTeacherId(teacherId);
         verify(supervisionBanDayRepository, times(1)).saveAll(banDayEntitiesCaptor.capture());
 
         List<SupervisionBanDayEntity> savedEntities = banDayEntitiesCaptor.getValue();
@@ -85,9 +84,8 @@ class ManagementTeacherFacadeServiceCreateTest {
         // When: 빈 금지날 목록을 설정하면
         managementTeacherFacadeService.setTeacherBanDays(teacherId, banDays);
 
-        // Then: 기존 금지날이 모두 삭제되고 새로운 금지날은 저장되지 않는다
+        // Then: 빈 금지날 목록이 저장된다
         verify(teacherRepository, times(1)).findById(teacherId);
-        verify(supervisionBanDayRepository, times(1)).deleteAllByTeacherId(teacherId);
         verify(supervisionBanDayRepository, times(1)).saveAll(banDayEntitiesCaptor.capture());
 
         List<SupervisionBanDayEntity> savedEntities = banDayEntitiesCaptor.getValue();
@@ -108,7 +106,6 @@ class ManagementTeacherFacadeServiceCreateTest {
                 .isInstanceOf(TeacherNotFoundException.class);
 
         verify(teacherRepository, times(1)).findById(teacherId);
-        verify(supervisionBanDayRepository, never()).deleteAllByTeacherId(any());
         verify(supervisionBanDayRepository, never()).saveAll(any());
     }
 
@@ -131,7 +128,6 @@ class ManagementTeacherFacadeServiceCreateTest {
 
         // Then: 하나의 금지날만 저장된다
         verify(teacherRepository, times(1)).findById(teacherId);
-        verify(supervisionBanDayRepository, times(1)).deleteAllByTeacherId(teacherId);
         verify(supervisionBanDayRepository, times(1)).saveAll(banDayEntitiesCaptor.capture());
 
         List<SupervisionBanDayEntity> savedEntities = banDayEntitiesCaptor.getValue();
@@ -159,7 +155,6 @@ class ManagementTeacherFacadeServiceCreateTest {
 
         // Then: 4개의 금지날이 저장된다
         verify(teacherRepository, times(1)).findById(teacherId);
-        verify(supervisionBanDayRepository, times(1)).deleteAllByTeacherId(teacherId);
         verify(supervisionBanDayRepository, times(1)).saveAll(banDayEntitiesCaptor.capture());
 
         List<SupervisionBanDayEntity> savedEntities = banDayEntitiesCaptor.getValue();

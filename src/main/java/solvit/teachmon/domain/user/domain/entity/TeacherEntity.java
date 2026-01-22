@@ -6,9 +6,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
+import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
 import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.domain.user.exception.TeacherInvalidValueException;
 import solvit.teachmon.global.entity.BaseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -30,6 +34,9 @@ public class TeacherEntity extends BaseEntity {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
+
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<SupervisionBanDayEntity> supervisionBanDays = new ArrayList<>();
 
     @Builder
     public TeacherEntity(String mail, String name, String profile) {

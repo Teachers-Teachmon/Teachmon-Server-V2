@@ -50,7 +50,8 @@ public class ManagementTeacherFacadeService {
         TeacherEntity teacher = teacherRepository.findById(teacherId)
                 .orElseThrow(TeacherNotFoundException::new);
 
-        supervisionBanDayRepository.deleteAllByTeacherId(teacherId);
+        // 기존 금지날짜 삭제
+        teacher.getSupervisionBanDays().clear();
 
         List<SupervisionBanDayEntity> banDayEntities = new ArrayList<>();
 
