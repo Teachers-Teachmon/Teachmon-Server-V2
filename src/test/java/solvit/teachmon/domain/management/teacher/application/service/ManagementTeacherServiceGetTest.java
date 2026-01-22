@@ -33,7 +33,7 @@ class ManagementTeacherServiceGetTest {
         Long teacherId = 1L;
         List<WeekDay> expectedBanDays = Arrays.asList(WeekDay.MON, WeekDay.WED, WeekDay.THU);
 
-        given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
+        given(supervisionBanDayRepository.findAllWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
 
         // When: 금지날을 조회하면
         List<WeekDay> result = managementTeacherService.getTeacherBanDays(teacherId);
@@ -41,7 +41,7 @@ class ManagementTeacherServiceGetTest {
         // Then: 금지날 목록이 반환된다
         assertThat(result).hasSize(3);
         assertThat(result).containsExactly(WeekDay.MON, WeekDay.WED, WeekDay.THU);
-        verify(supervisionBanDayRepository, times(1)).findWeekDaysByTeacherId(teacherId);
+        verify(supervisionBanDayRepository, times(1)).findAllWeekDaysByTeacherId(teacherId);
     }
 
     @Test
@@ -50,14 +50,14 @@ class ManagementTeacherServiceGetTest {
         // Given: 금지날이 없는 선생님 ID가 있을 때
         Long teacherId = 1L;
 
-        given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(Collections.emptyList());
+        given(supervisionBanDayRepository.findAllWeekDaysByTeacherId(teacherId)).willReturn(Collections.emptyList());
 
         // When: 금지날을 조회하면
         List<WeekDay> result = managementTeacherService.getTeacherBanDays(teacherId);
 
         // Then: 빈 리스트가 반환된다
         assertThat(result).isEmpty();
-        verify(supervisionBanDayRepository, times(1)).findWeekDaysByTeacherId(teacherId);
+        verify(supervisionBanDayRepository, times(1)).findAllWeekDaysByTeacherId(teacherId);
     }
 
     @Test
@@ -67,7 +67,7 @@ class ManagementTeacherServiceGetTest {
         Long teacherId = 1L;
         List<WeekDay> expectedBanDays = Collections.singletonList(WeekDay.TUE);
 
-        given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
+        given(supervisionBanDayRepository.findAllWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
 
         // When: 금지날을 조회하면
         List<WeekDay> result = managementTeacherService.getTeacherBanDays(teacherId);
@@ -75,7 +75,7 @@ class ManagementTeacherServiceGetTest {
         // Then: 하나의 금지날이 반환된다
         assertThat(result).hasSize(1);
         assertThat(result).containsExactly(WeekDay.TUE);
-        verify(supervisionBanDayRepository, times(1)).findWeekDaysByTeacherId(teacherId);
+        verify(supervisionBanDayRepository, times(1)).findAllWeekDaysByTeacherId(teacherId);
     }
 
     @Test
@@ -87,7 +87,7 @@ class ManagementTeacherServiceGetTest {
                 WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU
         );
 
-        given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
+        given(supervisionBanDayRepository.findAllWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
 
         // When: 금지날을 조회하면
         List<WeekDay> result = managementTeacherService.getTeacherBanDays(teacherId);
@@ -97,7 +97,7 @@ class ManagementTeacherServiceGetTest {
         assertThat(result).containsExactlyInAnyOrder(
                 WeekDay.MON, WeekDay.TUE, WeekDay.WED, WeekDay.THU
         );
-        verify(supervisionBanDayRepository, times(1)).findWeekDaysByTeacherId(teacherId);
+        verify(supervisionBanDayRepository, times(1)).findAllWeekDaysByTeacherId(teacherId);
     }
 
     @Test
@@ -107,7 +107,7 @@ class ManagementTeacherServiceGetTest {
         Long teacherId = 1L;
         List<WeekDay> expectedBanDays = Arrays.asList(WeekDay.MON, WeekDay.TUE);
 
-        given(supervisionBanDayRepository.findWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
+        given(supervisionBanDayRepository.findAllWeekDaysByTeacherId(teacherId)).willReturn(expectedBanDays);
 
         // When: 금지날을 조회하면
         List<WeekDay> result = managementTeacherService.getTeacherBanDays(teacherId);
@@ -115,6 +115,6 @@ class ManagementTeacherServiceGetTest {
         // Then: 연속된 금지날이 반환된다
         assertThat(result).hasSize(2);
         assertThat(result).containsExactly(WeekDay.MON, WeekDay.TUE);
-        verify(supervisionBanDayRepository, times(1)).findWeekDaysByTeacherId(teacherId);
+        verify(supervisionBanDayRepository, times(1)).findAllWeekDaysByTeacherId(teacherId);
     }
 }

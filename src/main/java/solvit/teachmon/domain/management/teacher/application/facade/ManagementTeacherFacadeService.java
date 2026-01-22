@@ -46,11 +46,12 @@ public class ManagementTeacherFacadeService {
     }
 
     @Transactional
-    public void setTeacherBanDay(Long teacherId, List<WeekDay> banDays) {
+    public void setTeacherBanDays(Long teacherId, List<WeekDay> banDays) {
         TeacherEntity teacher = teacherRepository.findById(teacherId)
                 .orElseThrow(TeacherNotFoundException::new);
 
-        supervisionBanDayRepository.deleteAllByTeacherId(teacherId);
+        // 기존 금지날짜 삭제
+        teacher.getSupervisionBanDays().clear();
 
         List<SupervisionBanDayEntity> banDayEntities = new ArrayList<>();
 
