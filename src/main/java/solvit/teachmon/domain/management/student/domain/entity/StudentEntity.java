@@ -1,10 +1,7 @@
 package solvit.teachmon.domain.management.student.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import solvit.teachmon.domain.management.student.exception.InvalidStudentInfoException;
 import solvit.teachmon.global.entity.BaseEntity;
 

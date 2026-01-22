@@ -31,7 +31,7 @@ public class AuthCodeEntity {
         if(authCode == null || authCode.trim().isEmpty())
             throw new InvalidAuthCodeInfoException("인증 코드는 비어 있을 수 없습니다.");
         if(accessToken == null || accessToken.trim().isEmpty())
-            throw new InvalidAuthCodeInfoException("엑세스 토큰은 비어 있을 수 없습니다.");
+            throw new InvalidAuthCodeInfoException("액세스 토큰은 비어 있을 수 없습니다.");
         if(timeToLive == null || timeToLive < 0)
             throw new InvalidAuthCodeInfoException("TTL 값은 0 이상이어야 합니다.");
     }
