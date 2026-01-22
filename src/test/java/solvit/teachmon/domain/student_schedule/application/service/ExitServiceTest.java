@@ -6,13 +6,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.student_schedule.application.mapper.ExitMapper;
 import solvit.teachmon.domain.student_schedule.domain.entity.ExitEntity;
 import solvit.teachmon.domain.student_schedule.domain.repository.ExitRepository;
 import solvit.teachmon.domain.student_schedule.exception.ExitNotFoundException;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.ExitHistoryResponse;
-import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
