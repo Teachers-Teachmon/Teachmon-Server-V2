@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-public interface StudentScheduleRepositoryCustom {
+public interface StudentScheduleQueryDslRepository {
     Map<Integer, List<StudentScheduleDto>> findByGradeAndPeriodGroupByClass(Integer grade, LocalDate day, SchoolPeriod period);
     Map<StudentEntity, List<PeriodScheduleDto>> findByQueryAndDayGroupByStudent(String query, LocalDate day);
 }

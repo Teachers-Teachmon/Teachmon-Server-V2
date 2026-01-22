@@ -91,4 +91,10 @@ public class StudentEntity extends BaseEntity {
             throw new InvalidStudentInfoException("name(이름)은 필수입니다.");
         }
     }
+
+    public Integer calculateStudentNumber() {
+        return Integer.parseInt(
+                grade + classNumber + String.format("%02d", number)
+        );
+    }
 }

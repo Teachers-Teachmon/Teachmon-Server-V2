@@ -66,6 +66,5 @@ public class ExitStudentScheduleChangeStrategy implements StudentScheduleChangeS
 
         // 이탈 삭제시 cascade 로 이탈 스케줄도 함께 삭제됨
         exitRepository.delete(exit);
-        scheduleRepository.delete(schedule);
     }
 }

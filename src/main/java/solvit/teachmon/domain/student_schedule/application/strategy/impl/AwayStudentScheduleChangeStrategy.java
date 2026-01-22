@@ -66,6 +66,5 @@ public class AwayStudentScheduleChangeStrategy implements StudentScheduleChangeS
 
         // 조퇴 삭제시 cascade 로 조퇴 스케줄도 함께 삭제됨
         awayRepository.delete(away);
-        scheduleRepository.delete(schedule);
     }
 }

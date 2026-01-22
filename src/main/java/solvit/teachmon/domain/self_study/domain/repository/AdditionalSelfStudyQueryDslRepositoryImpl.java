@@ -13,7 +13,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class AdditionalSelfStudyRepositoryImpl implements AdditionalSelfStudyRepositoryCustom {
+public class AdditionalSelfStudyQueryDslRepositoryImpl implements AdditionalSelfStudyQueryDslRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override

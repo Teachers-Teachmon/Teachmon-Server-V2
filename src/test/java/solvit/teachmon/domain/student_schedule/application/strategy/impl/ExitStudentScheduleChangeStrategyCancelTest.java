@@ -58,11 +58,10 @@ class ExitStudentScheduleChangeStrategyCancelTest {
         // When: 이탈을 취소하면
         exitStudentScheduleChangeStrategy.cancel(studentSchedule);
 
-        // Then: 이탈과 스케줄이 삭제된다
+        // Then: 이탈이 삭제된다 (cascade로 스케줄도 삭제됨)
         verify(scheduleRepository, times(1)).findByStudentScheduleIdAndType(1L, ScheduleType.EXIT);
         verify(exitScheduleRepository, times(1)).findByScheduleId(10L);
         verify(exitRepository, times(1)).delete(exit);
-        verify(scheduleRepository, times(1)).delete(schedule);
     }
 
     @Test

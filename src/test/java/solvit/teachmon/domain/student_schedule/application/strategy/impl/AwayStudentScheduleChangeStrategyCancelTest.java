@@ -58,11 +58,10 @@ class AwayStudentScheduleChangeStrategyCancelTest {
         // When: 조퇴를 취소하면
         awayStudentScheduleChangeStrategy.cancel(studentSchedule);
 
-        // Then: 조퇴와 스케줄이 삭제된다
+        // Then: 조퇴가 삭제된다 (cascade로 스케줄도 삭제됨)
         verify(scheduleRepository, times(1)).findByStudentScheduleIdAndType(1L, ScheduleType.AWAY);
         verify(awayScheduleRepository, times(1)).findByScheduleId(10L);
         verify(awayRepository, times(1)).delete(away);
-        verify(scheduleRepository, times(1)).delete(schedule);
     }
 
     @Test

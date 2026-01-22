@@ -26,7 +26,7 @@ import static com.querydsl.core.group.GroupBy.list;
 
 @Repository
 @RequiredArgsConstructor
-public class StudentScheduleRepositoryImpl implements StudentScheduleRepositoryCustom {
+public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQueryDslRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override

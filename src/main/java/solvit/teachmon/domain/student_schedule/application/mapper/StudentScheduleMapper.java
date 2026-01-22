@@ -46,7 +46,7 @@ public interface StudentScheduleMapper {
                 ));
 
         return HistoryStudentScheduleResponse.builder()
-                .studentNumber(calculateStudentNumber(student))
+                .studentNumber(student.calculateStudentNumber())
                 .name(student.getName())
                 .onePeriod(scheduleTypes.getOrDefault(SchoolPeriod.ONE_PERIOD, null))
                 .twoPeriod(scheduleTypes.getOrDefault(SchoolPeriod.TWO_PERIOD, null))
@@ -58,13 +58,5 @@ public interface StudentScheduleMapper {
                 .eightAndNinePeriod(scheduleTypes.getOrDefault(SchoolPeriod.EIGHT_AND_NINE_PERIOD, null))
                 .tenAndElevenPeriod(scheduleTypes.getOrDefault(SchoolPeriod.TEN_AND_ELEVEN_PERIOD, null))
                 .build();
-    }
-
-    private Integer calculateStudentNumber(StudentEntity student) {
-        return Integer.parseInt(
-                String.valueOf(student.getGrade()) +
-                String.valueOf(student.getClassNumber()) +
-                String.format("%02d", student.getNumber())
-        );
     }
 }

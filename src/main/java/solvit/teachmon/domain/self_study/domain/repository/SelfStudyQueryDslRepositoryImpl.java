@@ -14,7 +14,7 @@ import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
-public class SelfStudyRepositoryImpl implements SelfStudyRepositoryCustom {
+public class SelfStudyQueryDslRepositoryImpl implements SelfStudyQueryDslRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override

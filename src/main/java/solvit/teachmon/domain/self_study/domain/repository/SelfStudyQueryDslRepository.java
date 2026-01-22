@@ -7,6 +7,6 @@ import solvit.teachmon.global.enums.WeekDay;
 import java.util.List;
 import java.util.Map;
 
-public interface SelfStudyRepositoryCustom {
+public interface SelfStudyQueryDslRepository {
     Map<WeekDay, List<SchoolPeriod>> findGroupedByWeekDay(BranchEntity branch, Integer grade);
 }

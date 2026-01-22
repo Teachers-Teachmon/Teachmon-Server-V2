@@ -4,6 +4,6 @@ import solvit.teachmon.domain.self_study.presentation.dto.response.AdditionalSel
 
 import java.util.List;
 
-public interface AdditionalSelfStudyRepositoryCustom {
+public interface AdditionalSelfStudyQueryDslRepository {
     List<AdditionalSelfStudyGetResponse> findGroupedByDayAndGrade(Integer year);
 }
