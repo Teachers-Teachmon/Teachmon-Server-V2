@@ -1,7 +1,6 @@
 package solvit.teachmon.domain.management.teacher.domain.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
