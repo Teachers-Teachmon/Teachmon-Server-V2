@@ -14,7 +14,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class SupervisionScheduleRepositoryImpl implements SupervisionScheduleQueryDslRepository {
+public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionScheduleQueryDslRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
