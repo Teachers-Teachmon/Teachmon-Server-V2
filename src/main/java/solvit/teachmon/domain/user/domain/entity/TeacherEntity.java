@@ -5,8 +5,14 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
+import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
 import solvit.teachmon.domain.user.domain.enums.Role;
+import solvit.teachmon.domain.user.exception.TeacherInvalidValueException;
 import solvit.teachmon.global.entity.BaseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -29,6 +35,9 @@ public class TeacherEntity extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<SupervisionBanDayEntity> supervisionBanDays = new ArrayList<>();
+
     @Builder
     public TeacherEntity(String mail, String name, String profile) {
         this.mail = mail;
@@ -36,5 +45,19 @@ public class TeacherEntity extends BaseEntity {
         this.profile = profile;
         this.role = Role.TEACHER;
         this.isActive = true;
+    }
+
+    public void changeRole(Role role) {
+        if(role == null) {
+            throw new TeacherInvalidValueException("role(권한)은 필수입니다.", HttpStatus.BAD_REQUEST);
+        }
+        this.role = role;
+    }
+
+    public void changeName(String name) {
+        if(name == null) {
+            throw new TeacherInvalidValueException("name(이름)은 필수입니다", HttpStatus.BAD_REQUEST);
+        }
+        this.name = name;
     }
 }
