@@ -9,12 +9,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.management.student.domain.entity.QStudentEntity;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
+import solvit.teachmon.domain.place.domain.entity.QPlaceEntity;
 import solvit.teachmon.domain.student_schedule.application.dto.PeriodScheduleDto;
 import solvit.teachmon.domain.student_schedule.application.dto.QPeriodScheduleDto;
 import solvit.teachmon.domain.student_schedule.application.dto.QStudentScheduleDto;
 import solvit.teachmon.domain.student_schedule.application.dto.StudentScheduleDto;
 import solvit.teachmon.domain.student_schedule.domain.entity.QScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.QStudentScheduleEntity;
+import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
+import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
+import solvit.teachmon.domain.student_schedule.presentation.dto.response.PlaceStateResponse;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
@@ -74,21 +78,6 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                 );
     }
 
-    private BooleanExpression gradeEq(Integer grade) {
-        QStudentEntity student = QStudentEntity.studentEntity;
-        return grade != null ? student.grade.eq(grade) : null;
-    }
-
-    private BooleanExpression dayEq(LocalDate day) {
-        QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
-        return day != null ? studentSchedule.day.eq(day) : null;
-    }
-
-    private BooleanExpression periodEq(SchoolPeriod period) {
-        QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
-        return period != null ? studentSchedule.period.eq(period) : null;
-    }
-
     @Override
     public Map<StudentEntity, List<PeriodScheduleDto>> findByQueryAndDayGroupByStudent(String query, LocalDate day) {
         QStudentEntity student = QStudentEntity.studentEntity;
@@ -125,6 +114,50 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                         )
                 );
 
+    }
+
+    @Override
+    public Map<ScheduleType, List<ScheduleEntity>> findAllByDayAndPeriodAndTypeIn(LocalDate day, SchoolPeriod period, List<ScheduleType> types) {
+        QScheduleEntity schedule = QScheduleEntity.scheduleEntity;
+        QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
+        QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
+
+        return queryFactory
+                .from(studentSchedule)
+                .join(schedule).on(
+                        studentSchedule.id.eq(schedule.studentSchedule.id)
+                                // stack_order 가 가장 높은 스케줄 가져오기
+                                // stack_order 가 가장 큰 스케줄이 최신 데이터
+                                .and(schedule.stackOrder.eq(
+                                        JPAExpressions
+                                                .select(scheduleSub.stackOrder.max())
+                                                .from(scheduleSub)
+                                                .where(scheduleSub.studentSchedule.id.eq(studentSchedule.id))
+                                ))
+                )
+                .where(
+                        studentSchedule.day.eq(day),
+                        studentSchedule.period.eq(period),
+                        schedule.type.in(types)
+                )
+                .transform(
+                        groupBy(schedule.type).as(list(schedule))
+                );
+    }
+
+    private BooleanExpression gradeEq(Integer grade) {
+        QStudentEntity student = QStudentEntity.studentEntity;
+        return grade != null ? student.grade.eq(grade) : null;
+    }
+
+    private BooleanExpression dayEq(LocalDate day) {
+        QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
+        return day != null ? studentSchedule.day.eq(day) : null;
+    }
+
+    private BooleanExpression periodEq(SchoolPeriod period) {
+        QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
+        return period != null ? studentSchedule.period.eq(period) : null;
     }
 
     private BooleanExpression queryEq(String query) {

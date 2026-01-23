@@ -6,6 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import solvit.teachmon.domain.student_schedule.application.facade.PlaceStudentScheduleService;
+import solvit.teachmon.domain.student_schedule.presentation.dto.response.FloorStateResponse;
+import solvit.teachmon.domain.student_schedule.presentation.dto.response.PlaceStateResponse;
+import solvit.teachmon.domain.student_schedule.presentation.dto.response.PlaceStudentScheduleResponse;
 import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleService;
 import solvit.teachmon.domain.student_schedule.presentation.dto.request.StudentScheduleCancelRequest;
 import solvit.teachmon.domain.student_schedule.presentation.dto.request.StudentScheduleUpdateRequest;
@@ -24,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StudentScheduleController {
     private final StudentScheduleService studentScheduleService;
+    private final PlaceStudentScheduleService placeStudentScheduleService;
     // TODO: 인증 로직 추가 후, 실제 TeacherRepository 주입 무조건 삭제!!
     private final TeacherRepository teacherRepository;
 
@@ -77,5 +82,57 @@ public class StudentScheduleController {
         return ResponseEntity
                 .ok()
                 .body(result);
+    }
+
+    @GetMapping("/place/state")
+    public ResponseEntity<List<FloorStateResponse>> getAllFloorsPlaceCount(
+            @RequestParam(value = "day", required = false) LocalDate day,
+            @RequestParam(value = "period", required = false) SchoolPeriod period
+    ) {
+        List<FloorStateResponse> result = placeStudentScheduleService.getAllFloorsPlaceCount(
+                getDayOrDefault(day), getPeriodOrDefault(period)
+        );
+
+        return ResponseEntity
+                .ok()
+                .body(result);
+    }
+
+    @GetMapping("/place")
+    public ResponseEntity<List<PlaceStateResponse>> getPlaceStatesByFloor(
+            @RequestParam("floor") @NotNull(message = "층별 장소 상태 조회에서 floor(층)는 필수입니다.") Integer floor,
+            @RequestParam(value = "day", required = false) LocalDate day,
+            @RequestParam(value = "period", required = false) SchoolPeriod period
+    ) {
+        List<PlaceStateResponse> result = placeStudentScheduleService.getPlaceStatesByFloor(
+                floor, getDayOrDefault(day), getPeriodOrDefault(period)
+        );
+
+        return ResponseEntity
+                .ok()
+                .body(result);
+    }
+
+    @GetMapping("/place/{placeId}")
+    public ResponseEntity<PlaceStudentScheduleResponse> getPlaceStudents(
+            @PathVariable("placeId") @NotNull(message = "장소별 학생 스케줄 조회에서 placeId(장소 ID)는 필수입니다.") Long placeId,
+            @RequestParam(value = "day", required = false) LocalDate day,
+            @RequestParam(value = "period", required = false) SchoolPeriod period
+    ) {
+        PlaceStudentScheduleResponse result = placeStudentScheduleService.getStudentsByPlaceId(
+                placeId, getDayOrDefault(day), getPeriodOrDefault(period)
+        );
+
+        return ResponseEntity
+                .ok()
+                .body(result);
+    }
+
+    private LocalDate getDayOrDefault(LocalDate day) {
+        return (day != null) ? day : LocalDate.now();
+    }
+
+    private SchoolPeriod getPeriodOrDefault(SchoolPeriod period) {
+        return (period != null) ? period : SchoolPeriod.fromCurrentTime();
     }
 }

@@ -35,6 +35,8 @@ public interface StudentScheduleMapper {
                     .build();
     }
 
+    StudentScheduleResponse toStudentScheduleResponse(StudentScheduleDto dto);
+
     default HistoryStudentScheduleResponse toHistoryResponse(StudentEntity student, List<PeriodScheduleDto> scheduleDtos) {
 
         // 기존 states 맵 생성
