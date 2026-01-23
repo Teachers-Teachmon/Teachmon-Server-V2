@@ -3,7 +3,6 @@ package solvit.teachmon.domain.student_schedule.application.mapper;
 import org.mapstruct.Mapper;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.student_schedule.application.dto.PlaceScheduleDto;
-import solvit.teachmon.domain.student_schedule.application.dto.StudentScheduleDto;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.FloorStateResponse;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.PlaceStateResponse;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.PlaceStudentScheduleResponse;

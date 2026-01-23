@@ -5,7 +5,6 @@ import solvit.teachmon.domain.student_schedule.application.dto.PeriodScheduleDto
 import solvit.teachmon.domain.student_schedule.application.dto.StudentScheduleDto;
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
-import solvit.teachmon.domain.student_schedule.presentation.dto.response.PlaceStateResponse;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;

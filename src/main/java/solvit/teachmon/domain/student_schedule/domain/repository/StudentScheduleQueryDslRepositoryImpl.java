@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.management.student.domain.entity.QStudentEntity;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
-import solvit.teachmon.domain.place.domain.entity.QPlaceEntity;
 import solvit.teachmon.domain.student_schedule.application.dto.PeriodScheduleDto;
 import solvit.teachmon.domain.student_schedule.application.dto.QPeriodScheduleDto;
 import solvit.teachmon.domain.student_schedule.application.dto.QStudentScheduleDto;
@@ -18,7 +17,6 @@ import solvit.teachmon.domain.student_schedule.domain.entity.QScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.QStudentScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
-import solvit.teachmon.domain.student_schedule.presentation.dto.response.PlaceStateResponse;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
