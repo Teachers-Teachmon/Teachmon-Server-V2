@@ -22,19 +22,19 @@ public class TeamParticipationEntity extends BaseEntity {
 
     @Builder
     public TeamParticipationEntity(TeamEntity team, StudentEntity student) {
-        validateTeamField(team);
-        validateStudentField(student);
+        validateTeam(team);
+        validateStudent(student);
 
         this.team = team;
         this.student = student;
     }
 
-    private void validateTeamField(TeamEntity team) {
+    private void validateTeam(TeamEntity team) {
         if (team == null)
             throw new InvalidTeamParticipationInfoException("팀은 비어 있을 수 없습니다.");
     }
 
-    private void validateStudentField(StudentEntity student) {
+    private void validateStudent(StudentEntity student) {
         if(student == null)
             throw new InvalidTeamParticipationInfoException("학생은 비어 있을 수 없습니다.");
     }

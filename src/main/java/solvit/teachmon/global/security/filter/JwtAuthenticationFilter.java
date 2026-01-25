@@ -27,10 +27,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        if(SecurityContextHolder.getContext().getAuthentication() != null) {
-            filterChain.doFilter(request, response);
-            return;
-        }
 
         String authHeader = request.getHeader(JwtConstants.AUTHORIZATION_HEADER);
         if(jwtValidator.isInvalidAuthorizationHeader(authHeader)) {

@@ -18,7 +18,7 @@ public class TeamController {
     private final TeamService teamService;
 
     @GetMapping("/search")
-    public ResponseEntity<List<TeamResponseDto>> searchTeamByQuery(@RequestParam String query) {
+    public ResponseEntity<List<TeamResponseDto>> searchTeam(@RequestParam String query) {
         return ResponseEntity.ok(teamService.searchTeamByQuery(query));
     }
 
