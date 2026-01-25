@@ -8,7 +8,14 @@ import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.domain.user.exception.InvalidTeacherInfoException;
+import org.springframework.http.HttpStatus;
+import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
+import solvit.teachmon.domain.user.domain.enums.Role;
+import solvit.teachmon.domain.user.exception.TeacherInvalidValueException;
 import solvit.teachmon.global.entity.BaseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -40,6 +47,9 @@ public class TeacherEntity extends BaseEntity {
     @Column(name = "oauth2_type", nullable = false, updatable = false)
     @Enumerated(EnumType.STRING)
     private OAuth2Type oAuth2Type;
+  
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<SupervisionBanDayEntity> supervisionBanDays = new ArrayList<>();
 
     @Builder
     public TeacherEntity(String mail, String name, String profile, String providerId, OAuth2Type oAuth2Type) {
@@ -75,5 +85,19 @@ public class TeacherEntity extends BaseEntity {
     private void validateNameFiled(String name) {
         if(name == null || name.trim().isEmpty())
             throw new InvalidTeacherInfoException("이름은 비어 있을 수 없습니다.");
+    }
+
+    public void changeRole(Role role) {
+        if(role == null) {
+            throw new TeacherInvalidValueException("role(권한)은 필수입니다.", HttpStatus.BAD_REQUEST);
+        }
+        this.role = role;
+    }
+
+    public void changeName(String name) {
+        if(name == null) {
+            throw new TeacherInvalidValueException("name(이름)은 필수입니다", HttpStatus.BAD_REQUEST);
+        }
+        this.name = name;
     }
 }
