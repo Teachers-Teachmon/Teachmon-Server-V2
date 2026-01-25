@@ -15,11 +15,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ExitService {
     private final ExitRepository exitRepository;
     private final ExitMapper exitMapper;
 
+    @Transactional(readOnly = true)
     public List<ExitHistoryResponse> getWeekExitHistory() {
         LocalDate today = LocalDate.now();
         LocalDate startOfWeek = today.with(DayOfWeek.MONDAY);
@@ -32,6 +32,7 @@ public class ExitService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<ExitHistoryResponse> getExitHistoryByDay(LocalDate day) {
         List<ExitEntity> exits = exitRepository.findAllByDay(day);
 
