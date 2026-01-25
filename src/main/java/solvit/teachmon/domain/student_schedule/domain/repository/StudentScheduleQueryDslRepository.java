@@ -15,4 +15,5 @@ public interface StudentScheduleQueryDslRepository {
     Map<Integer, List<StudentScheduleDto>> findByGradeAndPeriodGroupByClass(Integer grade, LocalDate day, SchoolPeriod period);
     Map<StudentEntity, List<PeriodScheduleDto>> findByQueryAndDayGroupByStudent(String query, LocalDate day);
     Map<ScheduleType, List<ScheduleEntity>> findAllByDayAndPeriodAndTypeIn(LocalDate day, SchoolPeriod period, List<ScheduleType> types);
+    Map<Long, ScheduleType> findLastScheduleTypeByStudentsAndDayAndPeriod(List<StudentEntity> students, LocalDate day, SchoolPeriod period);
 }

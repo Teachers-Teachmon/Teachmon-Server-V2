@@ -43,8 +43,25 @@ public class LeaveSeatEntity extends BaseEntity {
     @OneToMany(mappedBy = "leaveSeat", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<LeaveSeatScheduleEntity> leaveSeatSchedules;
 
+    @OneToMany(mappedBy = "leaveSeat", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<LeaveSeatStudentEntity> leaveSeatStudents;
+
     @Builder
     public LeaveSeatEntity(TeacherEntity teacher, PlaceEntity place, LocalDate day, SchoolPeriod period, String cause) {
+        validateTeacher(teacher);
+        validatePlace(place);
+        validateDay(day);
+        validatePeriod(period);
+        validateCause(cause);
+
+        this.teacher = teacher;
+        this.place = place;
+        this.day = day;
+        this.period = period;
+        this.cause = cause;
+    }
+
+    public void changeLeaveSeatInfo(TeacherEntity teacher, PlaceEntity place, LocalDate day, SchoolPeriod period, String cause) {
         validateTeacher(teacher);
         validatePlace(place);
         validateDay(day);
