@@ -1,6 +1,5 @@
 package solvit.teachmon.domain.leave_seat.presentation.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import solvit.teachmon.global.enums.SchoolPeriod;

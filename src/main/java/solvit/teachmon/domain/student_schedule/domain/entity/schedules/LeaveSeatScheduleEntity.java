@@ -12,8 +12,6 @@ import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 import solvit.teachmon.domain.student_schedule.exception.LeaveSeatScheduleValueInvalidException;
 import solvit.teachmon.global.entity.BaseEntity;
 
-import java.util.List;
-
 @Getter
 @Entity
 @Table(name = "leave_seat_schedule")
