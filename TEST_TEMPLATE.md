@@ -367,17 +367,17 @@ given(repository.findById(1L)).willReturn(user); // Optional 누락
 given(repository.findById(1L)).willReturn(Optional.of(user));
 ```
 
-##### B. 애플리케이션 코드 문제인 경우 → **분석결과.md 생성**
+##### B. 애플리케이션 코드 문제인 경우 → **PR Comment로 직접 분석 결과 작성**
 
-**분석결과.md 템플릿:**
+**PR Comment 템플릿:**
 ```markdown
 # 테스트 실패 분석 결과
 
 ## 📋 기본 정보
 - **테스트 클래스**: {TestClass}
-- **실패한 메서드**: {testMethodName}
+- **실패한 메서드**: `{testMethodName}`
 - **실행 날짜**: {YYYY-MM-DD HH:mm:ss}
-- **분석자**: Claude Code
+- **분석자**: {작성자명}
 
 ## 🚨 오류 내용
 ```
@@ -423,6 +423,8 @@ given(repository.findById(1L)).willReturn(Optional.of(user));
 2. {할 일 2}
 3. {할 일 3}
 ```
+
+> ⚠️ **중요**: 위 분석 내용은 별도 파일로 생성하지 말고, **PR의 Comment로 직접 작성**해주세요!
 
 #### 3단계: 자동 재실행 스크립트
 
