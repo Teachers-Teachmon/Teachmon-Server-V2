@@ -46,7 +46,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/reissue").permitAll()
                         .requestMatchers("/login/oauth2").permitAll()
                         .requestMatchers("/api/healthcheck").permitAll()
-                        .requestMatchers("/teacher/**", "/student/**", "/self-study/**", "/exit/**").permitAll()
+                        .requestMatchers("/teacher/**", "/student/**", "/self-study/**", "/exit/**", "/leaveseat/**").permitAll()
                         .requestMatchers("/student-schedule/**").permitAll()
                         .anyRequest().authenticated()
                 )

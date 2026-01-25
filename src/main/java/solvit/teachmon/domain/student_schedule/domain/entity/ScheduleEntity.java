@@ -40,9 +40,6 @@ public class ScheduleEntity extends BaseEntity {
     }
 
     public static ScheduleEntity createNewStudentSchedule(StudentScheduleEntity studentSchedule, Integer nowStackOrder, ScheduleType type) {
-        if(!type.isContains(ALLOWED_CHANGE_TYPES))
-            throw new IllegalStudentStateChangeException();
-
         return ScheduleEntity.builder()
                 .studentSchedule(studentSchedule)
                 .stackOrder(nowStackOrder + 1)
