@@ -29,11 +29,11 @@ public class StudentEntity extends BaseEntity {
 
     @Builder(builderMethodName = "withYearBuilder")
     public StudentEntity(Integer year, Integer grade, Integer classNumber, Integer number, String name) {
-        validateYearField(year);
-        validateGradeField(grade);
-        validateClassNumberField(classNumber);
-        validateNumberField(number);
-        validateNameField(name);
+        validateYear(year);
+        validateGrade(grade);
+        validateClassNumber(classNumber);
+        validateNumber(number);
+        validateName(name);
 
         this.year = year;
         this.grade = grade;
@@ -44,10 +44,10 @@ public class StudentEntity extends BaseEntity {
 
     @Builder(builderMethodName = "withCurrentYearBuilder")
     public StudentEntity(Integer grade, Integer classNumber, Integer number, String name) {
-        validateGradeField(grade);
-        validateClassNumberField(classNumber);
-        validateNumberField(number);
-        validateNameField(name);
+        validateGrade(grade);
+        validateClassNumber(classNumber);
+        validateNumber(number);
+        validateName(name);
 
         this.year = getNowYear();
         this.grade = grade;
@@ -60,27 +60,27 @@ public class StudentEntity extends BaseEntity {
         return LocalDateTime.now().getYear();
     }
 
-    private void validateYearField(Integer year) {
+    private void validateYear(Integer year) {
         if(year == null)
             throw new InvalidStudentInfoException("연도는 비어 있을 수 없습니다.");
     }
 
-    private void validateGradeField(Integer grade) {
+    private void validateGrade(Integer grade) {
         if(grade == null || 1 > grade || 3 < grade)
             throw new InvalidStudentInfoException("학년은 1~3학년 범위여야 합니다.");
     }
 
-    private void validateClassNumberField(Integer classNumber) {
+    private void validateClassNumber(Integer classNumber) {
         if(classNumber == null)
             throw new InvalidStudentInfoException("학반은 비어 있을 수 없습니다.");
     }
 
-    private void validateNumberField(Integer number) {
+    private void validateNumber(Integer number) {
         if(number == null || number < 1)
             throw new InvalidStudentInfoException("학번은 1 이상이어야 합니다.");
     }
 
-    private void validateNameField(String name) {
+    private void validateName(String name) {
         if(name == null)
             throw new InvalidStudentInfoException("이름은 비어 있을 수 없습니다.");
     }

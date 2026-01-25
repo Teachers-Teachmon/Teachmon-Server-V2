@@ -39,7 +39,7 @@ public class TeamEntity extends BaseEntity {
     }
 
     public void updateName(String name) {
-        validateNameField(name);
+        validateName(name);
         this.name = name;
     }
 
@@ -49,13 +49,13 @@ public class TeamEntity extends BaseEntity {
 
     @Builder
     public TeamEntity(String name) {
-        validateNameField(name);
+        validateName(name);
 
         this.name = name;
         this.teamParticipationList = new ArrayList<>();
     }
 
-    private void validateNameField(String name) {
+    private void validateName(String name) {
         if(name == null) throw new InvalidTeamInfoException("이름은 비어 있을 수 없습니다.");
     }
 }
