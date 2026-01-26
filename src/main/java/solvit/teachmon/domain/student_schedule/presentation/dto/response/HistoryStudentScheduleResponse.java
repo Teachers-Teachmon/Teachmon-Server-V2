@@ -2,7 +2,6 @@ package solvit.teachmon.domain.student_schedule.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 
 @Builder
 public record HistoryStudentScheduleResponse(
@@ -10,21 +9,21 @@ public record HistoryStudentScheduleResponse(
         Integer studentNumber,
         String name,
         @JsonProperty("ONE_PERIOD")
-        ScheduleType onePeriod,
+        PeriodScheduleResponse onePeriod,
         @JsonProperty("TWO_PERIOD")
-        ScheduleType twoPeriod,
+        PeriodScheduleResponse twoPeriod,
         @JsonProperty("THREE_PERIOD")
-        ScheduleType threePeriod,
+        PeriodScheduleResponse threePeriod,
         @JsonProperty("FOUR_PERIOD")
-        ScheduleType fourPeriod,
+        PeriodScheduleResponse fourPeriod,
         @JsonProperty("FIVE_PERIOD")
-        ScheduleType fivePeriod,
+        PeriodScheduleResponse fivePeriod,
         @JsonProperty("SIX_PERIOD")
-        ScheduleType sixPeriod,
+        PeriodScheduleResponse sixPeriod,
         @JsonProperty("SEVEN_PERIOD")
-        ScheduleType sevenPeriod,
+        PeriodScheduleResponse sevenPeriod,
         @JsonProperty("EIGHT_AND_NINE_PERIOD")
-        ScheduleType eightAndNinePeriod,
+        PeriodScheduleResponse eightAndNinePeriod,
         @JsonProperty("TEN_AND_ELEVEN_PERIOD")
-        ScheduleType tenAndElevenPeriod
+        PeriodScheduleResponse tenAndElevenPeriod
 ) {}

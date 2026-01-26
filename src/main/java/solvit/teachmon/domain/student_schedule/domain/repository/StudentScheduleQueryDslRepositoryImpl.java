@@ -109,6 +109,7 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                         groupBy(student).as(
                                 list(
                                         new QPeriodScheduleDto(
+                                                studentSchedule.id,
                                                 studentSchedule.period,
                                                 schedule.type
                                         )

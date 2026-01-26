@@ -17,6 +17,7 @@ import solvit.teachmon.domain.student_schedule.exception.StudentScheduleNotFound
 import solvit.teachmon.domain.student_schedule.presentation.dto.request.StudentScheduleUpdateRequest;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.ClassStudentScheduleResponse;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.HistoryStudentScheduleResponse;
+import solvit.teachmon.domain.student_schedule.presentation.dto.response.PeriodScheduleResponse;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.StudentScheduleResponse;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
@@ -229,15 +230,15 @@ class StudentScheduleControllerTest {
         HistoryStudentScheduleResponse response = HistoryStudentScheduleResponse.builder()
                 .studentNumber(2115)
                 .name("허온")
-                .onePeriod(ScheduleType.SELF_STUDY)
-                .twoPeriod(ScheduleType.SELF_STUDY)
-                .threePeriod(ScheduleType.AWAY)
+                .onePeriod(PeriodScheduleResponse.builder().scheduleId(1L).state(ScheduleType.SELF_STUDY).build())
+                .twoPeriod(PeriodScheduleResponse.builder().scheduleId(2L).state(ScheduleType.SELF_STUDY).build())
+                .threePeriod(PeriodScheduleResponse.builder().scheduleId(3L).state(ScheduleType.AWAY).build())
                 .fourPeriod(null)
                 .fivePeriod(null)
                 .sixPeriod(null)
-                .sevenPeriod(ScheduleType.SELF_STUDY)
-                .eightAndNinePeriod(ScheduleType.SELF_STUDY)
-                .tenAndElevenPeriod(ScheduleType.AFTER_SCHOOL)
+                .sevenPeriod(PeriodScheduleResponse.builder().scheduleId(4L).state(ScheduleType.SELF_STUDY).build())
+                .eightAndNinePeriod(PeriodScheduleResponse.builder().scheduleId(5L).state(ScheduleType.SELF_STUDY).build())
+                .tenAndElevenPeriod(PeriodScheduleResponse.builder().scheduleId(6L).state(ScheduleType.AFTER_SCHOOL).build())
                 .build();
 
         given(studentScheduleService.getStudentScheduleHistory(query, day))
@@ -253,12 +254,18 @@ class StudentScheduleControllerTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].student_number").value(2115))
                 .andExpect(jsonPath("$[0].name").value("허온"))
-                .andExpect(jsonPath("$[0].ONE_PERIOD").value("SELF_STUDY"))
-                .andExpect(jsonPath("$[0].TWO_PERIOD").value("SELF_STUDY"))
-                .andExpect(jsonPath("$[0].THREE_PERIOD").value("AWAY"))
-                .andExpect(jsonPath("$[0].SEVEN_PERIOD").value("SELF_STUDY"))
-                .andExpect(jsonPath("$[0].EIGHT_AND_NINE_PERIOD").value("SELF_STUDY"))
-                .andExpect(jsonPath("$[0].TEN_AND_ELEVEN_PERIOD").value("AFTER_SCHOOL"));
+                .andExpect(jsonPath("$[0].ONE_PERIOD.schedule_id").value(1))
+                .andExpect(jsonPath("$[0].ONE_PERIOD.state").value("SELF_STUDY"))
+                .andExpect(jsonPath("$[0].TWO_PERIOD.schedule_id").value(2))
+                .andExpect(jsonPath("$[0].TWO_PERIOD.state").value("SELF_STUDY"))
+                .andExpect(jsonPath("$[0].THREE_PERIOD.schedule_id").value(3))
+                .andExpect(jsonPath("$[0].THREE_PERIOD.state").value("AWAY"))
+                .andExpect(jsonPath("$[0].SEVEN_PERIOD.schedule_id").value(4))
+                .andExpect(jsonPath("$[0].SEVEN_PERIOD.state").value("SELF_STUDY"))
+                .andExpect(jsonPath("$[0].EIGHT_AND_NINE_PERIOD.schedule_id").value(5))
+                .andExpect(jsonPath("$[0].EIGHT_AND_NINE_PERIOD.state").value("SELF_STUDY"))
+                .andExpect(jsonPath("$[0].TEN_AND_ELEVEN_PERIOD.schedule_id").value(6))
+                .andExpect(jsonPath("$[0].TEN_AND_ELEVEN_PERIOD.state").value("AFTER_SCHOOL"));
 
         verify(studentScheduleService).getStudentScheduleHistory(query, day);
     }
@@ -282,10 +289,10 @@ class StudentScheduleControllerTest {
 
         HistoryStudentScheduleResponse response1 = HistoryStudentScheduleResponse.builder()
                 .studentNumber(1101).name("학생1")
-                .onePeriod(ScheduleType.SELF_STUDY).build();
+                .onePeriod(PeriodScheduleResponse.builder().scheduleId(1L).state(ScheduleType.SELF_STUDY).build()).build();
         HistoryStudentScheduleResponse response2 = HistoryStudentScheduleResponse.builder()
                 .studentNumber(1102).name("학생2")
-                .onePeriod(ScheduleType.AWAY).build();
+                .onePeriod(PeriodScheduleResponse.builder().scheduleId(2L).state(ScheduleType.AWAY).build()).build();
 
         given(studentScheduleService.getStudentScheduleHistory(query, day))
                 .willReturn(List.of(response1, response2));
@@ -311,10 +318,10 @@ class StudentScheduleControllerTest {
 
         HistoryStudentScheduleResponse response1 = HistoryStudentScheduleResponse.builder()
                 .studentNumber(2115).name("허온")
-                .eightAndNinePeriod(ScheduleType.SELF_STUDY).build();
+                .eightAndNinePeriod(PeriodScheduleResponse.builder().scheduleId(1L).state(ScheduleType.SELF_STUDY).build()).build();
         HistoryStudentScheduleResponse response2 = HistoryStudentScheduleResponse.builder()
                 .studentNumber(2116).name("허준")
-                .eightAndNinePeriod(ScheduleType.AWAY).build();
+                .eightAndNinePeriod(PeriodScheduleResponse.builder().scheduleId(2L).state(ScheduleType.AWAY).build()).build();
 
         given(studentScheduleService.getStudentScheduleHistory(query, day))
                 .willReturn(List.of(response1, response2));

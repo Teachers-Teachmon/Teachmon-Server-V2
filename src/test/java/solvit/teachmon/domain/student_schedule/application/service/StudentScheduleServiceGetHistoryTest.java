@@ -12,6 +12,7 @@ import solvit.teachmon.domain.student_schedule.application.mapper.StudentSchedul
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 import solvit.teachmon.domain.student_schedule.domain.repository.StudentScheduleRepository;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.HistoryStudentScheduleResponse;
+import solvit.teachmon.domain.student_schedule.presentation.dto.response.PeriodScheduleResponse;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
@@ -50,9 +51,9 @@ class StudentScheduleServiceGetHistoryTest {
                 .build();
 
         List<PeriodScheduleDto> schedules = List.of(
-                new PeriodScheduleDto(SchoolPeriod.SEVEN_PERIOD, ScheduleType.SELF_STUDY),
-                new PeriodScheduleDto(SchoolPeriod.EIGHT_AND_NINE_PERIOD, ScheduleType.SELF_STUDY),
-                new PeriodScheduleDto(SchoolPeriod.TEN_AND_ELEVEN_PERIOD, ScheduleType.AFTER_SCHOOL)
+                new PeriodScheduleDto(1L, SchoolPeriod.SEVEN_PERIOD, ScheduleType.SELF_STUDY),
+                new PeriodScheduleDto(2L, SchoolPeriod.EIGHT_AND_NINE_PERIOD, ScheduleType.SELF_STUDY),
+                new PeriodScheduleDto(3L, SchoolPeriod.TEN_AND_ELEVEN_PERIOD, ScheduleType.AFTER_SCHOOL)
         );
 
         Map<StudentEntity, List<PeriodScheduleDto>> mockRepositoryResult = Map.of(student, schedules);
@@ -66,9 +67,9 @@ class StudentScheduleServiceGetHistoryTest {
                 .fourPeriod(null)
                 .fivePeriod(null)
                 .sixPeriod(null)
-                .sevenPeriod(ScheduleType.SELF_STUDY)
-                .eightAndNinePeriod(ScheduleType.SELF_STUDY)
-                .tenAndElevenPeriod(ScheduleType.AFTER_SCHOOL)
+                .sevenPeriod(PeriodScheduleResponse.builder().scheduleId(1L).state(ScheduleType.SELF_STUDY).build())
+                .eightAndNinePeriod(PeriodScheduleResponse.builder().scheduleId(2L).state(ScheduleType.SELF_STUDY).build())
+                .tenAndElevenPeriod(PeriodScheduleResponse.builder().scheduleId(3L).state(ScheduleType.AFTER_SCHOOL).build())
                 .build();
 
         given(studentScheduleRepository.findByQueryAndDayGroupByStudent(query, day))
@@ -85,9 +86,12 @@ class StudentScheduleServiceGetHistoryTest {
         HistoryStudentScheduleResponse response = results.get(0);
         assertThat(response.studentNumber()).isEqualTo(2115);
         assertThat(response.name()).isEqualTo("허온");
-        assertThat(response.sevenPeriod()).isEqualTo(ScheduleType.SELF_STUDY);
-        assertThat(response.eightAndNinePeriod()).isEqualTo(ScheduleType.SELF_STUDY);
-        assertThat(response.tenAndElevenPeriod()).isEqualTo(ScheduleType.AFTER_SCHOOL);
+        assertThat(response.sevenPeriod().scheduleId()).isEqualTo(1L);
+        assertThat(response.sevenPeriod().state()).isEqualTo(ScheduleType.SELF_STUDY);
+        assertThat(response.eightAndNinePeriod().scheduleId()).isEqualTo(2L);
+        assertThat(response.eightAndNinePeriod().state()).isEqualTo(ScheduleType.SELF_STUDY);
+        assertThat(response.tenAndElevenPeriod().scheduleId()).isEqualTo(3L);
+        assertThat(response.tenAndElevenPeriod().state()).isEqualTo(ScheduleType.AFTER_SCHOOL);
 
         verify(studentScheduleRepository, times(1))
                 .findByQueryAndDayGroupByStudent(query, day);
@@ -108,10 +112,10 @@ class StudentScheduleServiceGetHistoryTest {
                 .grade(2).classNumber(1).number(16).name("허준").build();
 
         List<PeriodScheduleDto> schedules1 = List.of(
-                new PeriodScheduleDto(SchoolPeriod.EIGHT_AND_NINE_PERIOD, ScheduleType.SELF_STUDY)
+                new PeriodScheduleDto(1L, SchoolPeriod.EIGHT_AND_NINE_PERIOD, ScheduleType.SELF_STUDY)
         );
         List<PeriodScheduleDto> schedules2 = List.of(
-                new PeriodScheduleDto(SchoolPeriod.EIGHT_AND_NINE_PERIOD, ScheduleType.AWAY)
+                new PeriodScheduleDto(2L, SchoolPeriod.EIGHT_AND_NINE_PERIOD, ScheduleType.AWAY)
         );
 
         Map<StudentEntity, List<PeriodScheduleDto>> mockRepositoryResult = Map.of(
@@ -121,10 +125,10 @@ class StudentScheduleServiceGetHistoryTest {
 
         HistoryStudentScheduleResponse response1 = HistoryStudentScheduleResponse.builder()
                 .studentNumber(2115).name("허온")
-                .eightAndNinePeriod(ScheduleType.SELF_STUDY).build();
+                .eightAndNinePeriod(PeriodScheduleResponse.builder().scheduleId(1L).state(ScheduleType.SELF_STUDY).build()).build();
         HistoryStudentScheduleResponse response2 = HistoryStudentScheduleResponse.builder()
                 .studentNumber(2116).name("허준")
-                .eightAndNinePeriod(ScheduleType.AWAY).build();
+                .eightAndNinePeriod(PeriodScheduleResponse.builder().scheduleId(2L).state(ScheduleType.AWAY).build()).build();
 
         given(studentScheduleRepository.findByQueryAndDayGroupByStudent(query, day))
                 .willReturn(mockRepositoryResult);
@@ -175,7 +179,7 @@ class StudentScheduleServiceGetHistoryTest {
                 .grade(1).classNumber(2).number(10).name("김철수").build();
 
         List<PeriodScheduleDto> schedules = List.of(
-                new PeriodScheduleDto(SchoolPeriod.EIGHT_AND_NINE_PERIOD, ScheduleType.EXIT)
+                new PeriodScheduleDto(1L, SchoolPeriod.EIGHT_AND_NINE_PERIOD, ScheduleType.EXIT)
         );
 
         Map<StudentEntity, List<PeriodScheduleDto>> mockRepositoryResult = Map.of(student, schedules);
@@ -190,7 +194,7 @@ class StudentScheduleServiceGetHistoryTest {
                 .fivePeriod(null)
                 .sixPeriod(null)
                 .sevenPeriod(null)
-                .eightAndNinePeriod(ScheduleType.EXIT)
+                .eightAndNinePeriod(PeriodScheduleResponse.builder().scheduleId(1L).state(ScheduleType.EXIT).build())
                 .tenAndElevenPeriod(null)
                 .build();
 
@@ -209,7 +213,8 @@ class StudentScheduleServiceGetHistoryTest {
         assertThat(response.studentNumber()).isEqualTo(1210);
         assertThat(response.name()).isEqualTo("김철수");
         assertThat(response.sevenPeriod()).isNull();
-        assertThat(response.eightAndNinePeriod()).isEqualTo(ScheduleType.EXIT);
+        assertThat(response.eightAndNinePeriod().scheduleId()).isEqualTo(1L);
+        assertThat(response.eightAndNinePeriod().state()).isEqualTo(ScheduleType.EXIT);
         assertThat(response.tenAndElevenPeriod()).isNull();
 
         verify(studentScheduleRepository, times(1))
@@ -231,10 +236,10 @@ class StudentScheduleServiceGetHistoryTest {
                 .grade(1).classNumber(1).number(2).name("학생2").build();
 
         List<PeriodScheduleDto> schedules1 = List.of(
-                new PeriodScheduleDto(SchoolPeriod.ONE_PERIOD, ScheduleType.SELF_STUDY)
+                new PeriodScheduleDto(1L, SchoolPeriod.ONE_PERIOD, ScheduleType.SELF_STUDY)
         );
         List<PeriodScheduleDto> schedules2 = List.of(
-                new PeriodScheduleDto(SchoolPeriod.ONE_PERIOD, ScheduleType.AWAY)
+                new PeriodScheduleDto(2L, SchoolPeriod.ONE_PERIOD, ScheduleType.AWAY)
         );
 
         Map<StudentEntity, List<PeriodScheduleDto>> mockRepositoryResult = Map.of(
@@ -244,10 +249,10 @@ class StudentScheduleServiceGetHistoryTest {
 
         HistoryStudentScheduleResponse response1 = HistoryStudentScheduleResponse.builder()
                 .studentNumber(1101).name("학생1")
-                .onePeriod(ScheduleType.SELF_STUDY).build();
+                .onePeriod(PeriodScheduleResponse.builder().scheduleId(1L).state(ScheduleType.SELF_STUDY).build()).build();
         HistoryStudentScheduleResponse response2 = HistoryStudentScheduleResponse.builder()
                 .studentNumber(1102).name("학생2")
-                .onePeriod(ScheduleType.AWAY).build();
+                .onePeriod(PeriodScheduleResponse.builder().scheduleId(2L).state(ScheduleType.AWAY).build()).build();
 
         given(studentScheduleRepository.findByQueryAndDayGroupByStudent(query, day))
                 .willReturn(mockRepositoryResult);
