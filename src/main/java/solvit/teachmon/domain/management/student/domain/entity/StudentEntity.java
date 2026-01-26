@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @Table(name = "student")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StudentEntity extends BaseEntity {
-    @Column(name = "year", nullable = false)
+    @Column(name = "`year`", nullable = false)
     private Integer year;
 
     @Column(name = "grade", nullable = false)

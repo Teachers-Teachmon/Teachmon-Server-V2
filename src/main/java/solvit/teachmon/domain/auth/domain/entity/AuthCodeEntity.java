@@ -40,7 +40,7 @@ public class AuthCodeEntity {
     }
 
     private void validateTimeToLive(Long timeToLive) {
-        if(timeToLive == null ||timeToLive < 0)
+        if(timeToLive == null || timeToLive < 0)
             throw new InvalidAuthCodeInfoException("TTL 값은 0 이상이어야 합니다.");
     }
 }
