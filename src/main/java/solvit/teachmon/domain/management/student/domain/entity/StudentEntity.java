@@ -1,18 +1,23 @@
 package solvit.teachmon.domain.management.student.domain.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.management.student.exception.InvalidStudentInfoException;
 import solvit.teachmon.global.entity.BaseEntity;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
-@Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Entity
 @Table(name = "student")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StudentEntity extends BaseEntity {
-    @Column(name = "`year`", nullable = false)
+    @Column(name = "year", nullable = false)
     private Integer year;
 
     @Column(name = "grade", nullable = false)
@@ -27,61 +32,58 @@ public class StudentEntity extends BaseEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Builder(builderMethodName = "withYearBuilder")
+    @Builder
     public StudentEntity(Integer year, Integer grade, Integer classNumber, Integer number, String name) {
-        validateYear(year);
-        validateGrade(grade);
-        validateClassNumber(classNumber);
-        validateNumber(number);
-        validateName(name);
-
-        this.year = year;
+        this.year = resolveYear(year);
         this.grade = grade;
         this.classNumber = classNumber;
         this.number = number;
         this.name = name;
     }
 
-    @Builder(builderMethodName = "withCurrentYearBuilder")
-    public StudentEntity(Integer grade, Integer classNumber, Integer number, String name) {
-        validateGrade(grade);
-        validateClassNumber(classNumber);
-        validateNumber(number);
-        validateName(name);
-
-        this.year = getNowYear();
-        this.grade = grade;
-        this.classNumber = classNumber;
-        this.number = number;
-        this.name = name;
+    private Integer resolveYear(Integer year) {
+        // year 이 유효한지 검사
+        return (year != null) ? year : getNowYear();
     }
 
     private Integer getNowYear() {
-        return LocalDateTime.now().getYear();
+        // year 설정 도메인 로직
+        return LocalDate.now().getYear();
     }
 
-    private void validateYear(Integer year) {
-        if(year == null)
-            throw new InvalidStudentInfoException("연도는 비어 있을 수 없습니다.");
+    public void changeInfo(Integer grade, Integer classNumber, Integer number, String name) {
+        validateGrade(grade);
+        validateClassNumber(classNumber);
+        validateNumber(number);
+        validateName(name);
+
+        this.grade = grade;
+        this.classNumber = classNumber;
+        this.number = number;
+        this.name = name;
     }
 
     private void validateGrade(Integer grade) {
-        if(grade == null || 1 > grade || 3 < grade)
-            throw new InvalidStudentInfoException("학년은 1~3학년 범위여야 합니다.");
+        if (grade == null || grade < 1 || grade > 3) {
+            throw new InvalidStudentInfoException("학년은 1 ~ 3 사이여야 합니다");
+        }
     }
 
     private void validateClassNumber(Integer classNumber) {
-        if(classNumber == null)
-            throw new InvalidStudentInfoException("학반은 비어 있을 수 없습니다.");
+        if (classNumber == null || classNumber < 1) {
+            throw new InvalidStudentInfoException("반은 1 이상이어야 합니다");
+        }
     }
 
     private void validateNumber(Integer number) {
-        if(number == null || number < 1)
-            throw new InvalidStudentInfoException("학번은 1 이상이어야 합니다.");
+        if (number == null || number < 1) {
+            throw new InvalidStudentInfoException("번호는 1 이상이어야 합니다");
+        }
     }
 
     private void validateName(String name) {
-        if(name == null)
-            throw new InvalidStudentInfoException("이름은 비어 있을 수 없습니다.");
+        if (name == null || name.trim().isEmpty()) {
+            throw new InvalidStudentInfoException("이름은 비어 있을 수 없습니다");
+        }
     }
 }
