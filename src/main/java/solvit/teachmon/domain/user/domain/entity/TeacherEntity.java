@@ -46,7 +46,7 @@ public class TeacherEntity extends BaseEntity {
         validateMail(mail);
         validateProviderId(providerId);
         validateOAuth2Type(oAuth2Type);
-        validateNameFiled(name);
+        validateName(name);
 
         this.mail = mail;
         this.name = name;
@@ -72,7 +72,7 @@ public class TeacherEntity extends BaseEntity {
             throw new InvalidTeacherInfoException("OAuth2 타입은 비어 있을 수 없습니다.");
     }
 
-    private void validateNameFiled(String name) {
+    private void validateName(String name) {
         if(name == null || name.trim().isEmpty())
             throw new InvalidTeacherInfoException("이름은 비어 있을 수 없습니다.");
     }
