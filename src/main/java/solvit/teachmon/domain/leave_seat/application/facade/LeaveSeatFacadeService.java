@@ -203,9 +203,10 @@ public class LeaveSeatFacadeService {
         List<ScheduleEntity> schedules = leaveSeatSchedules.stream()
                 .map(LeaveSeatScheduleEntity::getSchedule)
                 .toList();
-        scheduleRepository.deleteAll(schedules);
+
         leaveSeatScheduleRepository.deleteAll(leaveSeatSchedules);
         leaveSeatStudentRepository.deleteAllByLeaveSeatId(leaveSeatId);
+        scheduleRepository.deleteAll(schedules);
     }
 
     private List<StudentEntity> getStudents(List<Long> studentIds) {
