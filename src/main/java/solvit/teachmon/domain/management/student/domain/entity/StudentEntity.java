@@ -34,11 +34,11 @@ public class StudentEntity extends BaseEntity {
 
     @Builder(builderMethodName = "withYearBuilder")
     public StudentEntity(Integer year, Integer grade, Integer classNumber, Integer number, String name) {
-        validateYearField(year);
-        validateGradeField(grade);
-        validateClassNumberField(classNumber);
-        validateNumberField(number);
-        validateNameField(name);
+        validateYear(year);
+        validateGrade(grade);
+        validateClassNumber(classNumber);
+        validateNumber(number);
+        validateName(name);
 
         this.year = year;
         this.grade = grade;
@@ -49,16 +49,20 @@ public class StudentEntity extends BaseEntity {
 
     @Builder(builderMethodName = "withCurrentYearBuilder")
     public StudentEntity(Integer grade, Integer classNumber, Integer number, String name) {
-        validateGradeField(grade);
-        validateClassNumberField(classNumber);
-        validateNumberField(number);
-        validateNameField(name);
+        validateGrade(grade);
+        validateClassNumber(classNumber);
+        validateNumber(number);
+        validateName(name);
 
         this.year = getNowYear();
         this.grade = grade;
         this.classNumber = classNumber;
         this.number = number;
         this.name = name;
+    }
+
+    private Integer getNowYear() {
+        return LocalDate.now().getYear();
     }
 
     public void changeInfo(Integer grade, Integer classNumber, Integer number, String name) {
@@ -72,33 +76,33 @@ public class StudentEntity extends BaseEntity {
         this.number = number;
         this.name = name;
     }
-  
-    private Integer getNowYear() {
-        return LocalDateTime.now().getYear();
+
+    private void validateYear(Integer year) {
+        if(year == null || year < 0)
+            throw new InvalidStudentInfoException("year(연도)는 1 이상이어야 합니다.");
     }
 
-    private void validateYearField(Integer year) {
-        if(year == null)
-            throw new InvalidStudentInfoException("연도는 비어 있을 수 없습니다.");
+    private void validateGrade(Integer grade) {
+        if (grade == null || grade < 1 || grade > 3) {
+            throw new InvalidStudentInfoException("grade(학년)은 1 ~ 3 사이여야 합니다.");
+        }
     }
 
-    private void validateGradeField(Integer grade) {
-        if(grade == null || 1 > grade || 3 < grade)
-            throw new InvalidStudentInfoException("학년은 1~3학년 범위여야 합니다.");
+    private void validateClassNumber(Integer classNumber) {
+        if (classNumber == null || classNumber < 1) {
+            throw new InvalidStudentInfoException("classNumber(반)은 1 이상이어야 합니다.");
+        }
     }
 
-    private void validateClassNumberField(Integer classNumber) {
-        if(classNumber == null)
-            throw new InvalidStudentInfoException("학반은 비어 있을 수 없습니다.");
+    private void validateNumber(Integer number) {
+        if (number == null || number < 1) {
+            throw new InvalidStudentInfoException("number(번호)는 1 이상이어야 합니다.");
+        }
     }
 
-    private void validateNumberField(Integer number) {
-        if(number == null || number < 1)
-            throw new InvalidStudentInfoException("학번은 1 이상이어야 합니다.");
-    }
-
-    private void validateNameField(String name) {
-        if(name == null)
-            throw new InvalidStudentInfoException("이름은 비어 있을 수 없습니다.");
+    private void validateName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new InvalidStudentInfoException("name(이름)은 필수입니다.");
+        }
     }
 }
