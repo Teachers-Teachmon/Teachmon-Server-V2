@@ -1,14 +1,12 @@
 package solvit.teachmon.domain.leave_seat.application.facade;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solvit.teachmon.domain.leave_seat.domain.entity.FixedLeaveSeatEntity;
 import solvit.teachmon.domain.leave_seat.domain.entity.FixedLeaveSeatStudentEntity;
 import solvit.teachmon.domain.leave_seat.domain.repository.FixedLeaveSeatRepository;
 import solvit.teachmon.domain.leave_seat.domain.repository.FixedLeaveSeatStudentRepository;
-import solvit.teachmon.domain.leave_seat.exception.FixedLeaveSeatInvalidException;
 import solvit.teachmon.domain.leave_seat.application.mapper.FixedLeaveSeatMapper;
 import solvit.teachmon.domain.leave_seat.exception.FixedLeaveSeatNotFoundException;
 import solvit.teachmon.domain.leave_seat.presentation.dto.request.FixedLeaveSeatCreateRequest;
