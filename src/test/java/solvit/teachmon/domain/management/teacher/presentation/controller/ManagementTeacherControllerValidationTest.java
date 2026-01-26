@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import solvit.teachmon.domain.management.teacher.presentation.dto.request.TeacherRequest;
 import solvit.teachmon.domain.management.teacher.presentation.dto.request.TeacherUpdateRequest;
 import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.global.enums.WeekDay;
@@ -142,5 +143,96 @@ class ManagementTeacherControllerValidationTest {
         mockMvc.perform(get("/teacher")
                         .param("query", "김"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("선생님 생성 시 role이 null이면 400 에러가 발생한다")
+    void shouldReturn400WhenCreateTeacherWithNullRole() throws Exception {
+        // Given
+        TeacherRequest request = new TeacherRequest(null, "김선생", "kim@teacher.com");
+
+        // When & Then
+        mockMvc.perform(post("/teacher")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("선생님 생성 시 name이 null이면 400 에러가 발생한다")
+    void shouldReturn400WhenCreateTeacherWithNullName() throws Exception {
+        // Given
+        TeacherRequest request = new TeacherRequest(Role.TEACHER, null, "kim@teacher.com");
+
+        // When & Then
+        mockMvc.perform(post("/teacher")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("선생님 생성 시 name이 빈 문자열이면 400 에러가 발생한다")
+    void shouldReturn400WhenCreateTeacherWithEmptyName() throws Exception {
+        // Given
+        TeacherRequest request = new TeacherRequest(Role.TEACHER, "", "kim@teacher.com");
+
+        // When & Then
+        mockMvc.perform(post("/teacher")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("선생님 생성 시 name이 공백만 있으면 400 에러가 발생한다")
+    void shouldReturn400WhenCreateTeacherWithBlankName() throws Exception {
+        // Given
+        TeacherRequest request = new TeacherRequest(Role.TEACHER, "   ", "kim@teacher.com");
+
+        // When & Then
+        mockMvc.perform(post("/teacher")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("선생님 생성 시 email이 null이면 400 에러가 발생한다")
+    void shouldReturn400WhenCreateTeacherWithNullEmail() throws Exception {
+        // Given
+        TeacherRequest request = new TeacherRequest(Role.TEACHER, "김선생", null);
+
+        // When & Then
+        mockMvc.perform(post("/teacher")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("선생님 생성 시 email이 빈 문자열이면 400 에러가 발생한다")
+    void shouldReturn400WhenCreateTeacherWithEmptyEmail() throws Exception {
+        // Given
+        TeacherRequest request = new TeacherRequest(Role.TEACHER, "김선생", "");
+
+        // When & Then
+        mockMvc.perform(post("/teacher")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("선생님 생성 시 email 형식이 잘못되면 400 에러가 발생한다")
+    void shouldReturn400WhenCreateTeacherWithInvalidEmailFormat() throws Exception {
+        // Given
+        TeacherRequest request = new TeacherRequest(Role.TEACHER, "김선생", "invalid-email");
+
+        // When & Then
+        mockMvc.perform(post("/teacher")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }
