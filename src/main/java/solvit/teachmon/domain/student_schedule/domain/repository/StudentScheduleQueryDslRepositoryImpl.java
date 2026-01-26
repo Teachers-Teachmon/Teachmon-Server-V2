@@ -38,18 +38,21 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
         QScheduleEntity schedule = QScheduleEntity.scheduleEntity;
         QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
 
+        // 최적화: 상관 서브쿼리를 비상관 서브쿼리로 변경
+        // 복합키 (student_schedule_id, stack_order)를 IN 절로 조회
+        // 이렇게 하면 서브쿼리가 한 번만 실행됨
         return queryFactory
                 .from(student)
                 .leftJoin(studentSchedule).on(studentSchedule.student.id.eq(student.id))
                 .leftJoin(schedule).on(
                         studentSchedule.id.eq(schedule.studentSchedule.id)
                         // stack_order 가 가장 높은 스케줄 가져오기
-                        // stack_order 가 가장 큰 스케줄이 최신 데이터
-                        .and(schedule.stackOrder.eq(
+                        // 복합키 IN 절 사용으로 성능 최적화
+                        .and(Expressions.list(schedule.studentSchedule.id, schedule.stackOrder).in(
                                 JPAExpressions
-                                        .select(scheduleSub.stackOrder.max())
+                                        .select(scheduleSub.studentSchedule.id, scheduleSub.stackOrder.max())
                                         .from(scheduleSub)
-                                        .where(scheduleSub.studentSchedule.id.eq(studentSchedule.id))
+                                        .groupBy(scheduleSub.studentSchedule.id)
                         ))
                 )
                 .where(
@@ -83,18 +86,19 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
         QScheduleEntity schedule = QScheduleEntity.scheduleEntity;
         QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
 
+        // 최적화: 상관 서브쿼리를 비상관 서브쿼리로 변경
         return queryFactory
                 .from(student)
                 .leftJoin(studentSchedule).on(studentSchedule.student.id.eq(student.id))
                 .leftJoin(schedule).on(
                         studentSchedule.id.eq(schedule.studentSchedule.id)
                                 // stack_order 가 가장 높은 스케줄 가져오기
-                                // stack_order 가 가장 큰 스케줄이 최신 데이터
-                                .and(schedule.stackOrder.eq(
+                                // 복합키 IN 절 사용으로 성능 최적화
+                                .and(Expressions.list(schedule.studentSchedule.id, schedule.stackOrder).in(
                                         JPAExpressions
-                                                .select(scheduleSub.stackOrder.max())
+                                                .select(scheduleSub.studentSchedule.id, scheduleSub.stackOrder.max())
                                                 .from(scheduleSub)
-                                                .where(scheduleSub.studentSchedule.id.eq(studentSchedule.id))
+                                                .groupBy(scheduleSub.studentSchedule.id)
                                 ))
                 )
                 .where(
@@ -120,17 +124,18 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
         QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
         QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
 
+        // 최적화: 상관 서브쿼리를 비상관 서브쿼리로 변경
         return queryFactory
                 .from(studentSchedule)
                 .join(schedule).on(
                         studentSchedule.id.eq(schedule.studentSchedule.id)
                                 // stack_order 가 가장 높은 스케줄 가져오기
-                                // stack_order 가 가장 큰 스케줄이 최신 데이터
-                                .and(schedule.stackOrder.eq(
+                                // 복합키 IN 절 사용으로 성능 최적화
+                                .and(Expressions.list(schedule.studentSchedule.id, schedule.stackOrder).in(
                                         JPAExpressions
-                                                .select(scheduleSub.stackOrder.max())
+                                                .select(scheduleSub.studentSchedule.id, scheduleSub.stackOrder.max())
                                                 .from(scheduleSub)
-                                                .where(scheduleSub.studentSchedule.id.eq(studentSchedule.id))
+                                                .groupBy(scheduleSub.studentSchedule.id)
                                 ))
                 )
                 .where(

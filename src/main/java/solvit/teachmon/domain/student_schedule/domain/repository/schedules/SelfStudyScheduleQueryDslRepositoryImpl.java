@@ -88,12 +88,12 @@ public class SelfStudyScheduleQueryDslRepositoryImpl implements SelfStudySchedul
                 .join(schedule).on(
                         selfStudySchedule.schedule.id.eq(schedule.id)
                                 // stack_order 가 가장 높은 스케줄 가져오기
-                                // stack_order 가 가장 큰 스케줄이 최신 데이터
-                                .and(schedule.stackOrder.eq(
+                                // 최적화: 상관 서브쿼리를 비상관 서브쿼리로 변경
+                                .and(Expressions.list(schedule.studentSchedule.id, schedule.stackOrder).in(
                                         JPAExpressions
-                                                .select(scheduleSub.stackOrder.max())
+                                                .select(scheduleSub.studentSchedule.id, scheduleSub.stackOrder.max())
                                                 .from(scheduleSub)
-                                                .where(scheduleSub.studentSchedule.id.eq(studentSchedule.id))
+                                                .groupBy(scheduleSub.studentSchedule.id)
                                 ))
                 )
                 .join(schedule.studentSchedule, studentSchedule)
