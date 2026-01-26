@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.leave_seat.presentation.dto.mapper;
+package solvit.teachmon.domain.leave_seat.application.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

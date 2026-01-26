@@ -58,6 +58,20 @@ public class FixedLeaveSeatEntity extends BaseEntity {
         this.cause = cause;
     }
 
+    public void updateFixedLeaveSeatInfo(TeacherEntity teacher, PlaceEntity place, WeekDay weekDay, SchoolPeriod period, String cause) {
+        validateTeacher(teacher);
+        validatePlace(place);
+        validateWeekDay(weekDay);
+        validatePeriod(period);
+        validateCause(cause);
+
+        this.teacher = teacher;
+        this.place = place;
+        this.weekDay = weekDay;
+        this.period = period;
+        this.cause = cause;
+    }
+
     private void validateTeacher(TeacherEntity teacher) {
         if(!teacher.hasStudentScheduleChangeAuthority()) {
             throw new ScheduleChangeAccessDeniedException();
@@ -71,7 +85,7 @@ public class FixedLeaveSeatEntity extends BaseEntity {
     }
 
     private void validateWeekDay(WeekDay weekDay) {
-        if(period == null) {
+        if(weekDay == null) {
             throw new FixedLeaveSeatInvalidException("weekDay(요일)는 필수입니다.", HttpStatus.BAD_REQUEST);
         }
     }

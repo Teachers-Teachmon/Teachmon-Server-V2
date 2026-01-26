@@ -10,7 +10,7 @@ import solvit.teachmon.domain.leave_seat.domain.repository.LeaveSeatRepository;
 import solvit.teachmon.domain.leave_seat.domain.repository.LeaveSeatStudentRepository;
 import solvit.teachmon.domain.leave_seat.exception.LeaveSeatNotFoundException;
 import solvit.teachmon.domain.leave_seat.exception.LeaveSeatValueInvalidException;
-import solvit.teachmon.domain.leave_seat.presentation.dto.mapper.LeaveSeatMapper;
+import solvit.teachmon.domain.leave_seat.application.mapper.LeaveSeatMapper;
 import solvit.teachmon.domain.leave_seat.presentation.dto.request.LeaveSeatCreateRequest;
 import solvit.teachmon.domain.leave_seat.presentation.dto.request.LeaveSeatUpdateRequest;
 import solvit.teachmon.domain.leave_seat.presentation.dto.response.LeaveSeatDetailResponse;
