@@ -86,6 +86,11 @@ public class TeacherEntity extends BaseEntity {
             throw new InvalidTeacherInfoException("이름은 비어 있을 수 없습니다.");
     }
 
+    private void validateProfile(String profile) {
+        if(profile == null || profile.trim().isEmpty())
+            throw new InvalidTeacherInfoException("프로필은 비어 있을 수 없습니다.");
+    }
+
     public void changeRole(Role role) {
         if(role == null) {
             throw new TeacherInvalidValueException("role(권한)은 필수입니다.", HttpStatus.BAD_REQUEST);
@@ -98,5 +103,13 @@ public class TeacherEntity extends BaseEntity {
             throw new TeacherInvalidValueException("name(이름)은 필수입니다", HttpStatus.BAD_REQUEST);
         }
         this.name = name;
+    }
+
+    public void update(String name, String profile) {
+        validateName(name);
+        validateProfile(profile);
+
+        this.name = name;
+        this.profile = profile;
     }
 }
