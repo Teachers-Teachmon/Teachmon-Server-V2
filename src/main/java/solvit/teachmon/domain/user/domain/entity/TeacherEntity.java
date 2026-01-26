@@ -10,7 +10,6 @@ import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.domain.user.exception.InvalidTeacherInfoException;
 import org.springframework.http.HttpStatus;
 import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
-import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.domain.user.exception.TeacherInvalidValueException;
 import solvit.teachmon.global.entity.BaseEntity;
 
