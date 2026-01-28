@@ -5,9 +5,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
+import solvit.teachmon.domain.user.domain.enums.Role;
+import solvit.teachmon.domain.user.exception.InvalidTeacherInfoException;
 import org.springframework.http.HttpStatus;
 import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
-import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.domain.user.exception.TeacherInvalidValueException;
 import solvit.teachmon.global.entity.BaseEntity;
 
@@ -16,7 +18,10 @@ import java.util.List;
 
 @Getter
 @Entity
-@Table(name = "teacher")
+@Table(
+        name = "teacher",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"provider_id", "oauth2_type"})
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TeacherEntity extends BaseEntity {
     private static final List<Role> STUDENT_SCHEDULE_CHANGE_AUTHORITIES = List.of(
@@ -40,16 +45,55 @@ public class TeacherEntity extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    @Column(name = "provider_id", nullable = false, updatable = false)
+    private String providerId;
+
+    @Column(name = "oauth2_type", nullable = false, updatable = false)
+    @Enumerated(EnumType.STRING)
+    private OAuth2Type oAuth2Type;
+
     @OneToMany(mappedBy = "teacher", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<SupervisionBanDayEntity> supervisionBanDays = new ArrayList<>();
 
     @Builder
-    public TeacherEntity(String mail, String name, String profile) {
+    public TeacherEntity(String mail, String name, String profile, String providerId, OAuth2Type oAuth2Type) {
+        validateMail(mail);
+        validateProviderId(providerId);
+        validateOAuth2Type(oAuth2Type);
+        validateName(name);
+
         this.mail = mail;
         this.name = name;
         this.profile = profile;
         this.role = Role.TEACHER;
         this.isActive = true;
+        this.providerId = providerId;
+        this.oAuth2Type = oAuth2Type;
+    }
+
+    private void validateMail(String mail) {
+        if(mail == null || mail.trim().isEmpty())
+            throw new InvalidTeacherInfoException("메일은 비어 있을 수 없습니다.");
+    }
+
+    private void validateProviderId(String providerId) {
+        if(providerId == null || providerId.trim().isEmpty())
+            throw new InvalidTeacherInfoException("Provider 아이디는 비어 있을 수 없습니다.");
+    }
+
+    private void validateOAuth2Type(OAuth2Type oAuth2Type) {
+        if(oAuth2Type == null)
+            throw new InvalidTeacherInfoException("OAuth2 타입은 비어 있을 수 없습니다.");
+    }
+
+    private void validateName(String name) {
+        if(name == null || name.trim().isEmpty())
+            throw new InvalidTeacherInfoException("이름은 비어 있을 수 없습니다.");
+    }
+
+    private void validateProfile(String profile) {
+        if(profile == null || profile.trim().isEmpty())
+            throw new InvalidTeacherInfoException("프로필은 비어 있을 수 없습니다.");
     }
 
     public void changeRole(Role role) {
@@ -64,6 +108,14 @@ public class TeacherEntity extends BaseEntity {
             throw new TeacherInvalidValueException("name(이름)은 필수입니다", HttpStatus.BAD_REQUEST);
         }
         this.name = name;
+    }
+
+    public void update(String name, String profile) {
+        validateName(name);
+        validateProfile(profile);
+
+        this.name = name;
+        this.profile = profile;
     }
 
     public Boolean hasStudentScheduleChangeAuthority() {

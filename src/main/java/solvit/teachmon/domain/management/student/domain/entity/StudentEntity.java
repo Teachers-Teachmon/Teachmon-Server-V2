@@ -70,25 +70,25 @@ public class StudentEntity extends BaseEntity {
 
     private void validateGrade(Integer grade) {
         if (grade == null || grade < 1 || grade > 3) {
-            throw new InvalidStudentInfoException("grade(학년)은 1 ~ 3 사이여야 합니다.");
+            throw new InvalidStudentInfoException("학년은 1 ~ 3 사이여야 합니다");
         }
     }
 
     private void validateClassNumber(Integer classNumber) {
         if (classNumber == null || classNumber < 1) {
-            throw new InvalidStudentInfoException("classNumber(반)은 1 이상이어야 합니다.");
+            throw new InvalidStudentInfoException("반은 1 이상이어야 합니다");
         }
     }
 
     private void validateNumber(Integer number) {
         if (number == null || number < 1) {
-            throw new InvalidStudentInfoException("number(번호)는 1 이상이어야 합니다.");
+            throw new InvalidStudentInfoException("번호는 1 이상이어야 합니다");
         }
     }
 
     private void validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new InvalidStudentInfoException("name(이름)은 필수입니다.");
+            throw new InvalidStudentInfoException("이름은 비어 있을 수 없습니다");
         }
     }
 
