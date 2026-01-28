@@ -6,6 +6,7 @@ import solvit.teachmon.global.enums.SchoolPeriod;
 
 @QueryProjection
 public record PeriodScheduleDto(
+        Long scheduleId,
         SchoolPeriod period,
         ScheduleType type
 ) {}

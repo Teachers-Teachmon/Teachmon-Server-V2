@@ -10,7 +10,6 @@ class TeachmonServerV2ApplicationTests {
 
     @Test
     void contextLoads() {
-
     }
 
 }
