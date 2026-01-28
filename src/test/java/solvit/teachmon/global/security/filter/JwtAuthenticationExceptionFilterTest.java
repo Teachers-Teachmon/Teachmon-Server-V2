@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 import solvit.teachmon.global.security.exception.InvalidJsonWebTokenException;
 
 import java.io.PrintWriter;
@@ -37,7 +39,9 @@ class JwtAuthenticationExceptionFilterTest {
 
     @BeforeEach
     void setUp() {
-        jwtAuthenticationExceptionFilter = new JwtAuthenticationExceptionFilter(objectMapper);
+        PathMatcher pathMatcher = new AntPathMatcher();
+        String[] excludedPaths = new String[]{"/test"};
+        jwtAuthenticationExceptionFilter = new JwtAuthenticationExceptionFilter(objectMapper, pathMatcher, excludedPaths);
     }
 
     private void setupMocksForErrorResponse() throws Exception {
