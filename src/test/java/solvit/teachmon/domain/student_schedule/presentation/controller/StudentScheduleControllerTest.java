@@ -20,6 +20,7 @@ import solvit.teachmon.domain.student_schedule.presentation.dto.response.History
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.PeriodScheduleResponse;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.StudentScheduleResponse;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
+import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
@@ -160,6 +161,8 @@ class StudentScheduleControllerTest {
                 .name("테스트 선생님")
                 .mail("test@teacher.com")
                 .profile("테스트")
+                .providerId("test-provider-id")
+                .oAuth2Type(OAuth2Type.GOOGLE)
                 .build();
         given(teacherRepository.findById(anyLong())).willReturn(Optional.of(teacher));
 
@@ -199,6 +202,8 @@ class StudentScheduleControllerTest {
                 .name("테스트 선생님")
                 .mail("test@teacher.com")
                 .profile("테스트")
+                .providerId("test-provider-id")
+                .oAuth2Type(OAuth2Type.GOOGLE)
                 .build();
         given(teacherRepository.findById(anyLong())).willReturn(Optional.of(teacher));
         doThrow(new StudentScheduleNotFoundException())
