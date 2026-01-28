@@ -24,7 +24,7 @@ public class TeamService {
     private final StudentRepository studentRepository;
 
     public List<TeamResponseDto> searchTeamByQuery(String query) {
-        return teamRepository.searchTeamByQuery(query);
+        return teamRepository.findTeamsBySearchKeyword(query);
     }
 
     @Transactional
