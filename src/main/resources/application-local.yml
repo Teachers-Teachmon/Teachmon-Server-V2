@@ -22,21 +22,25 @@ spring:
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: ${GOOGLE_SCOPE}
+            authorization-grant-type: ${GOOGLE_GRANT_TYPE}
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
+
 jwt:
   secret: ${JWT_SECRET}
   access-expiration: ${JWT_ACCESS_EXPIRATION}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION}
 
-oauth2:
-  providers:
-    google:
-      login-url: ${GOOGLE_LOGIN_URL}
-      token-url: ${GOOGLE_TOKEN_URL}
-      user-info-url: ${GOOGLE_USERINFO_URL}
-      client-id: ${GOOGLE_CLIENT_ID}
-      redirect-url: ${GOOGLE_REDIRECT_URL}
-      client-secret: ${GOOGLE_CLIENT_SECRET}
-      grant-type: ${GOOGLE_GRANT_TYPE}
+code:
+  auth:
+    expiration: ${CODE_EXPIRATION}
 
 web:
   front-end-url: ${FRONTEND_URL}

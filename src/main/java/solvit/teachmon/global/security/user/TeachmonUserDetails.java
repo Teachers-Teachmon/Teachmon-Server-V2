@@ -28,6 +28,10 @@ public record TeachmonUserDetails(TeacherEntity teacherEntity) implements UserDe
         return teacherEntity.getName();
     }
 
+    public Long getId() {
+        return teacherEntity.getId();
+    }
+
     @Override
     public boolean isEnabled() {
         return teacherEntity.getIsActive();

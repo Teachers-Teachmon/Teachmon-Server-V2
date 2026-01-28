@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
+import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 
 import java.util.Collection;
 
@@ -22,6 +23,8 @@ class TeachmonUserDetailsTest {
                 .name("김선생")
                 .mail("kim@teacher.com")
                 .profile("수학 선생님")
+                .providerId("google-12345")
+                .oAuth2Type(OAuth2Type.GOOGLE)
                 .build();
         userDetails = new TeachmonUserDetails(teacher);
     }

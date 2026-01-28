@@ -4,9 +4,9 @@ import org.mapstruct.Mapper;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.student_schedule.application.dto.PeriodScheduleDto;
 import solvit.teachmon.domain.student_schedule.application.dto.StudentScheduleDto;
-import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.ClassStudentScheduleResponse;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.HistoryStudentScheduleResponse;
+import solvit.teachmon.domain.student_schedule.presentation.dto.response.PeriodScheduleResponse;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.StudentScheduleResponse;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
@@ -40,11 +40,14 @@ public interface StudentScheduleMapper {
     default HistoryStudentScheduleResponse toHistoryResponse(StudentEntity student, List<PeriodScheduleDto> scheduleDtos) {
 
         // 기존 states 맵 생성
-        Map<SchoolPeriod, ScheduleType> scheduleTypes = scheduleDtos.stream()
+        Map<SchoolPeriod, PeriodScheduleResponse> scheduleTypes = scheduleDtos.stream()
                 .filter(dto -> dto.period() != null)
                 .collect(Collectors.toMap(
                         PeriodScheduleDto::period,
-                        PeriodScheduleDto::type
+                        dto -> PeriodScheduleResponse.builder()
+                                .scheduleId(dto.scheduleId())
+                                .state(dto.type())
+                                .build()
                 ));
 
         return HistoryStudentScheduleResponse.builder()
