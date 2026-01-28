@@ -33,7 +33,7 @@ class GoogleOAuth2StrategyTest {
         OAuth2User oauth2User = mock(OAuth2User.class);
         Map<String, Object> attributes = Map.of(
                 "sub", "12345",
-                "email", "test@gmail.com",
+                "email", "teacher001@bssm.hs.kr",
                 "picture", "https://example.com/profile.jpg",
                 "name", "Test User"
         );
@@ -44,7 +44,7 @@ class GoogleOAuth2StrategyTest {
 
         // then
         assertThat(result.providerId()).isEqualTo("12345");
-        assertThat(result.mail()).isEqualTo("test@gmail.com");
+        assertThat(result.mail()).isEqualTo("teacher001@bssm.hs.kr");
         assertThat(result.profile()).isEqualTo("https://example.com/profile.jpg");
         assertThat(result.name()).isEqualTo("Test User");
         assertThat(result.oAuth2Type()).isEqualTo(OAuth2Type.GOOGLE);
