@@ -1,0 +1,112 @@
+package solvit.teachmon.domain.student_schedule.domain.repository.schedules;
+
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import solvit.teachmon.domain.after_school.domain.entity.QAfterSchoolEntity;
+import solvit.teachmon.domain.management.student.domain.entity.QStudentEntity;
+import solvit.teachmon.domain.place.domain.entity.QPlaceEntity;
+import solvit.teachmon.domain.student_schedule.application.dto.PlaceScheduleDto;
+import solvit.teachmon.domain.student_schedule.application.dto.QPlaceScheduleDto;
+import solvit.teachmon.domain.student_schedule.application.dto.QStudentScheduleDto;
+import solvit.teachmon.domain.student_schedule.application.dto.StudentScheduleDto;
+import solvit.teachmon.domain.student_schedule.domain.entity.QScheduleEntity;
+import solvit.teachmon.domain.student_schedule.domain.entity.QStudentScheduleEntity;
+import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
+import solvit.teachmon.domain.student_schedule.domain.entity.schedules.QAfterSchoolScheduleEntity;
+import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
+import solvit.teachmon.global.enums.SchoolPeriod;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+import static com.querydsl.core.group.GroupBy.groupBy;
+
+@Repository
+@RequiredArgsConstructor
+public class AfterSchoolScheduleQueryDslRepositoryImpl implements AfterSchoolScheduleQueryDslRepository {
+    private final JPAQueryFactory queryFactory;
+
+    @Override
+    public Map<Integer, Long> getAfterSchoolPlaceCount(List<ScheduleEntity> schedules) {
+        QAfterSchoolEntity afterSchool = QAfterSchoolEntity.afterSchoolEntity;
+        QAfterSchoolScheduleEntity afterSchoolSchedule = QAfterSchoolScheduleEntity.afterSchoolScheduleEntity;
+        QPlaceEntity place = QPlaceEntity.placeEntity;
+        return queryFactory
+                .from(afterSchoolSchedule)
+                .join(afterSchoolSchedule.afterSchool, afterSchool)
+                .join(afterSchoolSchedule.afterSchool.place, place)
+                .where(afterSchoolSchedule.schedule.in(schedules))
+                .groupBy(place.floor)
+                .transform(
+                        groupBy(place.floor)
+                                .as(afterSchool.place.id.countDistinct())
+                );
+    }
+
+    @Override
+    public List<PlaceScheduleDto> getPlaceScheduleByFloor(List<ScheduleEntity> schedules, Integer floor) {
+        QPlaceEntity place = QPlaceEntity.placeEntity;
+        QAfterSchoolScheduleEntity afterSchoolSchedule = QAfterSchoolScheduleEntity.afterSchoolScheduleEntity;
+
+        return queryFactory
+                .selectDistinct(new QPlaceScheduleDto(
+                        place,
+                        Expressions.constant(ScheduleType.AFTER_SCHOOL)
+                ))
+                .from(afterSchoolSchedule)
+                .join(afterSchoolSchedule.afterSchool.place, place)
+                .where(
+                        afterSchoolSchedule.schedule.in(schedules),
+                        place.floor.eq(floor)
+                )
+                .fetch();
+    }
+
+    @Override
+    public List<StudentScheduleDto> getStudentScheduleByPlaceAndDayAndPeriod(Long placeId, LocalDate day, SchoolPeriod period) {
+        QAfterSchoolScheduleEntity afterSchoolSchedule = QAfterSchoolScheduleEntity.afterSchoolScheduleEntity;
+        QAfterSchoolEntity afterSchool = QAfterSchoolEntity.afterSchoolEntity;
+        QScheduleEntity schedule = QScheduleEntity.scheduleEntity;
+        QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
+        QStudentEntity student = QStudentEntity.studentEntity;
+        QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
+
+        return queryFactory
+                .select(new QStudentScheduleDto(
+                        student.id,
+                        student.grade,
+                        student.classNumber,
+                        student.number,
+                        student.name,
+                        studentSchedule.day,
+                        studentSchedule.period,
+                        studentSchedule.id,
+                        schedule.type
+                ))
+                .from(afterSchool)
+                .join(afterSchoolSchedule).on(afterSchoolSchedule.afterSchool.id.eq(afterSchool.id))
+                .join(schedule).on(
+                        afterSchoolSchedule.schedule.id.eq(schedule.id)
+                                // stack_order 가 가장 높은 스케줄 가져오기
+                                // 최적화: 상관 서브쿼리를 비상관 서브쿼리로 변경
+                                .and(Expressions.list(schedule.studentSchedule.id, schedule.stackOrder).in(
+                                        JPAExpressions
+                                                .select(scheduleSub.studentSchedule.id, scheduleSub.stackOrder.max())
+                                                .from(scheduleSub)
+                                                .groupBy(scheduleSub.studentSchedule.id)
+                                ))
+                )
+                .join(schedule.studentSchedule, studentSchedule)
+                .join(studentSchedule.student, student)
+                .where(
+                        afterSchool.place.id.eq(placeId),
+                        studentSchedule.day.eq(day),
+                        studentSchedule.period.eq(period)
+                )
+                .fetch();
+    }
+}

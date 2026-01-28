@@ -24,6 +24,11 @@ import java.util.List;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TeacherEntity extends BaseEntity {
+    private static final List<Role> STUDENT_SCHEDULE_CHANGE_AUTHORITIES = List.of(
+            Role.TEACHER,
+            Role.ADMIN
+    );
+
     @Column(name = "mail", nullable = false, updatable = false)
     private String mail;
 
@@ -46,7 +51,7 @@ public class TeacherEntity extends BaseEntity {
     @Column(name = "oauth2_type", nullable = false, updatable = false)
     @Enumerated(EnumType.STRING)
     private OAuth2Type oAuth2Type;
-  
+
     @OneToMany(mappedBy = "teacher", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<SupervisionBanDayEntity> supervisionBanDays = new ArrayList<>();
 
@@ -111,5 +116,9 @@ public class TeacherEntity extends BaseEntity {
 
         this.name = name;
         this.profile = profile;
+    }
+
+    public Boolean hasStudentScheduleChangeAuthority() {
+        return this.role.isContains(STUDENT_SCHEDULE_CHANGE_AUTHORITIES);
     }
 }

@@ -6,10 +6,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
+import solvit.teachmon.domain.student_schedule.domain.entity.schedules.SelfStudyScheduleEntity;
 import solvit.teachmon.domain.self_study.exception.InvalidSelfStudyInfoException;
 import solvit.teachmon.global.entity.BaseEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
+
+import java.util.List;
 
 @Getter
 @Entity
@@ -30,6 +33,9 @@ public class SelfStudyEntity extends BaseEntity {
 
     @Column(name = "grade", nullable = false)
     private Integer grade;
+
+    @OneToMany(mappedBy = "selfStudy", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<SelfStudyScheduleEntity> selfStudySchedules;
 
     @Builder
     public SelfStudyEntity(BranchEntity branch, WeekDay weekDay, SchoolPeriod period, Integer grade) {
