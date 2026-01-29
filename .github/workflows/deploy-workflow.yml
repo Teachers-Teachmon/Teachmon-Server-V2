@@ -88,9 +88,9 @@ jobs:
           script: |
             echo "${{ secrets.ENV }}" > .env
 
-            docker-compose down
+            docker compose down
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest
-            docker-compose up -d
+            docker compose up -d
 
             sleep 15
             docker image prune -f
