@@ -2,6 +2,7 @@ package solvit.teachmon.domain.auth.infrastructure.security.strategy.impl;
 
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
+import solvit.teachmon.domain.auth.exception.UnsupportedAccountException;
 import solvit.teachmon.domain.auth.infrastructure.security.strategy.OAuth2Strategy;
 import solvit.teachmon.domain.auth.infrastructure.security.vo.TeachmonOAuth2UserInfo;
 import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
@@ -25,7 +26,7 @@ public class GoogleOAuth2Strategy implements OAuth2Strategy {
         String name = attributes.get("name").toString();
 
         if (!isAllowedEmail(mail)) {
-            throw new IllegalArgumentException("지원하지 않는 계정입니다: " + mail);
+            throw new UnsupportedAccountException();
         }
 
         return new TeachmonOAuth2UserInfo(providerId, mail, profile, name, OAuth2Type.GOOGLE);
