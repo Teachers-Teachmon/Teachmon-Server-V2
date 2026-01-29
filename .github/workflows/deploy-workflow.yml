@@ -89,6 +89,7 @@ jobs:
             echo "${{ secrets.ENV }}" > .env
 
             docker compose down
+            docker system prune -f
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest
             docker compose up -d
 
