@@ -66,7 +66,7 @@ public class SecurityConfiguration {
                         .authorities(Role.GUEST.getValue())
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .loginProcessingUrl(webProperties.getFrontEndUrl() + "/oauth2")
+                        .loginPage(webProperties.getFrontEndUrl() + "/oauth2")
                         .authorizationEndpoint(authorization -> authorization
                                 .baseUri("/oauth2/login")
                         )
