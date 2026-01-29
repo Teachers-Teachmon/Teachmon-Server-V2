@@ -4,6 +4,6 @@ import com.querydsl.core.annotations.QueryProjection;
 
 @QueryProjection
 public record TeacherProfileResponseDto(
-        String username,
+        String name,
         String profile
 ) {}
