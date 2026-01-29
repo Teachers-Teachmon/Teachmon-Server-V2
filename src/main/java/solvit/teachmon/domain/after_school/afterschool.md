@@ -1,23 +1,24 @@
 # After School API Documentation
 
 ## Overview
-API for creating after-school programs/classes.
+API for updating existing after-school programs/classes.
 
-## Endpoint
-**POST** `/afterschool`
+## Endpoint  
+**PUT** `/afterschool`
 
 ## Request Body
 ```json
 {
-  "grade": 2,
-  "week_day": "MON",
-  "period": "SEVEN_PERIOD",
-  "teacher_id": 4334235534,
-  "place_id": 35346235234,
-  "name": "정보처리 산업기사 Java",
-  "students_id": [
-    2423523523
-  ]
+    "grade": 2,
+    "week_day": "MON", 
+    "period": "SEVEN_AND_EIGHT_PERIOD",
+    "after_school_id": 32523532,
+    "teacher_id": 4334235534,
+    "place_id": 35346235234,
+    "name": "정보처리 산업기사 Java",
+    "students_id": [
+        2423523523
+    ]
 }
 ```
 
@@ -27,23 +28,25 @@ API for creating after-school programs/classes.
 | `grade` | Integer | Yes | Grade level (1-3) |
 | `week_day` | String | Yes | Day of the week (MON, TUE, WED, THU) |
 | `period` | String | Yes | School period (SEVEN_PERIOD, EIGHT_AND_NINE_PERIOD, TEN_AND_ELEVEN_PERIOD) |
+| `after_school_id` | Long | Yes | ID of the after-school program to update |
 | `teacher_id` | Long | Yes | ID of the teacher assigned to this after-school program |
 | `place_id` | Long | Yes | ID of the location/place where the program will be held |
 | `name` | String | Yes | Name of the after-school program |
 | `students_id` | Array[Long] | Yes | List of student IDs enrolled in this program |
 
 ## Response
-**Status Code:** `204 No Content`
+**Status Code:** `200 OK`
 
 ### Success Response
-No response body (204 No Content)
+```json
+
+```
 
 ## Error Responses
 | Status Code | Description |
 |-------------|-------------|
 | `400 Bad Request` | Invalid request parameters |
-| `404 Not Found` | Teacher or place not found |
-| `409 Conflict` | Schedule conflict or duplicate program |
+| `404 Not Found` | After-school program, teacher, or place not found |
 
 ## Business Rules
 1. Teacher must exist in the system
