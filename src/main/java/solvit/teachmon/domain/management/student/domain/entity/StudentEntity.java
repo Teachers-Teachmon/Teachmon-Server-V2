@@ -34,6 +34,11 @@ public class StudentEntity extends BaseEntity {
 
     @Builder
     public StudentEntity(Integer year, Integer grade, Integer classNumber, Integer number, String name) {
+        validateGrade(grade);
+        validateClassNumber(classNumber);
+        validateNumber(number);
+        validateName(name);
+
         this.year = resolveYear(year);
         this.grade = grade;
         this.classNumber = classNumber;
@@ -85,5 +90,11 @@ public class StudentEntity extends BaseEntity {
         if (name == null || name.trim().isEmpty()) {
             throw new InvalidStudentInfoException("이름은 비어 있을 수 없습니다");
         }
+    }
+
+    public Integer calculateStudentNumber() {
+        return Integer.parseInt(
+                grade + classNumber + String.format("%02d", number)
+        );
     }
 }
