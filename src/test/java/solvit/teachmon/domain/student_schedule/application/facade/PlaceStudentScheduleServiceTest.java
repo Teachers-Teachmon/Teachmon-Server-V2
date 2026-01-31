@@ -306,7 +306,7 @@ class PlaceStudentScheduleServiceTest {
                 .willReturn(List.of());
         lenient().when(studentScheduleMapper.toStudentScheduleResponse(student1)).thenReturn(studentResponse1);
         lenient().when(studentScheduleMapper.toStudentScheduleResponse(student2)).thenReturn(studentResponse2);
-        given(placeStudentScheduleMapper.toPlaceStudentScheduleResponses(eq(place), anyList()))
+        given(placeStudentScheduleMapper.toPlaceStudentScheduleResponse(eq(place), anyList()))
                 .willReturn(expectedResponse);
 
         // When: 특정 장소의 학생 스케줄을 조회하면
@@ -328,7 +328,7 @@ class PlaceStudentScheduleServiceTest {
         verify(afterSchoolScheduleRepository, times(1))
                 .getStudentScheduleByPlaceAndDayAndPeriod(placeId, day, period);
         verify(placeStudentScheduleMapper, times(1))
-                .toPlaceStudentScheduleResponses(eq(place), anyList());
+                .toPlaceStudentScheduleResponse(eq(place), anyList());
     }
 
     @Test
@@ -377,7 +377,7 @@ class PlaceStudentScheduleServiceTest {
                 .willReturn(List.of());
         given(afterSchoolScheduleRepository.getStudentScheduleByPlaceAndDayAndPeriod(placeId, day, period))
                 .willReturn(List.of());
-        given(placeStudentScheduleMapper.toPlaceStudentScheduleResponses(eq(place), eq(List.of())))
+        given(placeStudentScheduleMapper.toPlaceStudentScheduleResponse(eq(place), eq(List.of())))
                 .willReturn(expectedResponse);
 
         // When: 특정 장소의 학생 스케줄을 조회하면
@@ -389,7 +389,7 @@ class PlaceStudentScheduleServiceTest {
 
         verify(placeRepository, times(1)).findById(placeId);
         verify(placeStudentScheduleMapper, times(1))
-                .toPlaceStudentScheduleResponses(eq(place), eq(List.of()));
+                .toPlaceStudentScheduleResponse(eq(place), eq(List.of()));
     }
 
     @Test
@@ -449,7 +449,7 @@ class PlaceStudentScheduleServiceTest {
         lenient().when(studentScheduleMapper.toStudentScheduleResponse(additionalSelfStudyStudent)).thenReturn(response2);
         lenient().when(studentScheduleMapper.toStudentScheduleResponse(leaveSeatStudent)).thenReturn(response3);
         lenient().when(studentScheduleMapper.toStudentScheduleResponse(afterSchoolStudent)).thenReturn(response4);
-        given(placeStudentScheduleMapper.toPlaceStudentScheduleResponses(eq(place), anyList()))
+        given(placeStudentScheduleMapper.toPlaceStudentScheduleResponse(eq(place), anyList()))
                 .willReturn(expectedResponse);
 
         // When: 장소의 학생 스케줄을 조회하면

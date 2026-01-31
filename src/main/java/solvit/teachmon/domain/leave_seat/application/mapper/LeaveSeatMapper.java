@@ -22,7 +22,7 @@ public interface LeaveSeatMapper {
     @Mapping(target = "teacher", source = "leaveSeat.teacher.name")
     @Mapping(target = "place", source = "leaveSeat.place.name")
     @Mapping(target = "personnel", expression = "java(leaveSeatStudents.size())")
-    @Mapping(target = "students", source = "leaveSeatStudents", qualifiedByName = "mapStudentNames")
+    @Mapping(target = "students", source = "leaveSeatStudents")
     LeaveSeatListResponse toListResponse(
             LeaveSeatEntity leaveSeat,
             List<LeaveSeatStudentEntity> leaveSeatStudents
@@ -40,12 +40,12 @@ public interface LeaveSeatMapper {
             Map<Long, ScheduleType> studentLastScheduleTypes
     );
 
-    @Named("mapStudentNames")
-    default List<String> mapStudentNames(List<LeaveSeatStudentEntity> leaveSeatStudents) {
-        return leaveSeatStudents.stream()
-                .map(ls -> ls.getStudent().calculateStudentNumber() + ls.getStudent().getName())
-                .toList();
+    default String toStudentName(LeaveSeatStudentEntity entity) {
+        return entity.getStudent().calculateStudentNumber()
+                + entity.getStudent().getName();
     }
+
+    List<String> toStudentNames(List<LeaveSeatStudentEntity> entities);
 
     default List<StudentInfoResponse> mapStudentInfosWithScheduleTypes(
             List<StudentEntity> students,

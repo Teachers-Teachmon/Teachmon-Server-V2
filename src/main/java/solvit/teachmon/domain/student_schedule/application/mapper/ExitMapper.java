@@ -12,13 +12,9 @@ public interface ExitMapper {
     @Mapping(target = "exitId", source = "id")
     @Mapping(target = "day", source = "day")
     @Mapping(target = "teacher", source = "teacher.name")
-    @Mapping(target = "number", source = "student", qualifiedByName = "studentToNumber")
+    @Mapping(target = "number",
+            expression = "java(exitEntity.getStudent().calculateStudentNumber())")
     @Mapping(target = "name", source = "student.name")
     @Mapping(target = "period", source = "period")
     ExitHistoryResponse toExitHistoryResponse(ExitEntity exitEntity);
-
-    @Named("studentToNumber")
-    default Integer studentToNumber(StudentEntity student) {
-        return student.calculateStudentNumber();
-    }
 }

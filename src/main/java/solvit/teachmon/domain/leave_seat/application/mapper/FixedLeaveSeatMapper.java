@@ -21,7 +21,7 @@ public interface FixedLeaveSeatMapper {
     @Mapping(target = "period", source = "fixedLeaveSeat.period")
     @Mapping(target = "place", source = "fixedLeaveSeat.place.name")
     @Mapping(target = "personnel", expression = "java(fixedLeaveSeatStudents.size())")
-    @Mapping(target = "students", source = "fixedLeaveSeatStudents", qualifiedByName = "mapStudentInfos")
+    @Mapping(target = "students", source = "fixedLeaveSeatStudents")
     FixedLeaveSeatListResponse toListResponse(
             FixedLeaveSeatEntity fixedLeaveSeat,
             List<FixedLeaveSeatStudentEntity> fixedLeaveSeatStudents
@@ -31,34 +31,30 @@ public interface FixedLeaveSeatMapper {
     @Mapping(target = "period", source = "fixedLeaveSeat.period")
     @Mapping(target = "place", expression = "java(new PlaceInfoResponse(fixedLeaveSeat.getPlace().getId(), fixedLeaveSeat.getPlace().getName()))")
     @Mapping(target = "cause", source = "fixedLeaveSeat.cause")
-    @Mapping(target = "students", source = "students", qualifiedByName = "mapStudentDetailInfos")
+    @Mapping(target = "students", source = "students")
     FixedLeaveSeatDetailResponse toDetailResponse(
             FixedLeaveSeatEntity fixedLeaveSeat,
             List<StudentEntity> students
     );
 
-    @Named("mapStudentInfos")
-    default List<FixedLeaveSeatStudentInfoResponse> mapStudentInfos(List<FixedLeaveSeatStudentEntity> fixedLeaveSeatStudents) {
-        return fixedLeaveSeatStudents.stream()
-                .map(fls ->
-                        FixedLeaveSeatStudentInfoResponse.builder()
-                                .number(fls.getStudent().calculateStudentNumber())
-                                .name(fls.getStudent().getName())
-                                .build()
-                )
-                .toList();
-    }
+    @Mapping(target = "number",
+            expression = "java(entity.getStudent().calculateStudentNumber())")
+    @Mapping(target = "name", source = "student.name")
+    FixedLeaveSeatStudentInfoResponse toStudentInfo(
+            FixedLeaveSeatStudentEntity entity
+    );
 
-    @Named("mapStudentDetailInfos")
-    default List<StudentDetailInfoResponse> mapStudentDetailInfos(List<StudentEntity> students) {
-        return students.stream()
-                .map(student ->
-                        StudentDetailInfoResponse.builder()
-                                .id(student.getId())
-                                .number(student.calculateStudentNumber())
-                                .name(student.getName())
-                                .build()
-                )
-                .toList();
-    }
+    @Mapping(target = "number",
+            expression = "java(student.calculateStudentNumber())")
+    StudentDetailInfoResponse toStudentDetailInfo(
+            StudentEntity student
+    );
+
+    List<FixedLeaveSeatStudentInfoResponse> toStudentInfos(
+            List<FixedLeaveSeatStudentEntity> entities
+    );
+
+    List<StudentDetailInfoResponse> toStudentDetailInfos(
+            List<StudentEntity> students
+    );
 }

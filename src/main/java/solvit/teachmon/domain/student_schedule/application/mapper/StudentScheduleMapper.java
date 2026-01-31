@@ -1,6 +1,7 @@
 package solvit.teachmon.domain.student_schedule.application.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.student_schedule.application.dto.PeriodScheduleDto;
 import solvit.teachmon.domain.student_schedule.application.dto.StudentScheduleDto;
@@ -16,26 +17,20 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface StudentScheduleMapper {
-    default ClassStudentScheduleResponse toResponse(Integer classNumber, List<StudentScheduleDto> studentSchedulesDtos) {
-        return ClassStudentScheduleResponse.builder()
-                    // 반 설정
-                    .classNumber(classNumber)
-                    .students(studentSchedulesDtos.stream()
-                            // 반 학생들 스케줄 설정
-                            .map(dto -> StudentScheduleResponse.builder()
-                                    .studentId(dto.studentId())
-                                    .number(dto.number())
-                                    .name(dto.name())
-                                    .state(dto.state())
-                                    .scheduleId(dto.scheduleId())
-                                    .build()
-                            )
-                            .toList()
-                    )
-                    .build();
-    }
+
+    @Mapping(target = "classNumber", source = "classNumber")
+    @Mapping(target = "students", source = "studentSchedulesDtos")
+    ClassStudentScheduleResponse toResponse(
+            Integer classNumber,
+            List<StudentScheduleDto> studentSchedulesDtos
+    );
 
     StudentScheduleResponse toStudentScheduleResponse(StudentScheduleDto dto);
+
+    List<StudentScheduleResponse> toStudentScheduleResponses(
+            List<StudentScheduleDto> dtos
+    );
+
 
     default HistoryStudentScheduleResponse toHistoryResponse(StudentEntity student, List<PeriodScheduleDto> scheduleDtos) {
 
