@@ -2,7 +2,6 @@ package solvit.teachmon.domain.leave_seat.application.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import solvit.teachmon.domain.leave_seat.domain.entity.FixedLeaveSeatEntity;
 import solvit.teachmon.domain.leave_seat.domain.entity.FixedLeaveSeatStudentEntity;
 import solvit.teachmon.domain.leave_seat.presentation.dto.response.FixedLeaveSeatDetailResponse;

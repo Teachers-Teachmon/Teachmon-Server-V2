@@ -2,8 +2,6 @@ package solvit.teachmon.domain.student_schedule.application.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.ExitEntity;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.ExitHistoryResponse;
 
