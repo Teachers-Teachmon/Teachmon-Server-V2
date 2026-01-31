@@ -32,7 +32,6 @@ public class GoogleOAuth2Strategy implements OAuth2Strategy {
         return new TeachmonOAuth2UserInfo(providerId, mail, profile, name, OAuth2Type.GOOGLE);
     }
 
-    // 하드코딩
     private boolean isAllowedEmail(String email) {
         return email.matches("teacher\\d{3}@bssm\\.hs\\.kr") ||
                email.equals("hwansi@bssm.hs.kr") ||

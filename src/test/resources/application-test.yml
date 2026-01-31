@@ -21,6 +21,8 @@ spring:
             scope: email,profile
             authorization-grant-type: authorization_code
             redirect-uri: http://localhost:8080/login/oauth2/code/google
+  main:
+    allow-bean-definition-overriding: true
 
 jwt:
   secret: testsecretkeytestsecretkeytestsecretkey
@@ -32,3 +34,9 @@ auth-code:
 
 web:
   front-end-url: http://localhost:3000
+
+google-spreadsheet:
+  enabled: false
+  credentials: "test"
+  application-name: "test" 
+  credentials-scope: "test"

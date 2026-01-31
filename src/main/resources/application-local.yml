@@ -46,6 +46,7 @@ web:
   front-end-url: ${FRONTEND_URL}
 
 google-spreadsheet:
-  credentials-path: ${GOOGLE_SPREADSHEET_CREDENTIALS_PATH}
+  credentials: ${GOOGLE_SPREADSHEET_CREDENTIALS_PATH}
   application-name: ${GOOGLE_SPREADSHEET_APPLICATION_NAME}
   credentials-scope: ${GOOGLE_SPREADSHEET_CREDENTIALS_SCOPE}
+  page: ${GOOGLE_SPREADSHEET_PAGE}
