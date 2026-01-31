@@ -61,14 +61,11 @@ class TeachmonOAuth2UserFacadeTest {
     @Test
     @DisplayName("등록된 사용자 확인 시 TeacherEntity를 반환한다")
     void findRegisteredUser_Success() {
-        // Given: 등록된 교사 정보가 있을 때
         given(teacherRepository.findByProviderIdAndOAuth2Type("google-12345", OAuth2Type.GOOGLE))
                 .willReturn(Optional.of(teacherEntity));
 
-        // When: 사용자를 검색하면
         Optional<TeacherEntity> result = teacherRepository.findByProviderIdAndOAuth2Type("google-12345", OAuth2Type.GOOGLE);
 
-        // Then: 교사가 반환된다
         assertThat(result).isPresent();
         assertThat(result.get().getMail()).isEqualTo("test@example.com");
         assertThat(result.get().getProviderId()).isEqualTo("google-12345");
@@ -77,34 +74,27 @@ class TeachmonOAuth2UserFacadeTest {
     @Test
     @DisplayName("등록되지 않은 사용자 확인 시 빈 결과를 반환한다")
     void findUnregisteredUser_ReturnsEmpty() {
-        // Given: 등록되지 않은 사용자일 때
         given(teacherRepository.findByProviderIdAndOAuth2Type("unknown-123", OAuth2Type.GOOGLE))
                 .willReturn(Optional.empty());
 
-        // When: 사용자를 검색하면
         Optional<TeacherEntity> result = teacherRepository.findByProviderIdAndOAuth2Type("unknown-123", OAuth2Type.GOOGLE);
 
-        // Then: 빈 결과가 반환된다
         assertThat(result).isEmpty();
     }
 
     @Test
     @DisplayName("OAuth2 전략 컴포지트에서 올바른 전략을 가져온다")
     void getCorrectOAuth2Strategy() {
-        // Given: Google OAuth2 타입이 주어졌을 때
         given(oAuth2StrategyComposite.getOAuth2Strategy(OAuth2Type.GOOGLE)).willReturn(oAuth2Strategy);
 
-        // When: 전략을 조회하면
         OAuth2Strategy result = oAuth2StrategyComposite.getOAuth2Strategy(OAuth2Type.GOOGLE);
 
-        // Then: 올바른 전략이 반환된다
         assertThat(result).isEqualTo(oAuth2Strategy);
     }
 
     @Test
     @DisplayName("TeachmonOAuth2UserInfo 생성이 올바르게 작동한다")
     void createTeachmonOAuth2UserInfo() {
-        // Given: 사용자 정보가 주어졌을 때
         TeachmonOAuth2UserInfo info = new TeachmonOAuth2UserInfo(
                 "provider-123",
                 "user@test.com",
@@ -113,7 +103,6 @@ class TeachmonOAuth2UserFacadeTest {
                 OAuth2Type.GOOGLE
         );
 
-        // When & Then: 정보가 올바르게 생성된다
         assertThat(info.providerId()).isEqualTo("provider-123");
         assertThat(info.mail()).isEqualTo("user@test.com");
         assertThat(info.profile()).isEqualTo("프로필");
@@ -124,10 +113,8 @@ class TeachmonOAuth2UserFacadeTest {
     @Test
     @DisplayName("빈 Optional에서 get() 호출 시 예외가 발생한다")
     void emptyOptionalThrowsException() {
-        // Given: 빈 Optional이 있을 때
         Optional<TeacherEntity> empty = Optional.empty();
 
-        // When & Then: get() 호출 시 예외가 발생한다
         assertThatThrownBy(empty::get)
                 .isInstanceOf(java.util.NoSuchElementException.class);
     }

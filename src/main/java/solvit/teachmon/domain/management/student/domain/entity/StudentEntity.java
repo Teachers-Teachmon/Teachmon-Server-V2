@@ -42,12 +42,10 @@ public class StudentEntity extends BaseEntity {
     }
 
     private Integer resolveYear(Integer year) {
-        // year 이 유효한지 검사
         return (year != null) ? year : getNowYear();
     }
 
     private Integer getNowYear() {
-        // year 설정 도메인 로직
         return LocalDate.now().getYear();
     }
 

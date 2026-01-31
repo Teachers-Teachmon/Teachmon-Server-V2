@@ -60,24 +60,19 @@ class JwtAuthenticationExceptionFilterTest {
     @Test
     @DisplayName("JWT 토큰이 유효하지 않으면 에러 응답을 반환한다")
     void shouldReturnErrorResponseWhenInvalidJwtToken() throws Exception {
-        // Given
         setupMocksForErrorResponse();
         willThrow(new InvalidJsonWebTokenException()).given(filterChain).doFilter(request, response);
 
-        // When
         jwtAuthenticationExceptionFilter.doFilterInternal(request, response, filterChain);
 
-        // Then
         verifyErrorResponse(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
     @Test
     @DisplayName("예외가 발생하지 않으면 정상적으로 필터 체인을 진행한다")
     void shouldProceedFilterChainWhenNoException() throws Exception {
-        // When
         jwtAuthenticationExceptionFilter.doFilterInternal(request, response, filterChain);
 
-        // Then
         verify(filterChain).doFilter(request, response);
         verify(response, never()).setStatus(anyInt());
         verify(objectMapper, never()).writeValueAsString(any());
@@ -86,14 +81,11 @@ class JwtAuthenticationExceptionFilterTest {
     @Test
     @DisplayName("일반적인 예외가 발생하면 내부 서버 오류를 반환한다")
     void shouldReturnInternalServerErrorWhenGeneralException() throws Exception {
-        // Given
         setupMocksForErrorResponse();
         willThrow(new RuntimeException("Unexpected error")).given(filterChain).doFilter(request, response);
 
-        // When
         jwtAuthenticationExceptionFilter.doFilterInternal(request, response, filterChain);
 
-        // Then
         verifyErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 }

@@ -42,7 +42,6 @@ class JwtValidatorTest {
                 Jwts.SIG.HS256.key().build().getAlgorithm()
         );
         
-        // 유효한 토큰 생성
         validToken = Jwts.builder()
                 .subject("kim@teacher.com")
                 .claim(JwtConstants.CLAIM_MADE_BY_KEY, JwtConstants.CLAIM_MADE_BY_VALUE)
@@ -55,58 +54,45 @@ class JwtValidatorTest {
     @Test
     @DisplayName("유효한 Authorization 헤더에서 메일을 추출할 수 있다")
     void shouldExtractMailFromValidAuthorizationHeader() {
-        // Given: 유효한 Authorization 헤더가 있을 때
         String authHeader = JwtConstants.AUTHORIZATION_HEADER_PREFIX + validToken;
 
-        // When: 메일을 추출하면
         String mail = jwtValidator.getMailFromAuthorizationHeader(authHeader);
 
-        // Then: 올바른 메일이 반환된다
         assertThat(mail).isEqualTo("kim@teacher.com");
     }
 
     @Test
     @DisplayName("Authorization 헤더가 없으면 유효하지 않다고 판단한다")
     void shouldReturnTrueWhenAuthorizationHeaderIsNull() {
-        // Given: Authorization 헤더가 없을 때
         
-        // When: 헤더 유효성을 검사하면
         boolean isInvalid = jwtValidator.isInvalidAuthorizationHeader(null);
 
-        // Then: 유효하지 않다고 판단한다
         assertThat(isInvalid).isTrue();
     }
 
     @Test
     @DisplayName("Bearer로 시작하지 않는 헤더는 유효하지 않다고 판단한다")
     void shouldReturnTrueWhenAuthorizationHeaderDoesNotStartWithBearer() {
-        // Given: Bearer로 시작하지 않는 헤더가 있을 때
         String invalidHeader = "Basic " + validToken;
 
-        // When: 헤더 유효성을 검사하면
         boolean isInvalid = jwtValidator.isInvalidAuthorizationHeader(invalidHeader);
 
-        // Then: 유효하지 않다고 판단한다
         assertThat(isInvalid).isTrue();
     }
 
     @Test
     @DisplayName("유효한 Authorization 헤더는 올바르다고 판단한다")
     void shouldReturnFalseWhenAuthorizationHeaderIsValid() {
-        // Given: 유효한 Authorization 헤더가 있을 때
         String validHeader = JwtConstants.AUTHORIZATION_HEADER_PREFIX + validToken;
 
-        // When: 헤더 유효성을 검사하면
         boolean isInvalid = jwtValidator.isInvalidAuthorizationHeader(validHeader);
 
-        // Then: 유효하다고 판단한다
         assertThat(isInvalid).isFalse();
     }
 
     @Test
     @DisplayName("잘못된 발급자의 토큰이면 예외가 발생한다")
     void shouldThrowExceptionWhenTokenHasInvalidIssuer() {
-        // Given: 잘못된 발급자 정보가 있는 토큰이 있을 때
         String invalidToken = Jwts.builder()
                 .subject("kim@teacher.com")
                 .claim(JwtConstants.CLAIM_MADE_BY_KEY, "invalid-issuer")
@@ -116,7 +102,6 @@ class JwtValidatorTest {
                 .compact();
         String authHeader = JwtConstants.AUTHORIZATION_HEADER_PREFIX + invalidToken;
 
-        // When & Then: 메일을 추출하면 예외가 발생한다
         assertThatThrownBy(() -> jwtValidator.getMailFromAuthorizationHeader(authHeader))
                 .isInstanceOf(InvalidJsonWebTokenException.class);
     }
@@ -124,26 +109,20 @@ class JwtValidatorTest {
     @Test
     @DisplayName("빈 Authorization 헤더는 유효하지 않다고 판단한다")
     void shouldReturnTrueWhenAuthorizationHeaderIsEmpty() {
-        // Given: 빈 Authorization 헤더가 있을 때
         String emptyHeader = "";
 
-        // When: 헤더 유효성을 검사하면
         boolean isInvalid = jwtValidator.isInvalidAuthorizationHeader(emptyHeader);
 
-        // Then: 유효하지 않다고 판단한다
         assertThat(isInvalid).isTrue();
     }
 
     @Test
     @DisplayName("토큰에서 올바른 subject를 추출할 수 있다")
     void shouldExtractSubjectFromToken() {
-        // Given: 유효한 JWT 토큰이 있을 때
         String authHeader = JwtConstants.AUTHORIZATION_HEADER_PREFIX + validToken;
 
-        // When: 메일을 추출하면
         String mail = jwtValidator.getMailFromAuthorizationHeader(authHeader);
 
-        // Then: subject가 메일로 반환된다
         assertThat(mail).isNotNull();
         assertThat(mail).contains("@");
     }

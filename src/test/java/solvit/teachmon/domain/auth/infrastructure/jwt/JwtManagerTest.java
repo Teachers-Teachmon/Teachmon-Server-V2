@@ -46,28 +46,22 @@ class JwtManagerTest {
     @Test
     @DisplayName("액세스 토큰을 성공적으로 생성한다")
     void createAccessToken_Success() {
-        // Given: 유효한 이메일이 주어졌을 때
         String mail = "test@example.com";
 
-        // When: 액세스 토큰을 생성하면
         String accessToken = jwtManager.createAccessToken(mail);
 
-        // Then: 유효한 JWT 토큰이 생성된다
         assertThat(accessToken).isNotNull();
         assertThat(accessToken).isNotEmpty();
-        assertThat(accessToken.split("\\.")).hasSize(3); // JWT는 3부분으로 구성
+        assertThat(accessToken.split("\\.")).hasSize(3);
     }
 
     @Test
     @DisplayName("리프레시 토큰을 성공적으로 생성하고 저장한다")
     void createRefreshToken_Success() {
-        // Given: 유효한 이메일이 주어졌을 때
         String mail = "test@example.com";
 
-        // When: 리프레시 토큰을 생성하면
         ResponseCookie refreshTokenCookie = jwtManager.createRefreshToken(mail);
 
-        // Then: 유효한 리프레시 토큰 쿠키가 생성되고 저장된다
         assertThat(refreshTokenCookie).isNotNull();
         assertThat(refreshTokenCookie.getName()).isEqualTo("refresh_token");
         assertThat(refreshTokenCookie.getValue()).isNotEmpty();
@@ -82,25 +76,20 @@ class JwtManagerTest {
     @Test
     @DisplayName("존재하는 리프레시 토큰을 성공적으로 삭제한다")
     void deleteRefreshToken_Success() {
-        // Given: 저장된 리프레시 토큰이 있을 때
         String refreshToken = "valid-refresh-token";
         given(tokenRepository.existsById(refreshToken)).willReturn(true);
 
-        // When: 리프레시 토큰을 삭제하면
         jwtManager.deleteRefreshToken(refreshToken);
 
-        // Then: 토큰이 삭제된다
         then(tokenRepository).should(times(1)).deleteById(refreshToken);
     }
 
     @Test
     @DisplayName("존재하지 않는 리프레시 토큰 삭제 시 예외가 발생한다")
     void deleteRefreshToken_NotFound() {
-        // Given: 존재하지 않는 리프레시 토큰일 때
         String refreshToken = "non-existent-refresh-token";
         given(tokenRepository.existsById(refreshToken)).willReturn(false);
 
-        // When & Then: 리프래시 토큰 삭제 시 예외가 발생한다
         assertThatThrownBy(() -> jwtManager.deleteRefreshToken(refreshToken))
                 .isInstanceOf(RefreshTokenNotFoundException.class);
     }
@@ -108,14 +97,11 @@ class JwtManagerTest {
     @Test
     @DisplayName("리프레시 토큰 쿠키를 성공적으로 삭제한다")
     void deleteRefreshTokenCookie_Success() {
-        // Given: 저장된 리프레시 토큰이 있을 때
         String refreshToken = "valid-refresh-token";
         given(tokenRepository.existsById(refreshToken)).willReturn(true);
 
-        // When: 리프래시 토큰 쿠키를 삭제하면
         ResponseCookie deletedCookie = jwtManager.deleteRefreshTokenCookie(refreshToken);
 
-        // Then: 삭제된 쿠키가 반환되고 토큰이 삭제된다
         assertThat(deletedCookie).isNotNull();
         assertThat(deletedCookie.getName()).isEqualTo("refresh_token");
         assertThat(deletedCookie.getValue()).isEqualTo(refreshToken);
@@ -130,12 +116,9 @@ class JwtManagerTest {
     @Test
     @DisplayName("JWT 시크릿 키가 올바르게 설정된다")
     void jwtSecretKeyIsSetCorrectly() {
-        // Given: JWT 매니저가 생성되었을 때
 
-        // When: 액세스 토큰을 생성하면
         String accessToken = jwtManager.createAccessToken("test@example.com");
         
-        // Then: 유효한 JWT 토큰이 생성된다
         assertThat(accessToken).isNotNull();
         assertThat(accessToken).isNotEmpty();
     }

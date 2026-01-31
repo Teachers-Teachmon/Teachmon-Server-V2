@@ -19,7 +19,6 @@ public class AdditionalSelfStudyService {
 
     @Transactional
     public void setAdditionalSelfStudy(AdditionalSelfStudySetRequest request) {
-        // 추가 학습 entity 로 변환
         List<AdditionalSelfStudyEntity> additionalSelfStudyEntities = additionalSelfStudyMapper.toEntities(request);
 
         additionalSelfStudyRepository.saveAll(additionalSelfStudyEntities);

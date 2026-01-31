@@ -79,14 +79,11 @@ class JwtAuthenticationFilterTest {
     @Test
     @DisplayName("유효한 JWT 토큰으로 인증에 성공한다")
     void shouldAuthenticateWithValidJwtToken() throws Exception {
-        // Given
         given(request.getHeader("Authorization")).willReturn("Bearer valid-token");
         setupValidTokenMocks();
 
-        // When
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
-        // Then
         verifySuccessfulAuthentication();
         verify(filterChain).doFilter(request, response);
     }
@@ -94,14 +91,11 @@ class JwtAuthenticationFilterTest {
     @Test
     @DisplayName("Authorization 헤더가 없으면 인증을 건너뛴다")
     void shouldSkipAuthenticationWhenNoAuthorizationHeader() throws Exception {
-        // Given
         given(request.getHeader("Authorization")).willReturn(null);
         given(jwtValidator.isInvalidAuthorizationHeader(null)).willReturn(true);
 
-        // When
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
-        // Then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication).isNull();
         verify(filterChain).doFilter(request, response);
@@ -111,14 +105,11 @@ class JwtAuthenticationFilterTest {
     @Test
     @DisplayName("유효하지 않은 Authorization 헤더면 인증을 건너뛴다")
     void shouldSkipAuthenticationWhenInvalidAuthorizationHeader() throws Exception {
-        // Given
         given(request.getHeader("Authorization")).willReturn("Basic invalid-token");
         given(jwtValidator.isInvalidAuthorizationHeader("Basic invalid-token")).willReturn(true);
 
-        // When
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
-        // Then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication).isNull();
         verify(filterChain).doFilter(request, response);
