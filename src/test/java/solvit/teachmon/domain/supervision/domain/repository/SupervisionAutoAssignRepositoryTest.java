@@ -1,0 +1,218 @@
+package solvit.teachmon.domain.supervision.domain.repository;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
+import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
+import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
+import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
+import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
+import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
+import solvit.teachmon.domain.user.domain.enums.Role;
+import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
+import solvit.teachmon.global.enums.SchoolPeriod;
+import solvit.teachmon.global.enums.WeekDay;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+@DisplayName("감독 자동 배정 저장소 테스트")
+class SupervisionAutoAssignRepositoryTest {
+
+    @Autowired
+    private SupervisionAutoAssignRepository autoAssignRepository;
+
+    @Autowired
+    private SupervisionScheduleRepository scheduleRepository;
+
+    @Autowired
+    private TeacherRepository teacherRepository;
+
+    @Autowired
+    private SupervisionBanDayRepository banDayRepository;
+
+    private TeacherEntity teacher1;
+    private TeacherEntity teacher2;
+    private TeacherEntity teacher3;
+
+    @BeforeEach
+    void setUp() {
+        // 교사 생성
+        teacher1 = createAndSaveTeacher("김선생", "kim@test.com", true);
+        teacher2 = createAndSaveTeacher("이선생", "lee@test.com", true);
+        teacher3 = createAndSaveTeacher("박선생", "park@test.com", false); // 비활성화
+        
+        // 기존 감독 이력 생성
+        createSupervisionHistory();
+        
+        // 금지요일 설정 (김선생은 화요일 금지)
+        createBanDays();
+    }
+
+    @Test
+    @DisplayName("Role이 TEACHER인 활성 교사들의 감독 정보를 조회할 수 있다")
+    void shouldFindTeacherSupervisionInfoByTeacherRole() {
+        // Given: 교사들과 감독 이력이 준비됨
+
+        // When: 교사 감독 정보 조회
+        List<SupervisionAutoAssignRepository.TeacherSupervisionInfoProjection> result = 
+                autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER);
+
+        // Then: 활성 교사들만 조회됨
+        assertThat(result).hasSize(2); // teacher3는 비활성화되어 제외
+        
+        // 김선생 확인
+        var kimTeacher = result.stream()
+                .filter(t -> t.getTeacherName().equals("김선생"))
+                .findFirst()
+                .orElseThrow();
+        
+        assertThat(kimTeacher.getTeacherId()).isEqualTo(teacher1.getId());
+        assertThat(kimTeacher.getTeacherName()).isEqualTo("김선생");
+        assertThat(kimTeacher.getLastSupervisionDate()).isEqualTo(LocalDate.of(2025, 1, 20));
+        assertThat(kimTeacher.getTotalSupervisionCount()).isEqualTo(2L);
+        
+        // 이선생 확인
+        var leeTeacher = result.stream()
+                .filter(t -> t.getTeacherName().equals("이선생"))
+                .findFirst()
+                .orElseThrow();
+        
+        assertThat(leeTeacher.getTeacherId()).isEqualTo(teacher2.getId());
+        assertThat(leeTeacher.getTeacherName()).isEqualTo("이선생");
+        assertThat(leeTeacher.getLastSupervisionDate()).isEqualTo(LocalDate.of(2025, 1, 15));
+        assertThat(leeTeacher.getTotalSupervisionCount()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("교사 ID 목록으로 금지요일 정보를 조회할 수 있다")
+    void shouldFindBanDaysByTeacherIds() {
+        // Given: 교사들의 금지요일이 설정됨
+        List<Long> teacherIds = List.of(teacher1.getId(), teacher2.getId());
+
+        // When: 금지요일 정보 조회
+        List<SupervisionAutoAssignRepository.SupervisionBanDayProjection> result = 
+                autoAssignRepository.findBanDaysByTeacherIds(teacherIds);
+
+        // Then: 김선생의 화요일 금지요일만 조회됨
+        assertThat(result).hasSize(1);
+        
+        var banDay = result.get(0);
+        assertThat(banDay.getTeacherId()).isEqualTo(teacher1.getId());
+        assertThat(banDay.getWeekDay()).isEqualTo(WeekDay.TUE);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 교사 ID로 금지요일을 조회하면 빈 결과가 반환된다")
+    void shouldReturnEmptyWhenNonExistentTeacherIds() {
+        // Given: 존재하지 않는 교사 ID
+        List<Long> nonExistentIds = List.of(999L, 1000L);
+
+        // When: 금지요일 정보 조회
+        List<SupervisionAutoAssignRepository.SupervisionBanDayProjection> result = 
+                autoAssignRepository.findBanDaysByTeacherIds(nonExistentIds);
+
+        // Then: 빈 결과 반환
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("특정 날짜에 스케줄이 존재하는지 확인할 수 있다")
+    void shouldCheckIfScheduleExistsByDate() {
+        // Given: 특정 날짜에 스케줄 생성
+        LocalDate targetDate = LocalDate.of(2025, 2, 10);
+        SupervisionScheduleEntity schedule = SupervisionScheduleEntity.builder()
+                .teacher(teacher1)
+                .day(targetDate)
+                .period(SchoolPeriod.SEVEN_PERIOD)
+                .type(SupervisionType.SELF_STUDY_SUPERVISION)
+                .build();
+        scheduleRepository.save(schedule);
+
+        // When: 해당 날짜 스케줄 존재 확인
+        boolean exists = autoAssignRepository.existsScheduleByDate(targetDate);
+        boolean notExists = autoAssignRepository.existsScheduleByDate(LocalDate.of(2025, 2, 11));
+
+        // Then: 존재하는 날짜는 true, 없는 날짜는 false
+        assertThat(exists).isTrue();
+        assertThat(notExists).isFalse();
+    }
+
+    @Test
+    @DisplayName("감독 이력이 없는 교사는 총 횟수가 0으로 조회된다")
+    void shouldReturnZeroCountForTeachersWithNoHistory() {
+        // Given: 감독 이력이 없는 새 교사
+        TeacherEntity newTeacher = createAndSaveTeacher("정선생", "jung@test.com", true);
+
+        // When: 교사 감독 정보 조회
+        List<SupervisionAutoAssignRepository.TeacherSupervisionInfoProjection> result = 
+                autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER);
+
+        // Then: 새 교사는 총 횟수 0, 최근 날짜 null
+        var newTeacherInfo = result.stream()
+                .filter(t -> t.getTeacherName().equals("정선생"))
+                .findFirst()
+                .orElseThrow();
+        
+        assertThat(newTeacherInfo.getTotalSupervisionCount()).isEqualTo(0L);
+        assertThat(newTeacherInfo.getLastSupervisionDate()).isNull();
+    }
+
+    // Helper methods
+    private TeacherEntity createAndSaveTeacher(String name, String email, boolean isActive) {
+        TeacherEntity teacher = TeacherEntity.builder()
+                .name(name)
+                .mail(email)
+                .providerId("provider_" + name)
+                .oAuth2Type(OAuth2Type.GOOGLE)
+                .build(); // isActive는 자동으로 true로 설정됨
+        return teacherRepository.save(teacher);
+    }
+
+    private void createSupervisionHistory() {
+        // 김선생 감독 이력 (2회)
+        SupervisionScheduleEntity kim1 = SupervisionScheduleEntity.builder()
+                .teacher(teacher1)
+                .day(LocalDate.of(2025, 1, 10))
+                .period(SchoolPeriod.SEVEN_PERIOD)
+                .type(SupervisionType.SELF_STUDY_SUPERVISION)
+                .build();
+        
+        SupervisionScheduleEntity kim2 = SupervisionScheduleEntity.builder()
+                .teacher(teacher1)
+                .day(LocalDate.of(2025, 1, 20))
+                .period(SchoolPeriod.EIGHT_AND_NINE_PERIOD)
+                .type(SupervisionType.LEAVE_SEAT_SUPERVISION)
+                .build();
+        
+        // 이선생 감독 이력 (1회)
+        SupervisionScheduleEntity lee1 = SupervisionScheduleEntity.builder()
+                .teacher(teacher2)
+                .day(LocalDate.of(2025, 1, 15))
+                .period(SchoolPeriod.SEVEN_PERIOD)
+                .type(SupervisionType.SELF_STUDY_SUPERVISION)
+                .build();
+        
+        scheduleRepository.saveAll(List.of(kim1, kim2, lee1));
+    }
+
+    private void createBanDays() {
+        // 김선생은 화요일 금지
+        SupervisionBanDayEntity kimBanDay = SupervisionBanDayEntity.builder()
+                .teacher(teacher1)
+                .weekDay(WeekDay.TUE)
+                .build();
+        
+        banDayRepository.save(kimBanDay);
+    }
+}
