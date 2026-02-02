@@ -17,6 +17,7 @@ import solvit.teachmon.domain.auth.infrastructure.security.facade.TeachmonOAuth2
 import solvit.teachmon.domain.auth.infrastructure.security.handler.TeachmonOAuth2FailureHandler;
 import solvit.teachmon.domain.auth.infrastructure.security.handler.TeachmonOAuth2SuccessHandler;
 import solvit.teachmon.domain.user.domain.enums.Role;
+import solvit.teachmon.global.properties.WebProperties;
 import solvit.teachmon.global.security.filter.JwtAuthenticationExceptionFilter;
 import solvit.teachmon.global.security.filter.JwtAuthenticationFilter;
 import solvit.teachmon.global.security.jwt.JwtValidator;
@@ -31,6 +32,7 @@ public class SecurityConfiguration {
 
     private final ObjectMapper objectMapper;
     private final JwtValidator jwtValidator;
+    private final WebProperties webProperties;
     private final TeachmonUserDetailsService teachmonUserDetailsService;
     private final TeachmonOAuth2UserFacade teachmonOAuth2UserFacade;
     private final TeachmonOAuth2SuccessHandler teachmonOAuth2SuccessHandler;
@@ -64,6 +66,7 @@ public class SecurityConfiguration {
                         .authorities(Role.GUEST.getValue())
                 )
                 .oauth2Login(oauth2 -> oauth2
+                        .loginPage(webProperties.getFrontEndUrl() + "/oauth2")
                         .authorizationEndpoint(authorization -> authorization
                                 .baseUri("/oauth2/login")
                         )
