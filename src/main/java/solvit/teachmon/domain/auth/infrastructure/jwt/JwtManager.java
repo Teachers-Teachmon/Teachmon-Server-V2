@@ -2,6 +2,7 @@ package solvit.teachmon.domain.auth.infrastructure.jwt;
 
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.server.Cookie;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import solvit.teachmon.domain.auth.domain.entity.TokenEntity;
@@ -67,7 +68,7 @@ public class JwtManager {
                 .path("/")
                 .httpOnly(true)
                 .secure(true)
-                .sameSite("Strict")
+                .sameSite(Cookie.SameSite.NONE.toString())
                 .build();
     }
 
@@ -79,7 +80,7 @@ public class JwtManager {
                 .path("/")
                 .httpOnly(true)
                 .secure(true)
-                .sameSite("Strict")
+                .sameSite(Cookie.SameSite.NONE.toString())
                 .build();
     }
 
