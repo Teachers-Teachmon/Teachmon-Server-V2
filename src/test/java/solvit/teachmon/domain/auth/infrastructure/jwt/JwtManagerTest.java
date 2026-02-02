@@ -74,7 +74,7 @@ class JwtManagerTest {
         assertThat(refreshTokenCookie.getMaxAge()).isEqualTo(Duration.ofMillis(jwtProperties.getRefreshExpiration()));
         assertThat(refreshTokenCookie.isHttpOnly()).isTrue();
         assertThat(refreshTokenCookie.isSecure()).isTrue();
-        assertThat(refreshTokenCookie.getSameSite()).isEqualTo("Strict");
+        assertThat(refreshTokenCookie.getSameSite()).isEqualTo("NONE");
         
         then(tokenRepository).should(times(1)).save(any(TokenEntity.class));
     }
@@ -122,7 +122,7 @@ class JwtManagerTest {
         assertThat(deletedCookie.getMaxAge()).isEqualTo(Duration.ZERO);
         assertThat(deletedCookie.isHttpOnly()).isTrue();
         assertThat(deletedCookie.isSecure()).isTrue();
-        assertThat(deletedCookie.getSameSite()).isEqualTo("Strict");
+        assertThat(deletedCookie.getSameSite()).isEqualTo("NONE");
         
         then(tokenRepository).should(times(1)).deleteById(refreshToken);
     }
