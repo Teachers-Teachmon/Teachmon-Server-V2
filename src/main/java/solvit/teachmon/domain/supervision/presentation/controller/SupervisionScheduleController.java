@@ -15,6 +15,7 @@ import solvit.teachmon.domain.supervision.application.service.SupervisionAutoAss
 import solvit.teachmon.domain.supervision.application.service.SupervisionScheduleService;
 import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionScheduleCreateRequestDto;
 import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionScheduleDeleteRequestDto;
+import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionScheduleUpdateRequestDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionScheduleResponseDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionTodayResponseDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionRankResponseDto;
@@ -42,7 +43,7 @@ public class SupervisionScheduleController {
     }
 
     @PatchMapping("/schedule")
-    public ResponseEntity<Void> updateSupervisionSchedule(@Valid @RequestBody SupervisionScheduleCreateRequestDto requestDto) {
+    public ResponseEntity<Void> updateSupervisionSchedule(@Valid @RequestBody SupervisionScheduleUpdateRequestDto requestDto) {
         supervisionScheduleService.updateSupervisionSchedule(requestDto);
         return ResponseEntity.noContent().build();
     }

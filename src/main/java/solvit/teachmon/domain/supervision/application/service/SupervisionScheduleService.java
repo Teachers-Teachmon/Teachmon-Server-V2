@@ -9,6 +9,7 @@ import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
 import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionScheduleCreateRequestDto;
 import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionScheduleDeleteRequestDto;
+import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionScheduleUpdateRequestDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionScheduleResponseDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionTodayResponseDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionRankResponseDto;
@@ -40,12 +41,20 @@ public class SupervisionScheduleService {
     }
 
     @Transactional
-    public void updateSupervisionSchedule(SupervisionScheduleCreateRequestDto requestDto) {
+    public void updateSupervisionSchedule(SupervisionScheduleUpdateRequestDto requestDto) {
         // 해당 날짜의 기존 감독 일정들을 모두 삭제
         supervisionScheduleRepository.deleteByDay(requestDto.day());
         
         // 새로운 감독 일정 생성
-        createSupervisionSchedulesInternal(requestDto);
+        createSupervisionSchedulesInternal(convertToCreateRequest(requestDto));
+    }
+    
+    private SupervisionScheduleCreateRequestDto convertToCreateRequest(SupervisionScheduleUpdateRequestDto updateRequest) {
+        return SupervisionScheduleCreateRequestDto.builder()
+                .day(updateRequest.day())
+                .selfStudySupervisionTeacherId(updateRequest.selfStudySupervisionTeacherId())
+                .leaveSeatSupervisionTeacherId(updateRequest.leaveSeatSupervisionTeacherId())
+                .build();
     }
 
     private void createSupervisionSchedulesInternal(SupervisionScheduleCreateRequestDto requestDto) {
