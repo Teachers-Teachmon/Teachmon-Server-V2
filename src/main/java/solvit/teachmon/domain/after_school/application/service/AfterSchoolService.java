@@ -28,6 +28,7 @@ import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 import solvit.teachmon.domain.management.student.exception.StudentNotFoundException;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
+import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
@@ -48,6 +49,7 @@ public class AfterSchoolService {
     private final TeacherRepository teacherRepository;
     private final StudentRepository studentRepository;
     private final BranchRepository branchRepository;
+    private final PlaceRepository placeRepository;
 
     @Transactional
     public void createAfterSchool(AfterSchoolCreateRequestDto requestDto) {
@@ -60,8 +62,8 @@ public class AfterSchoolService {
                 .teacher(teacher)
                 .branch(branch)
                 .place(place)
-                .weekDay(WeekDay.valueOf(requestDto.weekDay()))
-                .period(SchoolPeriod.valueOf(requestDto.period()))
+                .weekDay(requestDto.weekDay())
+                .period(requestDto.period())
                 .name(requestDto.name())
                 .grade(requestDto.grade())
                 .year(requestDto.year())
@@ -147,16 +149,15 @@ public class AfterSchoolService {
     }
 
     private PlaceEntity getPlaceById(Long placeId) {
-        List<PlaceEntity> places = afterSchoolRepository.findPlacesInBulk(List.of(placeId));
-        if (places.isEmpty()) {
-            throw new PlaceNotFoundException();
-        }
-        return places.getFirst();
+        return placeRepository.findById(placeId)
+                .orElseThrow(PlaceNotFoundException::new);
     }
 
     private BranchEntity getCurrentBranch() {
-        int currentYear = LocalDate.now().getYear();
+        LocalDate today = LocalDate.now();
+        int currentYear = today.getYear();
         return branchRepository.findByYearOrderByBranch(currentYear).stream()
+                .filter(branch -> !branch.getStartDay().isAfter(today) && !branch.getEndDay().isBefore(today))
                 .findFirst()
                 .orElseThrow(BranchNotFoundException::new);
     }
@@ -174,12 +175,12 @@ public class AfterSchoolService {
         return placeId != null ? getPlaceById(placeId) : afterSchool.getPlace();
     }
 
-    private WeekDay resolveWeekDay(String weekDay, AfterSchoolEntity afterSchool) {
-        return weekDay != null ? WeekDay.valueOf(weekDay) : afterSchool.getWeekDay();
+    private WeekDay resolveWeekDay(WeekDay weekDay, AfterSchoolEntity afterSchool) {
+        return weekDay != null ? weekDay : afterSchool.getWeekDay();
     }
 
-    private SchoolPeriod resolveSchoolPeriod(String period, AfterSchoolEntity afterSchool) {
-        return period != null ? SchoolPeriod.valueOf(period) : afterSchool.getPeriod();
+    private SchoolPeriod resolveSchoolPeriod(SchoolPeriod period, AfterSchoolEntity afterSchool) {
+        return period != null ? period : afterSchool.getPeriod();
     }
 
     private void updateStudentsIfPresent(List<Long> studentIds, AfterSchoolEntity afterSchool) {
@@ -219,7 +220,9 @@ public class AfterSchoolService {
     }
 
     private SchoolPeriod convertToSchoolPeriod(Integer startPeriod, Integer endPeriod) {
-        if (startPeriod == 8 && endPeriod == 9) {
+        if (startPeriod == 7 && endPeriod == 7) {
+            return SchoolPeriod.SEVEN_PERIOD;
+        } else if (startPeriod == 8 && endPeriod == 9) {
             return SchoolPeriod.EIGHT_AND_NINE_PERIOD;
         } else if (startPeriod == 10 && endPeriod == 11) {
             return SchoolPeriod.TEN_AND_ELEVEN_PERIOD;

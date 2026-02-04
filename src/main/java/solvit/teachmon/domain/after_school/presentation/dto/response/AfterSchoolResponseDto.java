@@ -3,6 +3,8 @@ package solvit.teachmon.domain.after_school.presentation.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.querydsl.core.annotations.QueryProjection;
 
+import java.util.List;
+
 public record AfterSchoolResponseDto(
         Long id,
         @JsonProperty("week_day")
@@ -10,7 +12,8 @@ public record AfterSchoolResponseDto(
         String period,
         String name,
         TeacherInfo teacher,
-        PlaceInfo place
+        PlaceInfo place,
+        List<StudentInfo> students
 ) {
     public record TeacherInfo(
             Long id,
@@ -34,13 +37,15 @@ public record AfterSchoolResponseDto(
         }
     }
 
+
     @QueryProjection
-    public AfterSchoolResponseDto(Long id, String weekDay, String period, String name, TeacherInfo teacher, PlaceInfo place) {
+    public AfterSchoolResponseDto(Long id, String weekDay, String period, String name, TeacherInfo teacher, PlaceInfo place, List<StudentInfo> students) {
         this.id = id;
         this.weekDay = weekDay;
         this.period = period;
         this.name = name;
         this.teacher = teacher;
         this.place = place;
+        this.students = students;
     }
 }

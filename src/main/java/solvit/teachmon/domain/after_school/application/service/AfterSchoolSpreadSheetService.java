@@ -21,6 +21,7 @@ import solvit.teachmon.domain.after_school.exception.StudentDataFormatException;
 import solvit.teachmon.domain.after_school.exception.TeacherNotExistException;
 import solvit.teachmon.domain.after_school.exception.WeekDayInvalidException;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
+import solvit.teachmon.domain.branch.exception.BranchNotFoundException;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
@@ -76,8 +77,8 @@ public class AfterSchoolSpreadSheetService {
         ));
         
         for (AfterSchoolEntity afterSchool : activeAfterSchools) {
-            String weekDayKorean = convertWeekDayToKorean(afterSchool.getWeekDay());
-            String periodKorean = convertPeriodToKorean(afterSchool.getPeriod());
+            String weekDayKorean = WeekDay.convertWeekDayToKorean(afterSchool.getWeekDay());
+            String periodKorean = SchoolPeriod.convertPeriodToKorean(afterSchool.getPeriod());
             String teacherData = afterSchool.getTeacher().getName() + "(" + afterSchool.getTeacher().getMail() + ")";
             String studentsData = afterSchool.getAfterSchoolStudents().stream()
                     .map(ass -> ass.getStudent().getNumber() + " " + ass.getStudent().getName())
@@ -85,7 +86,7 @@ public class AfterSchoolSpreadSheetService {
             
             values.add(Arrays.asList(
                     afterSchool.getYear(),
-                    afterSchool.getBranch().getId(),
+                    afterSchool.getBranch().getBranch(),
                     weekDayKorean,
                     afterSchool.getGrade(),
                     periodKorean,
@@ -230,10 +231,10 @@ public class AfterSchoolSpreadSheetService {
         String[] parts = compositeKey.split("\\|");
         
         Integer year = Integer.valueOf(parts[0]);
-        Long branchId = Long.valueOf(parts[1]);
-        String weekDay = parts[2];
+        Integer branchNumber = Integer.valueOf(parts[1]);
+        WeekDay weekDay = WeekDay.fromKorean(parts[2]);
         Integer grade = Integer.valueOf(parts[3]);
-        String period = parts[4];
+        SchoolPeriod period = convertToSchoolPeriod(parts[4], -1);
         String teacherData = parts[5];
         String placeName = parts[6];
         String name = parts[7];
@@ -242,10 +243,10 @@ public class AfterSchoolSpreadSheetService {
         return allAfterSchools.stream()
             .filter(as -> 
                 Objects.equals(year, as.getYear()) &&
-                Objects.equals(branchId, as.getBranch().getId()) &&
-                weekDay.equals(as.getWeekDay().name()) &&
+                Objects.equals(branchNumber, as.getBranch().getBranch()) &&
+                weekDay == as.getWeekDay() &&
                 Objects.equals(grade, as.getGrade()) &&
-                period.equals(as.getPeriod().name()) &&
+                period == as.getPeriod() &&
                 teacherInfo.email().equals(as.getTeacher().getMail()) &&
                 placeName.equals(as.getPlace().getName()) &&
                 name.equals(as.getName())
@@ -254,7 +255,7 @@ public class AfterSchoolSpreadSheetService {
     }
 
     private void handleExistingAfterSchool(AfterSchoolEntity existingAfterSchool, List<StudentInfo> studentInfos, ReferenceDataCache cache) {
-        existingAfterSchool.endAfterSchool();
+        existingAfterSchool.resumeAfterSchool();
         
         Set<Integer> currentStudentNumbers = existingAfterSchool.getAfterSchoolStudents().stream()
             .map(AfterSchoolStudentEntity::getStudent)
@@ -272,13 +273,13 @@ public class AfterSchoolSpreadSheetService {
                 .map(info -> cache.getStudent(info.number().intValue(), info.name()))
                 .filter(Objects::nonNull)
                 .toList();
-            afterSchoolStudentDomainService.saveAfterSchoolStudents(existingAfterSchool, students);
+            afterSchoolStudentDomainService.assignStudents(existingAfterSchool, students);
         }
     }
     
     private void createNewAfterSchool(List<Object> row, List<StudentInfo> studentInfos, ReferenceDataCache cache, long rowNumber) {
         Integer year = Integer.valueOf(row.get(AfterSchoolSpreadSheetsColumn.YEAR.getIndex()).toString().trim());
-        Long branchId = Long.valueOf(row.get(AfterSchoolSpreadSheetsColumn.BRANCH.getIndex()).toString().trim());
+        Integer branchNumber = Integer.valueOf(row.get(AfterSchoolSpreadSheetsColumn.BRANCH.getIndex()).toString().trim());
         String weekDayStr = row.get(AfterSchoolSpreadSheetsColumn.WEEKDAY.getIndex()).toString().trim();
         Integer grade = Integer.valueOf(row.get(AfterSchoolSpreadSheetsColumn.GRADE.getIndex()).toString().trim());
         String periodStr = row.get(AfterSchoolSpreadSheetsColumn.PERIOD.getIndex()).toString().trim();
@@ -288,8 +289,8 @@ public class AfterSchoolSpreadSheetService {
         
         TeacherDataParser.TeacherInfo teacherInfo = TeacherDataParser.parse(teacherData, rowNumber);
         
-        BranchEntity branch = branchRepository.findById(branchId)
-            .orElseThrow(() -> new RuntimeException("Branch not found"));
+        BranchEntity branch = branchRepository.findByYearAndBranch(year, branchNumber)
+            .orElseThrow(BranchNotFoundException::new);
         TeacherEntity teacher = cache.getTeacher(teacherInfo.email());
         if (teacher == null) {
             throw new TeacherNotExistException(rowNumber, teacherInfo.email());
@@ -319,7 +320,7 @@ public class AfterSchoolSpreadSheetService {
             .map(info -> cache.getStudent(info.number().intValue(), info.name()))
             .filter(Objects::nonNull)
             .toList();
-        afterSchoolStudentDomainService.saveAfterSchoolStudents(afterSchool, students);
+        afterSchoolStudentDomainService.assignStudents(afterSchool, students);
     }
     
     private WeekDay convertToWeekDay(String weekDayStr, long rowNumber) {
@@ -334,26 +335,12 @@ public class AfterSchoolSpreadSheetService {
     
     private SchoolPeriod convertToSchoolPeriod(String periodStr, long rowNumber) {
         return switch (periodStr) {
+            case "7교시" -> SchoolPeriod.SEVEN_PERIOD;
             case "8~9교시" -> SchoolPeriod.EIGHT_AND_NINE_PERIOD;
             case "10~11교시" -> SchoolPeriod.TEN_AND_ELEVEN_PERIOD;
             default -> throw new PeriodInvalidException(rowNumber, periodStr);
         };
     }
     
-    private String convertWeekDayToKorean(WeekDay weekDay) {
-        return switch (weekDay) {
-            case MON -> "월요일";
-            case TUE -> "화요일";
-            case WED -> "수요일";
-            case THU -> "목요일";
-        };
-    }
     
-    private String convertPeriodToKorean(SchoolPeriod period) {
-        return switch (period) {
-            case EIGHT_AND_NINE_PERIOD -> "8~9교시";
-            case TEN_AND_ELEVEN_PERIOD -> "10~11교시";
-            default -> period.name();
-        };
-    }
 }

@@ -14,9 +14,11 @@ import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolC
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolUpdateRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolSearchRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolResponseDto;
+import solvit.teachmon.domain.after_school.presentation.dto.response.StudentInfo;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolMyResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolTodayResponseDto;
 import solvit.teachmon.global.enums.WeekDay;
+import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.security.user.TeachmonUserDetails;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 
@@ -48,8 +50,8 @@ class AfterSchoolControllerTest {
         AfterSchoolCreateRequestDto request = new AfterSchoolCreateRequestDto(
                 2024,
                 2,
-                "MON",
-                "EIGHT_AND_NINE_PERIOD",
+                WeekDay.MON,
+                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
                 1L,
                 1L,
                 "정보처리 산업기사 Java",
@@ -70,8 +72,8 @@ class AfterSchoolControllerTest {
                 1L,
                 2024,
                 3,
-                "TUE",
-                "EIGHT_AND_NINE_PERIOD",
+                WeekDay.TUE,
+                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
                 2L,
                 2L,
                 "웹 개발 기초",
@@ -92,8 +94,8 @@ class AfterSchoolControllerTest {
                 999L,
                 2024,
                 2,
-                "MON",
-                "EIGHT_AND_NINE_PERIOD",
+                WeekDay.MON,
+                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
                 1L,
                 1L,
                 "정보처리 산업기사 Java",
@@ -131,9 +133,15 @@ class AfterSchoolControllerTest {
     @DisplayName("방과후 검색 시 200 상태코드와 결과 리스트를 반환한다")
     void shouldSearchAfterSchoolsSuccessfully() {
         Integer grade = 2;
+        Integer branch = 3;
         WeekDay weekDay = WeekDay.TUE;
         Integer startPeriod = 8;
         Integer endPeriod = 9;
+        
+        List<StudentInfo> students = List.of(
+                new StudentInfo(2203, "김동욱"),
+                new StudentInfo(2202, "권민재")
+        );
         
         AfterSchoolResponseDto responseDto = new AfterSchoolResponseDto(
                 1L,
@@ -141,14 +149,15 @@ class AfterSchoolControllerTest {
                 "8~9교시",
                 "파이썬을 이용한 문제해결",
                 new AfterSchoolResponseDto.TeacherInfo(1L, "곽상미"),
-                new AfterSchoolResponseDto.PlaceInfo(1L, "객체지향 프로그래밍실")
+                new AfterSchoolResponseDto.PlaceInfo(1L, "객체지향 프로그래밍실"),
+                students
         );
         
         given(afterSchoolService.searchAfterSchools(any(AfterSchoolSearchRequestDto.class)))
                 .willReturn(List.of(responseDto));
 
         ResponseEntity<List<AfterSchoolResponseDto>> response = afterSchoolController.searchAfterSchools(
-                grade, weekDay, startPeriod, endPeriod
+                grade, branch, weekDay, startPeriod, endPeriod
         );
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).hasSize(1);

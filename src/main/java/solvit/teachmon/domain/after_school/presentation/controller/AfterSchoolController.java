@@ -40,11 +40,12 @@ public class AfterSchoolController {
     @GetMapping
     public ResponseEntity<List<AfterSchoolResponseDto>> searchAfterSchools(
             @RequestParam @NotNull(message = "학년은 필수입니다.") Integer grade,
+            @RequestParam(required = false) Integer branch,
             @RequestParam(name = "week_day") @NotNull(message = "요일은 필수입니다.") WeekDay weekDay,
             @RequestParam(name = "start_period") @NotNull(message = "시작 교시는 필수입니다.") Integer startPeriod,
             @RequestParam(name = "end_period") @NotNull(message = "종료 교시는 필수입니다.") Integer endPeriod) {
         AfterSchoolSearchRequestDto searchRequest = new AfterSchoolSearchRequestDto(
-                grade, weekDay, startPeriod, endPeriod
+                grade, branch, weekDay, startPeriod, endPeriod
         );
         List<AfterSchoolResponseDto> results = afterSchoolService.searchAfterSchools(searchRequest);
         return ResponseEntity.ok(results);
@@ -52,7 +53,7 @@ public class AfterSchoolController {
 
     @GetMapping("/me")
     public ResponseEntity<List<AfterSchoolMyResponseDto>> searchMyAfterSchools(
-            @RequestParam @NotNull(message = "학년은 필수입니다.") Integer grade,
+            @RequestParam(required = false) Integer grade,
             @AuthenticationPrincipal TeachmonUserDetails teachmonUserDetails) {
         Long teacherId = teachmonUserDetails.getId();
         List<AfterSchoolMyResponseDto> results = afterSchoolService.searchMyAfterSchools(teacherId, grade);
@@ -69,7 +70,7 @@ public class AfterSchoolController {
 
     @PostMapping
     public ResponseEntity<Void> createAfterSchool(@Valid @RequestBody AfterSchoolCreateRequestDto afterSchoolCreateRequestDto) {
-    afterSchoolService.createAfterSchool(afterSchoolCreateRequestDto);
+        afterSchoolService.createAfterSchool(afterSchoolCreateRequestDto);
         return ResponseEntity.noContent().build();
     }
 

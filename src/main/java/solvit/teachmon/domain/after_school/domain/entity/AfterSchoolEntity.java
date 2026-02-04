@@ -119,6 +119,10 @@ public class AfterSchoolEntity extends BaseEntity {
         this.isEnd = true;
     }
 
+    public void resumeAfterSchool() {
+        this.isEnd = false;
+    }
+
     private void validateTeacher(TeacherEntity teacher) {
         if (teacher == null) {
             throw new InvalidAfterSchoolInfoException("담당 선생님은 필수입니다.");

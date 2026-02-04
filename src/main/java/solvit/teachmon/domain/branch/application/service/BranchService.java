@@ -10,9 +10,6 @@ import solvit.teachmon.domain.branch.presentation.dto.response.BranchResponseDto
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,24 +33,11 @@ public class BranchService {
     public void createOrUpdateBranch(BranchRequestDto requestDto) {
         int currentYear = LocalDate.now().getYear();
         
-        Map<Integer, BranchEntity> existingBranchMap = findExistingBranchesAsMap(currentYear);
-        
-        BranchEntity branchToSave = determineCreateOrUpdate(requestDto, existingBranchMap, currentYear);
-        
-        branchRepository.saveAll(List.of(branchToSave));
-    }
+        BranchEntity branchToSave = branchRepository.findByYearAndBranch(currentYear, requestDto.getNumber())
+                .map(branch -> updateExistingBranch(branch, requestDto))
+                .orElseGet(() -> createNewBranch(requestDto, currentYear));
 
-    private Map<Integer, BranchEntity> findExistingBranchesAsMap(int currentYear) {
-        return branchRepository.findByYearOrderByBranch(currentYear).stream()
-                .collect(Collectors.toMap(BranchEntity::getBranch, Function.identity()));
-    }
-
-    private BranchEntity determineCreateOrUpdate(BranchRequestDto requestDto, Map<Integer, BranchEntity> branchMap, int currentYear) {
-        final BranchEntity existingBranch = branchMap.get(requestDto.getNumber());
-        
-        return existingBranch != null 
-            ? updateExistingBranch(existingBranch, requestDto)
-            : createNewBranch(requestDto, currentYear);
+        branchRepository.save(branchToSave);
     }
 
     private BranchEntity updateExistingBranch(BranchEntity branch, BranchRequestDto requestDto) {

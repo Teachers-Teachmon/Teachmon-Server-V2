@@ -1,20 +1,24 @@
 package solvit.teachmon.domain.after_school.domain.repository.querydsl.impl;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolEntity;
+import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolStudentEntity;
 import solvit.teachmon.domain.after_school.domain.entity.QAfterSchoolEntity;
+import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolStudentRepository;
 import solvit.teachmon.domain.after_school.domain.repository.querydsl.AfterSchoolQueryDslRepository;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolSearchRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolMyResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolTodayResponseDto;
+import solvit.teachmon.domain.after_school.presentation.dto.response.StudentInfo;
+import solvit.teachmon.domain.branch.domain.entity.QBranchEntity;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.entity.QPlaceEntity;
 import solvit.teachmon.domain.user.domain.entity.QTeacherEntity;
-import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
 
@@ -22,79 +26,68 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
 public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository {
+    private static final QAfterSchoolEntity afterSchool = QAfterSchoolEntity.afterSchoolEntity;
+    private static final QTeacherEntity teacher = QTeacherEntity.teacherEntity;
+    private static final QPlaceEntity place = QPlaceEntity.placeEntity;
+    private static final QBranchEntity branch = QBranchEntity.branchEntity;
     private final JPAQueryFactory queryFactory;
+    private final AfterSchoolStudentRepository afterSchoolStudentRepository;
 
     @Override
     public Optional<AfterSchoolEntity> findWithAllRelations(Long afterSchoolId) {
         return Optional.ofNullable(
-                queryFactory.selectFrom(QAfterSchoolEntity.afterSchoolEntity)
-                        .leftJoin(QAfterSchoolEntity.afterSchoolEntity.teacher, QTeacherEntity.teacherEntity).fetchJoin()
-                        .leftJoin(QAfterSchoolEntity.afterSchoolEntity.place, QPlaceEntity.placeEntity).fetchJoin()
-                        .leftJoin(QAfterSchoolEntity.afterSchoolEntity.branch).fetchJoin()
-                        .where(QAfterSchoolEntity.afterSchoolEntity.id.eq(afterSchoolId))
+                queryFactory.selectFrom(afterSchool)
+                        .leftJoin(afterSchool.teacher, teacher).fetchJoin()
+                        .leftJoin(afterSchool.place, place).fetchJoin()
+                        .leftJoin(afterSchool.branch, branch).fetchJoin()
+                        .where(afterSchool.id.eq(afterSchoolId))
                         .fetchOne()
         );
     }
 
     @Override
     public List<PlaceEntity> findPlacesInBulk(List<Long> placeIds) {
-        return queryFactory.selectFrom(QPlaceEntity.placeEntity)
-                .where(QPlaceEntity.placeEntity.id.in(placeIds))
+        return queryFactory.selectFrom(place)
+                .where(place.id.in(placeIds))
                 .fetch();
     }
 
     @Override
     public List<AfterSchoolResponseDto> findAfterSchoolsByConditions(AfterSchoolSearchRequestDto searchRequest) {
-        QAfterSchoolEntity afterSchool = QAfterSchoolEntity.afterSchoolEntity;
-        QTeacherEntity teacher = QTeacherEntity.teacherEntity;
-        QPlaceEntity place = QPlaceEntity.placeEntity;
-
-        BooleanBuilder whereCondition = new BooleanBuilder();
-
-        whereCondition.and(afterSchool.isEnd.eq(false));
-
-        if (searchRequest.grade() != null) {
-            whereCondition.and(afterSchool.grade.eq(searchRequest.grade()));
-        }
-
-        if (searchRequest.weekDay() != null) {
-            whereCondition.and(afterSchool.weekDay.eq(searchRequest.weekDay()));
-        }
-
-        if (searchRequest.startPeriod() != null && searchRequest.endPeriod() != null) {
-            SchoolPeriod targetPeriod = mapToSchoolPeriod(searchRequest.startPeriod(), searchRequest.endPeriod());
-            if (targetPeriod != null) {
-                whereCondition.and(afterSchool.period.eq(targetPeriod));
-            }
-        }
-
         List<AfterSchoolEntity> entities = queryFactory
                 .selectFrom(afterSchool)
                 .join(afterSchool.teacher, teacher).fetchJoin()
                 .join(afterSchool.place, place).fetchJoin()
-                .where(whereCondition)
+                .where(
+                        isNotEnded(),
+                        gradeEq(searchRequest.grade()),
+                        branchEq(searchRequest.branch()),
+                        weekDayEq(searchRequest.weekDay()),
+                        periodEq(searchRequest.startPeriod(), searchRequest.endPeriod())
+                )
                 .fetch();
 
+        // Bulk로 학생 정보 조회
+        List<Long> afterSchoolIds = entities.stream()
+                .map(AfterSchoolEntity::getId)
+                .toList();
+        
+        Map<Long, List<AfterSchoolStudentEntity>> studentsMap = afterSchoolIds.isEmpty() 
+                ? Map.of() 
+                : afterSchoolStudentRepository
+                    .findByAfterSchoolIdsWithStudent(afterSchoolIds)
+                    .stream()
+                    .collect(Collectors.groupingBy(ast -> ast.getAfterSchool().getId()));
+
         return entities.stream()
-                .map(entity -> new AfterSchoolResponseDto(
-                        entity.getId(),
-                        mapWeekDayToKorean(entity.getWeekDay()),
-                        entity.getPeriod().getPeriod(),
-                        entity.getName(),
-                        new AfterSchoolResponseDto.TeacherInfo(
-                                entity.getTeacher().getId(),
-                                entity.getTeacher().getName()
-                        ),
-                        new AfterSchoolResponseDto.PlaceInfo(
-                                entity.getPlace().getId(),
-                                entity.getPlace().getName()
-                        )
-                ))
+                .map(entity -> convertToAfterSchoolResponseDto(entity, studentsMap.getOrDefault(entity.getId(), List.of())))
                 .toList();
     }
 
@@ -109,13 +102,28 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
         return null;
     }
 
-    private String mapWeekDayToKorean(WeekDay weekDay) {
-        return switch (weekDay) {
-            case MON -> "월";
-            case TUE -> "화";
-            case WED -> "수";
-            case THU -> "목";
-        };
+    private BooleanExpression isNotEnded() {
+        return afterSchool.isEnd.eq(false);
+    }
+
+    private BooleanExpression gradeEq(Integer grade) {
+        return grade != null ? afterSchool.grade.eq(grade) : null;
+    }
+
+    private BooleanExpression branchEq(Integer branchNumber) {
+        return branchNumber != null ? afterSchool.branch.branch.eq(branchNumber) : null;
+    }
+
+    private BooleanExpression weekDayEq(WeekDay weekDay) {
+        return weekDay != null ? afterSchool.weekDay.eq(weekDay) : null;
+    }
+
+    private BooleanExpression periodEq(Integer startPeriod, Integer endPeriod) {
+        if (startPeriod == null || endPeriod == null) {
+            return null;
+        }
+        SchoolPeriod targetPeriod = mapToSchoolPeriod(startPeriod, endPeriod);
+        return targetPeriod != null ? afterSchool.period.eq(targetPeriod) : null;
     }
 
     @Override
@@ -124,7 +132,8 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
         QPlaceEntity place = QPlaceEntity.placeEntity;
 
         BooleanBuilder whereCondition = new BooleanBuilder();
-        whereCondition.and(afterSchool.teacher.id.eq(teacherId)).and(afterSchool.isEnd.eq(false));
+        whereCondition.and(afterSchool.teacher.id.eq(teacherId))
+                     .and(afterSchool.isEnd.eq(false));
         
         if (grade != null) {
             whereCondition.and(afterSchool.grade.eq(grade));
@@ -139,7 +148,7 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
         return entities.stream()
                 .map(entity -> new AfterSchoolMyResponseDto(
                         entity.getId(),
-                        mapWeekDayToKorean(entity.getWeekDay()),
+                        entity.getWeekDay().toKorean(),
                         entity.getPeriod().getPeriod(),
                         entity.getName(),
                         new AfterSchoolMyResponseDto.PlaceInfo(
@@ -155,14 +164,20 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
     public List<AfterSchoolTodayResponseDto> findMyTodayAfterSchoolsByTeacherId(Long teacherId) {
         QAfterSchoolEntity afterSchool = QAfterSchoolEntity.afterSchoolEntity;
         QPlaceEntity place = QPlaceEntity.placeEntity;
+        QBranchEntity branch = QBranchEntity.branchEntity;
 
         LocalDate today = LocalDate.now();
-        WeekDay todayWeekDay = getTodayWeekDay(today);
+        WeekDay todayWeekDay;
+        try {
+            todayWeekDay = getTodayWeekDay(today);
+        } catch (IllegalArgumentException e) {
+            return List.of();
+        }
 
         List<AfterSchoolEntity> entities = queryFactory
                 .selectFrom(afterSchool)
                 .join(afterSchool.place, place).fetchJoin()
-                .join(afterSchool.branch).fetchJoin()
+                .join(afterSchool.branch, branch).fetchJoin()
                 .where(afterSchool.teacher.id.eq(teacherId)
                         .and(afterSchool.weekDay.eq(todayWeekDay))
                         .and(afterSchool.isEnd.eq(false)))
@@ -192,14 +207,38 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
             case TUESDAY -> WeekDay.TUE;
             case WEDNESDAY -> WeekDay.WED;
             case THURSDAY -> WeekDay.THU;
-            default -> null;
+            default -> throw new IllegalArgumentException("방과후는 월-목요일만 운영됩니다: " + today.getDayOfWeek());
         };
     }
 
     private String formatTodayDate(LocalDate today, WeekDay weekDay) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd", Locale.KOREA);
         String dateStr = today.format(formatter);
-        String dayName = mapWeekDayToKorean(weekDay) + "요일";
-        return dateStr + " " + dayName;
+        return dateStr + " " + weekDay.toKoreanFull();
+    }
+
+    private AfterSchoolResponseDto convertToAfterSchoolResponseDto(AfterSchoolEntity entity, List<AfterSchoolStudentEntity> studentEntities) {
+        List<StudentInfo> students = studentEntities.stream()
+                .map(ast -> new StudentInfo(
+                        ast.getStudent().getNumber(),
+                        ast.getStudent().getName()
+                ))
+                .toList();
+
+        return new AfterSchoolResponseDto(
+                entity.getId(),
+                entity.getWeekDay().toKorean(),
+                entity.getPeriod().getPeriod(),
+                entity.getName(),
+                new AfterSchoolResponseDto.TeacherInfo(
+                        entity.getTeacher().getId(),
+                        entity.getTeacher().getName()
+                ),
+                new AfterSchoolResponseDto.PlaceInfo(
+                        entity.getPlace().getId(),
+                        entity.getPlace().getName()
+                ),
+                students
+        );
     }
 }

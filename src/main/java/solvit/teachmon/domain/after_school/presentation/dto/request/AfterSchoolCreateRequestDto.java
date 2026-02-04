@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import solvit.teachmon.global.enums.SchoolPeriod;
+import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.List;
 
@@ -19,12 +21,12 @@ public record AfterSchoolCreateRequestDto(
         @Max(value = 3, message = "학년은 1부터 3까지만 가능합니다.")
         Integer grade,
 
-        @NotBlank(message = "요일은 필수입니다.")
+        @NotNull(message = "요일은 필수입니다.")
         @JsonProperty("week_day")
-        String weekDay,
+        WeekDay weekDay,
 
-        @NotBlank(message = "교시는 필수입니다.")
-        String period,
+        @NotNull(message = "교시는 필수입니다.")
+        SchoolPeriod period,
 
         @NotNull(message = "담당 선생님은 필수입니다.")
         @JsonProperty("teacher_id")

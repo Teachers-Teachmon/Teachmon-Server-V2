@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import solvit.teachmon.global.enums.SchoolPeriod;
+import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.List;
 
@@ -21,9 +23,9 @@ public record AfterSchoolUpdateRequestDto(
         Integer grade,
 
         @JsonProperty("week_day")
-        String weekDay,
+        WeekDay weekDay,
 
-        String period,
+        SchoolPeriod period,
 
         @JsonProperty("teacher_id")
         Long teacherId,
