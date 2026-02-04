@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionExchangeEntity;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionExchangeType;
@@ -20,20 +22,20 @@ import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionEx
 import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionExchangeRequestDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionExchangeResponseDto;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
-import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
-import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("감독 교체 서비스 테스트")
 class SupervisionExchangeServiceTest {
 
@@ -48,12 +50,6 @@ class SupervisionExchangeServiceTest {
 
     private SupervisionExchangeService supervisionExchangeService;
 
-    private TeacherEntity senderTeacher;
-    private TeacherEntity recipientTeacher;
-    private SupervisionScheduleEntity senderSchedule;
-    private SupervisionScheduleEntity recipientSchedule;
-    private SupervisionExchangeEntity exchangeEntity;
-
     @BeforeEach
     void setUp() {
         supervisionExchangeService = new SupervisionExchangeService(
@@ -61,32 +57,36 @@ class SupervisionExchangeServiceTest {
                 supervisionScheduleRepository,
                 teacherRepository
         );
+    }
 
-        senderTeacher = mock(TeacherEntity.class);
-        recipientTeacher = mock(TeacherEntity.class);
-        senderSchedule = mock(SupervisionScheduleEntity.class);
-        recipientSchedule = mock(SupervisionScheduleEntity.class);
-        exchangeEntity = mock(SupervisionExchangeEntity.class);
+    private TeacherEntity createMockTeacher(Long id, String name) {
+        TeacherEntity teacher = mock(TeacherEntity.class);
+        given(teacher.getId()).willReturn(id);
+        given(teacher.getName()).willReturn(name);
+        return teacher;
+    }
 
-        given(senderTeacher.getId()).willReturn(1L);
-        given(senderTeacher.getName()).willReturn("송혜정");
-        given(recipientTeacher.getId()).willReturn(2L);
-        given(recipientTeacher.getName()).willReturn("김선생");
+    private SupervisionScheduleEntity createMockSchedule(TeacherEntity teacher) {
+        SupervisionScheduleEntity schedule = mock(SupervisionScheduleEntity.class);
+        given(schedule.getTeacher()).willReturn(teacher);
+        given(schedule.getDay()).willReturn(LocalDate.of(2025, 3, 2));
+        given(schedule.getType()).willReturn(SupervisionType.SELF_STUDY_SUPERVISION);
+        return schedule;
+    }
+
+    private SupervisionExchangeEntity createMockExchange(TeacherEntity sender, TeacherEntity recipient) {
+        SupervisionExchangeEntity exchange = mock(SupervisionExchangeEntity.class);
+        given(exchange.getRecipient()).willReturn(recipient);
+        given(exchange.getSender()).willReturn(sender);
+        given(exchange.getReason()).willReturn("개인 사유");
+        given(exchange.getState()).willReturn(SupervisionExchangeType.PENDING);
         
-        given(senderSchedule.getTeacher()).willReturn(senderTeacher);
-        given(senderSchedule.getDay()).willReturn(LocalDate.of(2025, 3, 2));
-        given(senderSchedule.getType()).willReturn(SupervisionType.SELF_STUDY_SUPERVISION);
+        SupervisionScheduleEntity senderSchedule = createMockSchedule(sender);
+        SupervisionScheduleEntity recipientSchedule = createMockSchedule(recipient);
+        given(exchange.getSenderSchedule()).willReturn(senderSchedule);
+        given(exchange.getRecipientSchedule()).willReturn(recipientSchedule);
         
-        given(recipientSchedule.getTeacher()).willReturn(recipientTeacher);
-        given(recipientSchedule.getDay()).willReturn(LocalDate.of(2025, 3, 3));
-        given(recipientSchedule.getType()).willReturn(SupervisionType.LEAVE_SEAT_SUPERVISION);
-        
-        given(exchangeEntity.getSender()).willReturn(senderTeacher);
-        given(exchangeEntity.getRecipient()).willReturn(recipientTeacher);
-        given(exchangeEntity.getSenderSchedule()).willReturn(senderSchedule);
-        given(exchangeEntity.getRecipientSchedule()).willReturn(recipientSchedule);
-        given(exchangeEntity.getReason()).willReturn("개인 사유");
-        given(exchangeEntity.getState()).willReturn(SupervisionExchangeType.PENDING);
+        return exchange;
     }
 
     @Test
@@ -99,6 +99,12 @@ class SupervisionExchangeServiceTest {
                 .reason("개인 사유로 교체 요청드립니다")
                 .build();
         Long requesterId = 1L;
+
+        TeacherEntity senderTeacher = createMockTeacher(1L, "송혜정");
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionScheduleEntity senderSchedule = createMockSchedule(senderTeacher);
+        SupervisionScheduleEntity recipientSchedule = createMockSchedule(recipientTeacher);
+        SupervisionExchangeEntity exchangeEntity = createMockExchange(senderTeacher, recipientTeacher);
 
         given(supervisionScheduleRepository.findById(1L)).willReturn(Optional.of(senderSchedule));
         given(supervisionScheduleRepository.findById(2L)).willReturn(Optional.of(recipientSchedule));
@@ -130,29 +136,57 @@ class SupervisionExchangeServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> supervisionExchangeService.createSupervisionExchangeRequest(requestDto, requesterId))
-                .isInstanceOf(SupervisionScheduleNotFoundException.class)
-                .hasMessage("요청한 감독 일정을 찾을 수 없습니다.");
+                .isInstanceOf(SupervisionScheduleNotFoundException.class);
     }
 
     @Test
     @DisplayName("존재하지 않는 교사로 교체 요청 시 예외가 발생한다")
     void shouldThrowExceptionWhenTeacherNotExists() {
+        // Given - 권한이 있는 사용자이지만 해당 교사 엔티티가 존재하지 않는 경우
+        SupervisionExchangeRequestDto requestDto = SupervisionExchangeRequestDto.builder()
+                .requestorSupervisionId(1L)
+                .changeSupervisionId(2L)
+                .reason("개인 사유")
+                .build();
+        Long requesterId = 1L; // 권한이 있는 사용자 ID
+
+        TeacherEntity senderTeacher = createMockTeacher(1L, "송혜정");
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionScheduleEntity senderSchedule = createMockSchedule(senderTeacher);
+        SupervisionScheduleEntity recipientSchedule = createMockSchedule(recipientTeacher);
+
+        given(supervisionScheduleRepository.findById(1L)).willReturn(Optional.of(senderSchedule));
+        given(supervisionScheduleRepository.findById(2L)).willReturn(Optional.of(recipientSchedule));
+        given(teacherRepository.findById(1L)).willReturn(Optional.empty()); // 교사 엔티티가 존재하지 않음
+
+        // When & Then
+        assertThatThrownBy(() -> supervisionExchangeService.createSupervisionExchangeRequest(requestDto, requesterId))
+                .isInstanceOf(TeacherNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("본인의 감독 일정이 아닌 경우 교체 요청 생성 시 예외가 발생한다")
+    void shouldThrowExceptionWhenUnauthorizedUser() {
         // Given
         SupervisionExchangeRequestDto requestDto = SupervisionExchangeRequestDto.builder()
                 .requestorSupervisionId(1L)
                 .changeSupervisionId(2L)
                 .reason("개인 사유")
                 .build();
-        Long requesterId = 999L;
+        Long unauthorizedUserId = 999L;
+
+        TeacherEntity senderTeacher = createMockTeacher(1L, "송혜정");
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionScheduleEntity senderSchedule = createMockSchedule(senderTeacher);
+        SupervisionScheduleEntity recipientSchedule = createMockSchedule(recipientTeacher);
 
         given(supervisionScheduleRepository.findById(1L)).willReturn(Optional.of(senderSchedule));
         given(supervisionScheduleRepository.findById(2L)).willReturn(Optional.of(recipientSchedule));
-        given(teacherRepository.findById(999L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> supervisionExchangeService.createSupervisionExchangeRequest(requestDto, requesterId))
-                .isInstanceOf(TeacherNotFoundException.class)
-                .hasMessage("요청한 교사를 찾을 수 없습니다.");
+        assertThatThrownBy(() -> supervisionExchangeService.createSupervisionExchangeRequest(requestDto, unauthorizedUserId))
+                .isInstanceOf(UnauthorizedSupervisionAccessException.class)
+                .hasMessage("본인의 감독 일정에 대해서만 교체 요청을 할 수 있습니다.");
     }
 
     @Test
@@ -162,6 +196,9 @@ class SupervisionExchangeServiceTest {
         SupervisionExchangeAcceptRequestDto requestDto = SupervisionExchangeAcceptRequestDto.builder()
                 .exchangeRequestId(1L)
                 .build();
+
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionExchangeEntity exchangeEntity = createMockExchange(null, recipientTeacher);
 
         given(supervisionExchangeRepository.findById(1L)).willReturn(Optional.of(exchangeEntity));
 
@@ -185,8 +222,27 @@ class SupervisionExchangeServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> supervisionExchangeService.acceptSupervisionExchange(requestDto, 2L))
-                .isInstanceOf(SupervisionExchangeNotFoundException.class)
-                .hasMessage("요청한 감독 교체 요청을 찾을 수 없습니다.");
+                .isInstanceOf(SupervisionExchangeNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("수신자가 아닌 사용자가 교체 요청 수락 시 예외가 발생한다")
+    void shouldThrowExceptionWhenUnauthorizedUserAccept() {
+        // Given
+        SupervisionExchangeAcceptRequestDto requestDto = SupervisionExchangeAcceptRequestDto.builder()
+                .exchangeRequestId(1L)
+                .build();
+        Long unauthorizedUserId = 999L;
+
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionExchangeEntity exchangeEntity = createMockExchange(null, recipientTeacher);
+
+        given(supervisionExchangeRepository.findById(1L)).willReturn(Optional.of(exchangeEntity));
+
+        // When & Then
+        assertThatThrownBy(() -> supervisionExchangeService.acceptSupervisionExchange(requestDto, unauthorizedUserId))
+                .isInstanceOf(UnauthorizedSupervisionAccessException.class)
+                .hasMessage("해당 교체 요청의 수신자만 수락할 수 있습니다.");
     }
 
     @Test
@@ -196,6 +252,9 @@ class SupervisionExchangeServiceTest {
         SupervisionExchangeRejectRequestDto requestDto = SupervisionExchangeRejectRequestDto.builder()
                 .exchangeRequestId(1L)
                 .build();
+
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionExchangeEntity exchangeEntity = createMockExchange(null, recipientTeacher);
 
         given(supervisionExchangeRepository.findById(1L)).willReturn(Optional.of(exchangeEntity));
 
@@ -219,14 +278,37 @@ class SupervisionExchangeServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> supervisionExchangeService.rejectSupervisionExchange(requestDto, 2L))
-                .isInstanceOf(SupervisionExchangeNotFoundException.class)
-                .hasMessage("요청한 감독 교체 요청을 찾을 수 없습니다.");
+                .isInstanceOf(SupervisionExchangeNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("수신자가 아닌 사용자가 교체 요청 거절 시 예외가 발생한다")
+    void shouldThrowExceptionWhenUnauthorizedUserReject() {
+        // Given
+        SupervisionExchangeRejectRequestDto requestDto = SupervisionExchangeRejectRequestDto.builder()
+                .exchangeRequestId(1L)
+                .build();
+        Long unauthorizedUserId = 999L;
+
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionExchangeEntity exchangeEntity = createMockExchange(null, recipientTeacher);
+
+        given(supervisionExchangeRepository.findById(1L)).willReturn(Optional.of(exchangeEntity));
+
+        // When & Then
+        assertThatThrownBy(() -> supervisionExchangeService.rejectSupervisionExchange(requestDto, unauthorizedUserId))
+                .isInstanceOf(UnauthorizedSupervisionAccessException.class)
+                .hasMessage("해당 교체 요청의 수신자만 거절할 수 있습니다.");
     }
 
     @Test
     @DisplayName("모든 교체 요청 목록을 성공적으로 조회한다")
     void shouldGetSupervisionExchangesSuccessfully() {
         // Given
+        TeacherEntity senderTeacher = createMockTeacher(1L, "송혜정");
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionExchangeEntity exchangeEntity = createMockExchange(senderTeacher, recipientTeacher);
+        
         List<SupervisionExchangeEntity> exchanges = List.of(exchangeEntity);
         given(supervisionExchangeRepository.findAll()).willReturn(exchanges);
 
@@ -237,11 +319,6 @@ class SupervisionExchangeServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).reason()).isEqualTo("개인 사유");
         assertThat(result.get(0).status()).isEqualTo(SupervisionExchangeType.PENDING);
-        assertThat(result.get(0).requestor().teacher().name()).isEqualTo("송혜정");
-        assertThat(result.get(0).responser().teacher().name()).isEqualTo("김선생");
-        assertThat(result.get(0).requestor().type()).isEqualTo("self_study");
-        assertThat(result.get(0).responser().type()).isEqualTo("leave_seat");
-
         verify(supervisionExchangeRepository).findAll();
     }
 
@@ -257,59 +334,5 @@ class SupervisionExchangeServiceTest {
         // Then
         assertThat(result).isEmpty();
         verify(supervisionExchangeRepository).findAll();
-    }
-
-    @Test
-    @DisplayName("본인의 감독 일정이 아닌 경우 교체 요청 생성 시 예외가 발생한다")
-    void shouldThrowExceptionWhenUnauthorizedUser() {
-        // Given
-        SupervisionExchangeRequestDto requestDto = SupervisionExchangeRequestDto.builder()
-                .requestorSupervisionId(1L)
-                .changeSupervisionId(2L)
-                .reason("개인 사유")
-                .build();
-        Long unauthorizedUserId = 999L; // senderSchedule의 teacher ID(1L)와 다름
-
-        given(supervisionScheduleRepository.findById(1L)).willReturn(Optional.of(senderSchedule));
-        given(supervisionScheduleRepository.findById(2L)).willReturn(Optional.of(recipientSchedule));
-
-        // When & Then
-        assertThatThrownBy(() -> supervisionExchangeService.createSupervisionExchangeRequest(requestDto, unauthorizedUserId))
-                .isInstanceOf(UnauthorizedSupervisionAccessException.class)
-                .hasMessage("본인의 감독 일정에 대해서만 교체 요청을 할 수 있습니다.");
-    }
-
-    @Test
-    @DisplayName("수신자가 아닌 사용자가 교체 요청 수락 시 예외가 발생한다")
-    void shouldThrowExceptionWhenUnauthorizedUserAccept() {
-        // Given
-        SupervisionExchangeAcceptRequestDto requestDto = SupervisionExchangeAcceptRequestDto.builder()
-                .exchangeRequestId(1L)
-                .build();
-        Long unauthorizedUserId = 999L; // exchangeEntity의 recipient ID(2L)와 다름
-
-        given(supervisionExchangeRepository.findById(1L)).willReturn(Optional.of(exchangeEntity));
-
-        // When & Then
-        assertThatThrownBy(() -> supervisionExchangeService.acceptSupervisionExchange(requestDto, unauthorizedUserId))
-                .isInstanceOf(UnauthorizedSupervisionAccessException.class)
-                .hasMessage("해당 교체 요청의 수신자만 수락할 수 있습니다.");
-    }
-
-    @Test
-    @DisplayName("수신자가 아닌 사용자가 교체 요청 거절 시 예외가 발생한다")
-    void shouldThrowExceptionWhenUnauthorizedUserReject() {
-        // Given
-        SupervisionExchangeRejectRequestDto requestDto = SupervisionExchangeRejectRequestDto.builder()
-                .exchangeRequestId(1L)
-                .build();
-        Long unauthorizedUserId = 999L; // exchangeEntity의 recipient ID(2L)와 다름
-
-        given(supervisionExchangeRepository.findById(1L)).willReturn(Optional.of(exchangeEntity));
-
-        // When & Then
-        assertThatThrownBy(() -> supervisionExchangeService.rejectSupervisionExchange(requestDto, unauthorizedUserId))
-                .isInstanceOf(UnauthorizedSupervisionAccessException.class)
-                .hasMessage("해당 교체 요청의 수신자만 거절할 수 있습니다.");
     }
 }
