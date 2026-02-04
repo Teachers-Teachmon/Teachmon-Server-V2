@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -159,15 +160,16 @@ class SupervisionExchangeControllerTest {
                 .exchangeRequestId(1L)
                 .build();
 
-        willDoNothing().given(supervisionExchangeService).acceptSupervisionExchange(any());
+        given(userDetails.getId()).willReturn(1L);
+        willDoNothing().given(supervisionExchangeService).acceptSupervisionExchange(any(), anyLong());
 
         // When
-        ResponseEntity<Void> result = supervisionExchangeController.acceptSupervisionExchange(request);
+        ResponseEntity<Void> result = supervisionExchangeController.acceptSupervisionExchange(request, userDetails);
 
         // Then
         assertThat(result.getStatusCode().value()).isEqualTo(204);
 
-        verify(supervisionExchangeService).acceptSupervisionExchange(request);
+        verify(supervisionExchangeService).acceptSupervisionExchange(request, 1L);
     }
 
     @Test
@@ -178,11 +180,12 @@ class SupervisionExchangeControllerTest {
                 .exchangeRequestId(999L)
                 .build();
 
+        given(userDetails.getId()).willReturn(1L);
         willThrow(new SupervisionExchangeNotFoundException())
-                .given(supervisionExchangeService).acceptSupervisionExchange(any());
+                .given(supervisionExchangeService).acceptSupervisionExchange(any(), anyLong());
 
         // When & Then
-        assertThatThrownBy(() -> supervisionExchangeController.acceptSupervisionExchange(request))
+        assertThatThrownBy(() -> supervisionExchangeController.acceptSupervisionExchange(request, userDetails))
                 .isInstanceOf(SupervisionExchangeNotFoundException.class);
     }
 
@@ -194,15 +197,16 @@ class SupervisionExchangeControllerTest {
                 .exchangeRequestId(1L)
                 .build();
 
-        willDoNothing().given(supervisionExchangeService).rejectSupervisionExchange(any());
+        given(userDetails.getId()).willReturn(1L);
+        willDoNothing().given(supervisionExchangeService).rejectSupervisionExchange(any(), anyLong());
 
         // When
-        ResponseEntity<Void> result = supervisionExchangeController.rejectSupervisionExchange(request);
+        ResponseEntity<Void> result = supervisionExchangeController.rejectSupervisionExchange(request, userDetails);
 
         // Then
         assertThat(result.getStatusCode().value()).isEqualTo(204);
 
-        verify(supervisionExchangeService).rejectSupervisionExchange(request);
+        verify(supervisionExchangeService).rejectSupervisionExchange(request, 1L);
     }
 
     @Test
@@ -213,11 +217,12 @@ class SupervisionExchangeControllerTest {
                 .exchangeRequestId(999L)
                 .build();
 
+        given(userDetails.getId()).willReturn(1L);
         willThrow(new SupervisionExchangeNotFoundException())
-                .given(supervisionExchangeService).rejectSupervisionExchange(any());
+                .given(supervisionExchangeService).rejectSupervisionExchange(any(), anyLong());
 
         // When & Then
-        assertThatThrownBy(() -> supervisionExchangeController.rejectSupervisionExchange(request))
+        assertThatThrownBy(() -> supervisionExchangeController.rejectSupervisionExchange(request, userDetails))
                 .isInstanceOf(SupervisionExchangeNotFoundException.class);
     }
 }

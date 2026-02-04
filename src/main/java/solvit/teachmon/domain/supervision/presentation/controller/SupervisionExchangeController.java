@@ -41,15 +41,17 @@ public class SupervisionExchangeController {
 
     @PostMapping("/exchange/accept")
     public ResponseEntity<Void> acceptSupervisionExchange(
-            @Valid @RequestBody SupervisionExchangeAcceptRequestDto requestDto) {
-        supervisionExchangeService.acceptSupervisionExchange(requestDto);
+            @Valid @RequestBody SupervisionExchangeAcceptRequestDto requestDto,
+            @AuthenticationPrincipal TeachmonUserDetails userDetails) {
+        supervisionExchangeService.acceptSupervisionExchange(requestDto, userDetails.getId());
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/exchange/reject")
     public ResponseEntity<Void> rejectSupervisionExchange(
-            @Valid @RequestBody SupervisionExchangeRejectRequestDto requestDto) {
-        supervisionExchangeService.rejectSupervisionExchange(requestDto);
+            @Valid @RequestBody SupervisionExchangeRejectRequestDto requestDto,
+            @AuthenticationPrincipal TeachmonUserDetails userDetails) {
+        supervisionExchangeService.rejectSupervisionExchange(requestDto, userDetails.getId());
         return ResponseEntity.noContent().build();
     }
 }

@@ -107,7 +107,7 @@ public class SupervisionScheduleController {
 
         long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
         if (daysBetween > MAX_ASSIGN_DAYS) {
-            throw new InvalidDateRangeException("배정 기간은 최대 " + MAX_ASSIGN_DAYS + "일까지만 가능합니다.");
+            throw new InvalidDateRangeException("배정 기간은 최대 " + MAX_ASSIGN_DAYS + "일까지 가능합니다.");
         }
     }
 }
