@@ -140,7 +140,7 @@ public class SupervisionAutoAssignService {
     }
 
     private void validateSufficientTeachers(List<TeacherPriorityInfo> prioritizedTeachers, LocalDate date) {
-        if (prioritizedTeachers.isEmpty()) {
+        if (prioritizedTeachers.size() < 2) {
             throw new InsufficientTeachersException(
                     "우선순위 계산 결과 배정 가능한 교사가 부족합니다. 날짜: " + date);
         }
