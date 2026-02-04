@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.leave_seat.domain.entity.FixedLeaveSeatEntity;
 import solvit.teachmon.domain.leave_seat.domain.entity.FixedLeaveSeatStudentEntity;
+import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 
 import java.util.List;
 
@@ -20,4 +21,8 @@ public interface FixedLeaveSeatStudentRepository extends JpaRepository<FixedLeav
     @Modifying
     @Query("DELETE FROM FixedLeaveSeatStudentEntity f WHERE f.fixedLeaveSeat.id = :fixedLeaveSeatId")
     void deleteAllByFixedLeaveSeatId(@Param("fixedLeaveSeatId") Long fixedLeaveSeatId);
+
+    @Query("SELECT f.student FROM FixedLeaveSeatStudentEntity f " +
+           "WHERE f.fixedLeaveSeat = :fixedLeaveSeat")
+    List<StudentEntity> findAllByFixedLeaveSeat(FixedLeaveSeatEntity fixedLeaveSeat);
 }

@@ -12,6 +12,7 @@ import solvit.teachmon.global.entity.BaseEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -47,4 +48,7 @@ public class AfterSchoolEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "afterSchool", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<AfterSchoolScheduleEntity> afterSchoolSchedules;
+
+    @OneToMany(mappedBy = "afterSchool", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AfterSchoolStudentEntity> afterSchoolStudents = new ArrayList<>();
 }

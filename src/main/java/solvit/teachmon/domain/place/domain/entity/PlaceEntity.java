@@ -35,4 +35,8 @@ public class PlaceEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "place", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<AfterSchoolEntity> afterSchools = new ArrayList<>();
+
+    public static Integer calculateNextClassNumber(Integer classNumber) {
+        return (classNumber + 1) % 5;
+    }
 }

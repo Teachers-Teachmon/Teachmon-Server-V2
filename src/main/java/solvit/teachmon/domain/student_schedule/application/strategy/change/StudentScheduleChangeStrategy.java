@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.student_schedule.application.strategy;
+package solvit.teachmon.domain.student_schedule.application.strategy.change;
 
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
