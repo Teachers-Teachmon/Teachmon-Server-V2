@@ -18,6 +18,7 @@ import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolR
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
+import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.place.exception.PlaceNotFoundException;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
@@ -49,6 +50,8 @@ class AfterSchoolServiceReinforcementTest {
     private StudentRepository studentRepository;
     @Mock
     private BranchRepository branchRepository;
+    @Mock
+    private PlaceRepository placeRepository;
 
     private AfterSchoolService afterSchoolService;
     private AfterSchoolEntity afterSchool;
@@ -64,7 +67,8 @@ class AfterSchoolServiceReinforcementTest {
                 afterSchoolReinforcementRepository,
                 teacherRepository,
                 studentRepository,
-                branchRepository
+                branchRepository,
+                placeRepository
         );
 
         // Mock을 사용해서 Entity 생성
@@ -86,8 +90,8 @@ class AfterSchoolServiceReinforcementTest {
         // Given
         given(afterSchoolRepository.findWithAllRelations(1L))
                 .willReturn(Optional.of(afterSchool));
-        given(afterSchoolRepository.findPlacesInBulk(List.of(1L)))
-                .willReturn(List.of(place));
+        given(placeRepository.findById(1L))
+                .willReturn(Optional.of(place));
         given(afterSchoolReinforcementRepository.save(any(AfterSchoolReinforcementEntity.class)))
                 .willReturn(any(AfterSchoolReinforcementEntity.class));
 
@@ -96,7 +100,7 @@ class AfterSchoolServiceReinforcementTest {
 
         // Then
         verify(afterSchoolRepository).findWithAllRelations(1L);
-        verify(afterSchoolRepository).findPlacesInBulk(List.of(1L));
+        verify(placeRepository).findById(1L);
         verify(afterSchoolReinforcementRepository).save(any(AfterSchoolReinforcementEntity.class));
     }
 
@@ -113,8 +117,8 @@ class AfterSchoolServiceReinforcementTest {
         );
         given(afterSchoolRepository.findWithAllRelations(1L))
                 .willReturn(Optional.of(afterSchool));
-        given(afterSchoolRepository.findPlacesInBulk(List.of(1L)))
-                .willReturn(List.of(place));
+        given(placeRepository.findById(1L))
+                .willReturn(Optional.of(place));
         given(afterSchoolReinforcementRepository.save(any(AfterSchoolReinforcementEntity.class)))
                 .willReturn(any(AfterSchoolReinforcementEntity.class));
 
@@ -123,7 +127,7 @@ class AfterSchoolServiceReinforcementTest {
 
         // Then
         verify(afterSchoolRepository).findWithAllRelations(1L);
-        verify(afterSchoolRepository).findPlacesInBulk(List.of(1L));
+        verify(placeRepository).findById(1L);
         verify(afterSchoolReinforcementRepository).save(any(AfterSchoolReinforcementEntity.class));
     }
 
@@ -148,23 +152,23 @@ class AfterSchoolServiceReinforcementTest {
         // Given
         given(afterSchoolRepository.findWithAllRelations(1L))
                 .willReturn(Optional.of(afterSchool));
-        given(afterSchoolRepository.findPlacesInBulk(List.of(1L)))
-                .willReturn(List.of());
+        given(placeRepository.findById(1L))
+                .willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> afterSchoolService.createReinforcement(reinforcementRequest))
                 .isInstanceOf(PlaceNotFoundException.class);
 
         verify(afterSchoolRepository).findWithAllRelations(1L);
-        verify(afterSchoolRepository).findPlacesInBulk(List.of(1L));
+        verify(placeRepository).findById(1L);
         verify(afterSchoolReinforcementRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("지원하지 않는 교시(7~7)로 보강 생성 시 예외가 발생한다")
-    void shouldThrowExceptionWhenUnsupportedPeriod7To7() {
+    @DisplayName("유효한 7교시 요청으로 보강을 성공적으로 생성한다")
+    void shouldCreateReinforcementSuccessfullyWith7Period() {
         // Given
-        AfterSchoolReinforcementRequestDto invalidRequest = new AfterSchoolReinforcementRequestDto(
+        AfterSchoolReinforcementRequestDto request = new AfterSchoolReinforcementRequestDto(
                 LocalDate.now().plusDays(10),
                 1L,
                 7,
@@ -173,15 +177,18 @@ class AfterSchoolServiceReinforcementTest {
         );
         given(afterSchoolRepository.findWithAllRelations(1L))
                 .willReturn(Optional.of(afterSchool));
-        given(afterSchoolRepository.findPlacesInBulk(List.of(1L)))
-                .willReturn(List.of(place));
+        given(placeRepository.findById(1L))
+                .willReturn(Optional.of(place));
+        given(afterSchoolReinforcementRepository.save(any(AfterSchoolReinforcementEntity.class)))
+                .willReturn(any(AfterSchoolReinforcementEntity.class));
 
-        // When & Then
-        assertThatThrownBy(() -> afterSchoolService.createReinforcement(invalidRequest))
-                .isInstanceOf(InvalidAfterSchoolReinforcementException.class)
-                .hasMessageContaining("지원하지 않는 교시입니다: 7~7");
+        // When
+        afterSchoolService.createReinforcement(request);
 
-        verify(afterSchoolReinforcementRepository, never()).save(any());
+        // Then
+        verify(afterSchoolRepository).findWithAllRelations(1L);
+        verify(placeRepository).findById(1L);
+        verify(afterSchoolReinforcementRepository).save(any(AfterSchoolReinforcementEntity.class));
     }
 
     @Test
@@ -197,8 +204,8 @@ class AfterSchoolServiceReinforcementTest {
         );
         given(afterSchoolRepository.findWithAllRelations(1L))
                 .willReturn(Optional.of(afterSchool));
-        given(afterSchoolRepository.findPlacesInBulk(List.of(1L)))
-                .willReturn(List.of(place));
+        given(placeRepository.findById(1L))
+                .willReturn(Optional.of(place));
 
         // When & Then
         assertThatThrownBy(() -> afterSchoolService.createReinforcement(invalidRequest))

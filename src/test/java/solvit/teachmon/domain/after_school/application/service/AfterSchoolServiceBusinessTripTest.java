@@ -16,6 +16,7 @@ import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundExceptio
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolBusinessTripRequestDto;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
+import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 
 import java.time.LocalDate;
@@ -44,6 +45,8 @@ class AfterSchoolServiceBusinessTripTest {
     private StudentRepository studentRepository;
     @Mock
     private BranchRepository branchRepository;
+    @Mock
+    private PlaceRepository placeRepository;
 
     private AfterSchoolService afterSchoolService;
     private AfterSchoolEntity afterSchool;
@@ -55,10 +58,11 @@ class AfterSchoolServiceBusinessTripTest {
                 afterSchoolStudentDomainService,
                 afterSchoolRepository,
                 afterSchoolBusinessTripRepository,
-                null, // afterSchoolReinforcementRepository
+                afterSchoolReinforcementRepository,
                 teacherRepository,
                 studentRepository,
-                branchRepository
+                branchRepository,
+                placeRepository
         );
 
         // Mock을 사용해서 AfterSchoolEntity 생성
