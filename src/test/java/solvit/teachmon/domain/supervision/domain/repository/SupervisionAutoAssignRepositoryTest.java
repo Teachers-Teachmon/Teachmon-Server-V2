@@ -50,7 +50,7 @@ class SupervisionAutoAssignRepositoryTest {
         // 교사 생성
         teacher1 = createAndSaveTeacher("김선생", "kim@test.com", true);
         teacher2 = createAndSaveTeacher("이선생", "lee@test.com", true);
-        teacher3 = createAndSaveTeacher("박선생", "park@test.com", false); // 비활성화
+        teacher3 = createAndSaveTeacher("박선생", "park@test.com", true);
         
         // 기존 감독 이력 생성
         createSupervisionHistory();
@@ -68,8 +68,8 @@ class SupervisionAutoAssignRepositoryTest {
         List<SupervisionAutoAssignRepository.TeacherSupervisionInfoProjection> result = 
                 autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER);
 
-        // Then: 활성 교사들만 조회됨
-        assertThat(result).hasSize(2); // teacher3는 비활성화되어 제외
+        // Then: 모든 교사가 활성 상태이므로 3명 조회됨
+        assertThat(result).hasSize(3); // 모든 교사가 활성 상태
         
         // 김선생 확인
         var kimTeacher = result.stream()
@@ -92,6 +92,17 @@ class SupervisionAutoAssignRepositoryTest {
         assertThat(leeTeacher.getTeacherName()).isEqualTo("이선생");
         assertThat(leeTeacher.getLastSupervisionDate()).isEqualTo(LocalDate.of(2025, 1, 15));
         assertThat(leeTeacher.getTotalSupervisionCount()).isEqualTo(1L);
+        
+        // 박선생 확인 (감독 이력 없음)
+        var parkTeacher = result.stream()
+                .filter(t -> t.getTeacherName().equals("박선생"))
+                .findFirst()
+                .orElseThrow();
+        
+        assertThat(parkTeacher.getTeacherId()).isEqualTo(teacher3.getId());
+        assertThat(parkTeacher.getTeacherName()).isEqualTo("박선생");
+        assertThat(parkTeacher.getLastSupervisionDate()).isNull();
+        assertThat(parkTeacher.getTotalSupervisionCount()).isEqualTo(0L);
     }
 
     @Test
