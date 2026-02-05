@@ -10,9 +10,7 @@ import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 @Getter
 @Entity
@@ -32,7 +30,7 @@ public class StudentScheduleEntity extends BaseEntity {
 
     @OneToMany(
             mappedBy = "studentSchedule",
-            cascade = CascadeType.REMOVE,
+            cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
