@@ -149,6 +149,37 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                 );
     }
 
+    @Override
+    public Map<Long, ScheduleType> findLastScheduleTypeByStudentsAndDayAndPeriod(List<StudentEntity> students, LocalDate day, SchoolPeriod period) {
+        QStudentEntity student = QStudentEntity.studentEntity;
+        QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
+        QScheduleEntity schedule = QScheduleEntity.scheduleEntity;
+        QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
+
+        return queryFactory
+                .from(student)
+                .join(studentSchedule).on(studentSchedule.student.id.eq(student.id))
+                .join(schedule).on(
+                        studentSchedule.id.eq(schedule.studentSchedule.id)
+                                // stack_order 가 가장 높은 스케줄 가져오기
+                                // stack_order 가 가장 큰 스케줄이 최신 데이터
+                                .and(schedule.stackOrder.eq(
+                                        JPAExpressions
+                                                .select(scheduleSub.stackOrder.max())
+                                                .from(scheduleSub)
+                                                .where(scheduleSub.studentSchedule.id.eq(studentSchedule.id))
+                                ))
+                )
+                .where(
+                        student.in(students),
+                        studentSchedule.day.eq(day),
+                        studentSchedule.period.eq(period)
+                )
+                .transform(
+                        groupBy(student.id).as(schedule.type)
+                );
+    }
+
     private BooleanExpression gradeEq(Integer grade) {
         QStudentEntity student = QStudentEntity.studentEntity;
         return grade != null ? student.grade.eq(grade) : null;

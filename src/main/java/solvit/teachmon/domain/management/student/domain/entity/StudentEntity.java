@@ -94,7 +94,7 @@ public class StudentEntity extends BaseEntity {
 
     public Integer calculateStudentNumber() {
         return Integer.parseInt(
-                grade + classNumber + String.format("%02d", number)
+                String.format("%d%d%02d", grade, classNumber, number)
         );
     }
 }
