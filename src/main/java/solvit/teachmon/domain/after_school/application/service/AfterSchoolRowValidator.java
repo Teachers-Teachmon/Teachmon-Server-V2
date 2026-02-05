@@ -16,22 +16,18 @@ import solvit.teachmon.domain.after_school.exception.RowSizeMismatchException;
 import solvit.teachmon.domain.after_school.exception.StudentDataFormatException;
 import solvit.teachmon.domain.after_school.exception.StudentDataNullException;
 import solvit.teachmon.domain.after_school.exception.StudentNotExistException;
-import solvit.teachmon.domain.after_school.exception.TeacherDataFormatException;
 import solvit.teachmon.domain.after_school.exception.TeacherNotExistException;
 import solvit.teachmon.domain.after_school.exception.TeacherNullException;
 import solvit.teachmon.domain.after_school.exception.WeekDayInvalidException;
 import solvit.teachmon.domain.after_school.exception.WeekDayNullException;
 import solvit.teachmon.domain.after_school.exception.YearInvalidException;
 import solvit.teachmon.domain.after_school.exception.YearNullException;
-import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class AfterSchoolRowValidator {
-
-    private final StudentRepository studentRepository;
 
     public void validate(List<Object> row, long rowNum, ReferenceDataCache cache) {
         validateColumnCount(row, rowNum);
@@ -143,15 +139,11 @@ public class AfterSchoolRowValidator {
         }
         
         String teacherData = teacherObj.toString().trim();
-        
-        try {
-            TeacherDataParser.TeacherInfo teacherInfo = TeacherDataParser.parse(teacherData, rowNum);
-            
-            if (!cache.hasTeacher(teacherInfo.email())) {
-                throw new TeacherNotExistException(rowNum, teacherInfo.email());
-            }
-        } catch (TeacherDataFormatException e) {
-            throw e;
+
+        TeacherDataParser.TeacherInfo teacherInfo = TeacherDataParser.parse(teacherData, rowNum);
+
+        if (!cache.hasTeacher(teacherInfo.email())) {
+            throw new TeacherNotExistException(rowNum, teacherInfo.email());
         }
     }
 
@@ -196,7 +188,7 @@ public class AfterSchoolRowValidator {
                 int studentNumber = (int) studentNumberLong;
                 String studentName = tokens[i + 1];
                 
-                if (!cache.hasStudent(studentNumber, studentName)) {
+                if (!cache.hasStudent(studentNumber)) {
                     throw new StudentNotExistException(rowNum, studentNumberLong, studentName);
                 }
             } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {

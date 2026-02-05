@@ -185,8 +185,8 @@ public class AfterSchoolSpreadSheetService {
         Map<String, PlaceEntity> placeEntityMap = allPlaces.stream()
             .collect(Collectors.toMap(PlaceEntity::getName, Function.identity()));
             
-        Map<String, StudentEntity> studentEntityMap = studentRepository.findAll().stream()
-            .collect(Collectors.toMap(s -> s.getNumber() + "_" + s.getName(), Function.identity()));
+        Map<Integer, StudentEntity> studentEntityMap = studentRepository.findAll().stream()
+            .collect(Collectors.toMap(StudentEntity::getNumber, Function.identity()));
             
         return new ReferenceDataCache(teacherEntityMap, placeEntityMap, studentEntityMap);
     }
@@ -270,7 +270,7 @@ public class AfterSchoolSpreadSheetService {
             afterSchoolStudentDomainService.deleteAllByAfterSchool(existingAfterSchool);
             
             List<StudentEntity> students = studentInfos.stream()
-                .map(info -> cache.getStudent(info.number().intValue(), info.name()))
+                .map(info -> cache.getStudent(info.number().intValue()))
                 .filter(Objects::nonNull)
                 .toList();
             afterSchoolStudentDomainService.assignStudents(existingAfterSchool, students);
@@ -317,7 +317,7 @@ public class AfterSchoolSpreadSheetService {
         afterSchoolRepository.save(afterSchool);
         
         List<StudentEntity> students = studentInfos.stream()
-            .map(info -> cache.getStudent(info.number().intValue(), info.name()))
+            .map(info -> cache.getStudent(info.number().intValue()))
             .filter(Objects::nonNull)
             .toList();
         afterSchoolStudentDomainService.assignStudents(afterSchool, students);

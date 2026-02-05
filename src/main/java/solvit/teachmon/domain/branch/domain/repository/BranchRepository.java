@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +16,7 @@ public interface BranchRepository extends JpaRepository<BranchEntity, Long> {
     
     @Query("SELECT b FROM BranchEntity b WHERE b.year = :year ORDER BY b.branch")
     List<BranchEntity> findByYearOrderByBranch(Integer year);
+    
+    @Query("SELECT b FROM BranchEntity b WHERE b.year = :year AND b.startDay <= :date AND b.endDay >= :date")
+    Optional<BranchEntity> findByYearAndDate(Integer year, LocalDate date);
 }

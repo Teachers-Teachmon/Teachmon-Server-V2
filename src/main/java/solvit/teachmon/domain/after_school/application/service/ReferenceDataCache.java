@@ -9,7 +9,7 @@ import java.util.Map;
 public record ReferenceDataCache(
     Map<String, TeacherEntity> teacherEntityMap,
     Map<String, PlaceEntity> placeEntityMap,
-    Map<String, StudentEntity> studentEntityMap
+    Map<Integer, StudentEntity> studentEntityMap
 ) {
 
     public boolean hasTeacher(String email) {
@@ -20,8 +20,8 @@ public record ReferenceDataCache(
         return placeEntityMap.containsKey(name);
     }
 
-    public boolean hasStudent(Integer number, String name) {
-        return studentEntityMap.containsKey(number + "_" + name);
+    public boolean hasStudent(Integer number) {
+        return studentEntityMap.containsKey(number);
     }
 
     public TeacherEntity getTeacher(String email) {
@@ -32,7 +32,7 @@ public record ReferenceDataCache(
         return placeEntityMap.get(name);
     }
 
-    public StudentEntity getStudent(Integer number, String name) {
-        return this.studentEntityMap.get(number + "_" + name);
+    public StudentEntity getStudent(Integer number) {
+        return studentEntityMap.get(number);
     }
 }

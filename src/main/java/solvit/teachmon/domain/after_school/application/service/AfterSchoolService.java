@@ -11,7 +11,6 @@ import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolReinforc
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolRepository;
 import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDomainService;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundException;
-import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolReinforcementException;
 import solvit.teachmon.domain.place.exception.PlaceNotFoundException;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolBusinessTripRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolCreateRequestDto;
@@ -156,9 +155,7 @@ public class AfterSchoolService {
     private BranchEntity getCurrentBranch() {
         LocalDate today = LocalDate.now();
         int currentYear = today.getYear();
-        return branchRepository.findByYearOrderByBranch(currentYear).stream()
-                .filter(branch -> !branch.getStartDay().isAfter(today) && !branch.getEndDay().isBefore(today))
-                .findFirst()
+        return branchRepository.findByYearAndDate(currentYear, today)
                 .orElseThrow(BranchNotFoundException::new);
     }
 
@@ -207,27 +204,15 @@ public class AfterSchoolService {
     public void createReinforcement(AfterSchoolReinforcementRequestDto requestDto) {
         AfterSchoolEntity afterSchool = getAfterSchoolById(requestDto.afterschoolId());
         PlaceEntity changePlace = getPlaceById(requestDto.changePlaceId());
-        SchoolPeriod changePeriod = convertToSchoolPeriod(requestDto.changeStartPeriod(), requestDto.changeEndPeriod());
         
         AfterSchoolReinforcementEntity reinforcement = AfterSchoolReinforcementEntity.builder()
                 .changeDay(requestDto.day())
                 .afterSchool(afterSchool)
-                .changePeriod(changePeriod)
+                .changePeriod(requestDto.changePeriod())
                 .place(changePlace)
                 .build();
         
         afterSchoolReinforcementRepository.save(reinforcement);
     }
 
-    private SchoolPeriod convertToSchoolPeriod(Integer startPeriod, Integer endPeriod) {
-        if (startPeriod == 7 && endPeriod == 7) {
-            return SchoolPeriod.SEVEN_PERIOD;
-        } else if (startPeriod == 8 && endPeriod == 9) {
-            return SchoolPeriod.EIGHT_AND_NINE_PERIOD;
-        } else if (startPeriod == 10 && endPeriod == 11) {
-            return SchoolPeriod.TEN_AND_ELEVEN_PERIOD;
-        } else {
-            throw new InvalidAfterSchoolReinforcementException("지원하지 않는 교시입니다: " + startPeriod + "~" + endPeriod);
-        }
-    }
 }

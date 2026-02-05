@@ -1,7 +1,10 @@
 package solvit.teachmon.domain.after_school.exception;
 
-public class InvalidAfterSchoolReinforcementException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+import solvit.teachmon.global.exception.TeachmonBusinessException;
+
+public class InvalidAfterSchoolReinforcementException extends TeachmonBusinessException {
     public InvalidAfterSchoolReinforcementException(String message) {
-        super(message);
+        super(message, HttpStatus.BAD_REQUEST);
     }
 }
