@@ -66,6 +66,11 @@ public class StudentEntity extends BaseEntity {
         this.name = name;
     }
 
+    // 학년(1자리) + 학반(1자리) + 학번(2자리) 조합
+    public Integer calculateStudentNumber() {
+        return (grade * 1000) + (classNumber * 100) + number;
+    }
+
     private void validateGrade(Integer grade) {
         if (grade == null || grade < 1 || grade > 3) {
             throw new InvalidStudentInfoException("학년은 1 ~ 3 사이여야 합니다");
