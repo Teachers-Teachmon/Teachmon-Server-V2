@@ -26,8 +26,9 @@ public class SupervisionExchangeController {
     private final SupervisionExchangeService supervisionExchangeService;
 
     @GetMapping("/exchange")
-    public ResponseEntity<List<SupervisionExchangeResponseDto>> getSupervisionExchanges() {
-        List<SupervisionExchangeResponseDto> exchanges = supervisionExchangeService.getSupervisionExchanges();
+    public ResponseEntity<List<SupervisionExchangeResponseDto>> getSupervisionExchanges(
+            @AuthenticationPrincipal TeachmonUserDetails userDetails) {
+        List<SupervisionExchangeResponseDto> exchanges = supervisionExchangeService.getSupervisionExchanges(userDetails.getId());
         return ResponseEntity.ok(exchanges);
     }
 

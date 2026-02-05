@@ -5,10 +5,8 @@ import lombok.Builder;
 
 @Builder
 public record SupervisionRankResponseDto(
-        @JsonProperty("rank")
         Integer rank,
 
-        @JsonProperty("name")
         String name,
 
         @JsonProperty("self_study_supervision_count")

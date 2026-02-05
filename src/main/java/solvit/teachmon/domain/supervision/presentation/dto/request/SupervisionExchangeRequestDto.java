@@ -15,7 +15,6 @@ public record SupervisionExchangeRequestDto(
         @NotNull(message = "교체할 감독 일정 ID는 필수입니다.")
         Long changeSupervisionId,
 
-        @JsonProperty("reason")
         @NotBlank(message = "교체 사유는 필수입니다.")
         String reason
 ) {

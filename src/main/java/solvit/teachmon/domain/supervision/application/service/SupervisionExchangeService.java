@@ -3,9 +3,9 @@ package solvit.teachmon.domain.supervision.application.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import solvit.teachmon.domain.supervision.application.mapper.SupervisionExchangeResponseMapper;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionExchangeEntity;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
-import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionExchangeRepository;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
 import solvit.teachmon.domain.supervision.exception.SupervisionExchangeNotFoundException;
@@ -29,6 +29,7 @@ public class SupervisionExchangeService {
     private final SupervisionExchangeRepository supervisionExchangeRepository;
     private final SupervisionScheduleRepository supervisionScheduleRepository;
     private final TeacherRepository teacherRepository;
+    private final SupervisionExchangeResponseMapper mapper;
 
     @Transactional
     public void createSupervisionExchangeRequest(SupervisionExchangeRequestDto requestDto, Long requesterId) {
@@ -93,43 +94,12 @@ public class SupervisionExchangeService {
     }
 
     @Transactional(readOnly = true)
-    public List<SupervisionExchangeResponseDto> getSupervisionExchanges() {
-        List<SupervisionExchangeEntity> exchanges = supervisionExchangeRepository.findAll();
+    public List<SupervisionExchangeResponseDto> getSupervisionExchanges(Long currentUserId) {
+        List<SupervisionExchangeEntity> exchanges = supervisionExchangeRepository.findByRecipientId(currentUserId);
         
         return exchanges.stream()
-                .map(this::convertToResponseDto)
+                .map(mapper::toResponseDto)
                 .toList();
     }
 
-    private SupervisionExchangeResponseDto convertToResponseDto(SupervisionExchangeEntity exchange) {
-        return SupervisionExchangeResponseDto.builder()
-                .id(exchange.getId())
-                .requestor(convertToSupervisionInfo(exchange.getSenderSchedule()))
-                .responser(convertToSupervisionInfo(exchange.getRecipientSchedule()))
-                .status(exchange.getState())
-                .reason(exchange.getReason())
-                .build();
-    }
-
-    private SupervisionExchangeResponseDto.SupervisionInfo convertToSupervisionInfo(SupervisionScheduleEntity schedule) {
-        return SupervisionExchangeResponseDto.SupervisionInfo.builder()
-                .teacher(convertToTeacherInfo(schedule.getTeacher()))
-                .day(schedule.getDay())
-                .type(convertSupervisionType(schedule.getType()))
-                .build();
-    }
-
-    private SupervisionExchangeResponseDto.SupervisionInfo.TeacherInfo convertToTeacherInfo(TeacherEntity teacher) {
-        return SupervisionExchangeResponseDto.SupervisionInfo.TeacherInfo.builder()
-                .id(teacher.getId())
-                .name(teacher.getName())
-                .build();
-    }
-
-    private String convertSupervisionType(SupervisionType type) {
-        return switch (type) {
-            case SELF_STUDY_SUPERVISION -> "self_study";
-            case LEAVE_SEAT_SUPERVISION -> "leave_seat";
-        };
-    }
 }

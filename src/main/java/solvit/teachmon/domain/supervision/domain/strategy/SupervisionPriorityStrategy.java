@@ -1,6 +1,6 @@
 package solvit.teachmon.domain.supervision.domain.strategy;
 
-import solvit.teachmon.domain.supervision.domain.dto.TeacherSupervisionInfo;
+import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfo;
 
 import java.time.LocalDate;
 

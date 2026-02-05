@@ -20,6 +20,8 @@ import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionS
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionTodayResponseDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionRankResponseDto;
 import solvit.teachmon.domain.supervision.exception.InvalidDateRangeException;
+import solvit.teachmon.global.exception.TeachmonException;
+import org.springframework.http.HttpStatus;
 import solvit.teachmon.global.security.user.TeachmonUserDetails;
 
 import java.time.LocalDate;
@@ -44,6 +46,7 @@ public class SupervisionScheduleController {
 
     @PatchMapping("/schedule")
     public ResponseEntity<Void> updateSupervisionSchedule(@Valid @RequestBody SupervisionScheduleUpdateRequestDto requestDto) {
+        validateUpdateRequest(requestDto);
         supervisionScheduleService.updateSupervisionSchedule(requestDto);
         return ResponseEntity.noContent().build();
     }
@@ -58,6 +61,7 @@ public class SupervisionScheduleController {
     public ResponseEntity<List<SupervisionScheduleResponseDto>> searchSupervisionSchedules(
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) String query) {
+        validateMonth(month);
         List<SupervisionScheduleResponseDto> responses = supervisionScheduleService.searchSupervisionSchedules(month, query);
         return ResponseEntity.ok(responses);
     }
@@ -66,6 +70,7 @@ public class SupervisionScheduleController {
     public ResponseEntity<List<LocalDate>> getMySupervisionDays(
             @RequestParam Integer month,
             TeachmonUserDetails userDetails) {
+        validateMonth(month);
         List<LocalDate> supervisionDays = supervisionScheduleService.getMySupervisionDays(userDetails.getId(), month);
         return ResponseEntity.ok(supervisionDays);
     }
@@ -109,6 +114,22 @@ public class SupervisionScheduleController {
         long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
         if (daysBetween > MAX_ASSIGN_DAYS) {
             throw new InvalidDateRangeException("배정 기간은 최대 " + MAX_ASSIGN_DAYS + "일까지 가능합니다.");
+        }
+    }
+
+    private void validateMonth(Integer month) {
+        if (month != null && (month < 1 || month > 12)) {
+            throw new TeachmonException("월은 1부터 12까지의 값이어야 합니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private void validateUpdateRequest(SupervisionScheduleUpdateRequestDto requestDto) {
+        if (requestDto.selfStudySupervisionTeacherId().equals(requestDto.leaveSeatSupervisionTeacherId())) {
+            throw new TeachmonException("자습 감독과 이석 감독은 서로 다른 교사여야 합니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (requestDto.day().isBefore(LocalDate.now())) {
+            throw new TeachmonException("과거 날짜에는 감독 일정을 배정할 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
     }
 }

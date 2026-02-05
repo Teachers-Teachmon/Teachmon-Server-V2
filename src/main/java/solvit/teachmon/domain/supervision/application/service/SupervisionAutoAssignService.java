@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import solvit.teachmon.domain.supervision.domain.dto.TeacherSupervisionInfo;
+import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfo;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionScheduleResponseDto;

@@ -76,10 +76,11 @@ class SupervisionExchangeControllerTest {
                 .reason("개인 사유로 교체 요청드립니다")
                 .build();
 
-        given(supervisionExchangeService.getSupervisionExchanges()).willReturn(List.of(response));
+        given(userDetails.getId()).willReturn(2L);
+        given(supervisionExchangeService.getSupervisionExchanges(anyLong())).willReturn(List.of(response));
 
         // When
-        ResponseEntity<List<SupervisionExchangeResponseDto>> result = supervisionExchangeController.getSupervisionExchanges();
+        ResponseEntity<List<SupervisionExchangeResponseDto>> result = supervisionExchangeController.getSupervisionExchanges(userDetails);
 
         // Then
         assertThat(result.getStatusCode().value()).isEqualTo(200);
@@ -89,7 +90,7 @@ class SupervisionExchangeControllerTest {
         assertThat(result.getBody().get(0).responser().teacher().name()).isEqualTo("김선생");
         assertThat(result.getBody().get(0).status()).isEqualTo(SupervisionExchangeType.PENDING);
 
-        verify(supervisionExchangeService).getSupervisionExchanges();
+        verify(supervisionExchangeService).getSupervisionExchanges(2L);
     }
 
     @Test

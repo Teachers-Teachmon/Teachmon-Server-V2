@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionExchangeType;
+import solvit.teachmon.domain.supervision.exception.InvalidSupervisionExchangeException;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.entity.BaseEntity;
 
@@ -42,6 +43,13 @@ public class SupervisionExchangeEntity extends BaseEntity {
                                    SupervisionScheduleEntity senderSchedule, 
                                    SupervisionScheduleEntity recipientSchedule, 
                                    String reason) {
+        validateSender(sender);
+        validateRecipient(recipient);
+        validateSenderSchedule(senderSchedule);
+        validateRecipientSchedule(recipientSchedule);
+        validateReason(reason);
+        validateDifferentTeachers(sender, recipient);
+        
         this.sender = sender;
         this.recipient = recipient;
         this.senderSchedule = senderSchedule;
@@ -56,5 +64,44 @@ public class SupervisionExchangeEntity extends BaseEntity {
 
     public void reject() {
         this.state = SupervisionExchangeType.REJECTED;
+    }
+
+    private void validateSender(TeacherEntity sender) {
+        if (sender == null) {
+            throw new InvalidSupervisionExchangeException("교체 요청자는 필수입니다.");
+        }
+    }
+
+    private void validateRecipient(TeacherEntity recipient) {
+        if (recipient == null) {
+            throw new InvalidSupervisionExchangeException("교체 대상자는 필수입니다.");
+        }
+    }
+
+    private void validateSenderSchedule(SupervisionScheduleEntity senderSchedule) {
+        if (senderSchedule == null) {
+            throw new InvalidSupervisionExchangeException("요청자의 감독 일정은 필수입니다.");
+        }
+    }
+
+    private void validateRecipientSchedule(SupervisionScheduleEntity recipientSchedule) {
+        if (recipientSchedule == null) {
+            throw new InvalidSupervisionExchangeException("대상자의 감독 일정은 필수입니다.");
+        }
+    }
+
+    private void validateReason(String reason) {
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new InvalidSupervisionExchangeException("교체 요청 사유는 필수입니다.");
+        }
+        if (reason.length() > 500) {
+            throw new InvalidSupervisionExchangeException("교체 요청 사유는 500자 이하로 입력해주세요.");
+        }
+    }
+
+    private void validateDifferentTeachers(TeacherEntity sender, TeacherEntity recipient) {
+        if (sender != null && recipient != null && sender.getId().equals(recipient.getId())) {
+            throw new InvalidSupervisionExchangeException("자신에게는 교체 요청을 할 수 없습니다.");
+        }
     }
 }

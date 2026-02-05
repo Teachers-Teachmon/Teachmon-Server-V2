@@ -17,6 +17,8 @@ import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
+import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfoVo;
+import solvit.teachmon.domain.supervision.domain.vo.SupervisionBanDayVo;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -65,7 +67,7 @@ class SupervisionAutoAssignRepositoryTest {
         // Given: 교사들과 감독 이력이 준비됨
 
         // When: 교사 감독 정보 조회
-        List<SupervisionAutoAssignRepository.TeacherSupervisionInfoProjection> result = 
+        List<TeacherSupervisionInfoVo> result = 
                 autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER);
 
         // Then: 모든 교사가 활성 상태이므로 3명 조회됨
@@ -73,36 +75,36 @@ class SupervisionAutoAssignRepositoryTest {
         
         // 김선생 확인
         var kimTeacher = result.stream()
-                .filter(t -> t.getTeacherName().equals("김선생"))
+                .filter(t -> t.teacherName().equals("김선생"))
                 .findFirst()
                 .orElseThrow();
         
-        assertThat(kimTeacher.getTeacherId()).isEqualTo(teacher1.getId());
-        assertThat(kimTeacher.getTeacherName()).isEqualTo("김선생");
-        assertThat(kimTeacher.getLastSupervisionDate()).isEqualTo(LocalDate.of(2025, 1, 20));
-        assertThat(kimTeacher.getTotalSupervisionCount()).isEqualTo(2L);
+        assertThat(kimTeacher.teacherId()).isEqualTo(teacher1.getId());
+        assertThat(kimTeacher.teacherName()).isEqualTo("김선생");
+        assertThat(kimTeacher.lastSupervisionDate()).isEqualTo(LocalDate.of(2025, 1, 20));
+        assertThat(kimTeacher.totalSupervisionCount()).isEqualTo(2L);
         
         // 이선생 확인
         var leeTeacher = result.stream()
-                .filter(t -> t.getTeacherName().equals("이선생"))
+                .filter(t -> t.teacherName().equals("이선생"))
                 .findFirst()
                 .orElseThrow();
         
-        assertThat(leeTeacher.getTeacherId()).isEqualTo(teacher2.getId());
-        assertThat(leeTeacher.getTeacherName()).isEqualTo("이선생");
-        assertThat(leeTeacher.getLastSupervisionDate()).isEqualTo(LocalDate.of(2025, 1, 15));
-        assertThat(leeTeacher.getTotalSupervisionCount()).isEqualTo(1L);
+        assertThat(leeTeacher.teacherId()).isEqualTo(teacher2.getId());
+        assertThat(leeTeacher.teacherName()).isEqualTo("이선생");
+        assertThat(leeTeacher.lastSupervisionDate()).isEqualTo(LocalDate.of(2025, 1, 15));
+        assertThat(leeTeacher.totalSupervisionCount()).isEqualTo(1L);
         
         // 박선생 확인 (감독 이력 없음)
         var parkTeacher = result.stream()
-                .filter(t -> t.getTeacherName().equals("박선생"))
+                .filter(t -> t.teacherName().equals("박선생"))
                 .findFirst()
                 .orElseThrow();
         
-        assertThat(parkTeacher.getTeacherId()).isEqualTo(teacher3.getId());
-        assertThat(parkTeacher.getTeacherName()).isEqualTo("박선생");
-        assertThat(parkTeacher.getLastSupervisionDate()).isNull();
-        assertThat(parkTeacher.getTotalSupervisionCount()).isEqualTo(0L);
+        assertThat(parkTeacher.teacherId()).isEqualTo(teacher3.getId());
+        assertThat(parkTeacher.teacherName()).isEqualTo("박선생");
+        assertThat(parkTeacher.lastSupervisionDate()).isNull();
+        assertThat(parkTeacher.totalSupervisionCount()).isEqualTo(0L);
     }
 
     @Test
@@ -112,15 +114,15 @@ class SupervisionAutoAssignRepositoryTest {
         List<Long> teacherIds = List.of(teacher1.getId(), teacher2.getId());
 
         // When: 금지요일 정보 조회
-        List<SupervisionAutoAssignRepository.SupervisionBanDayProjection> result = 
+        List<SupervisionBanDayVo> result = 
                 autoAssignRepository.findBanDaysByTeacherIds(teacherIds);
 
         // Then: 김선생의 화요일 금지요일만 조회됨
         assertThat(result).hasSize(1);
         
         var banDay = result.get(0);
-        assertThat(banDay.getTeacherId()).isEqualTo(teacher1.getId());
-        assertThat(banDay.getWeekDay()).isEqualTo(WeekDay.TUE);
+        assertThat(banDay.teacherId()).isEqualTo(teacher1.getId());
+        assertThat(banDay.weekDay()).isEqualTo(WeekDay.TUE);
     }
 
     @Test
@@ -130,7 +132,7 @@ class SupervisionAutoAssignRepositoryTest {
         List<Long> nonExistentIds = List.of(999L, 1000L);
 
         // When: 금지요일 정보 조회
-        List<SupervisionAutoAssignRepository.SupervisionBanDayProjection> result = 
+        List<SupervisionBanDayVo> result = 
                 autoAssignRepository.findBanDaysByTeacherIds(nonExistentIds);
 
         // Then: 빈 결과 반환
@@ -166,17 +168,17 @@ class SupervisionAutoAssignRepositoryTest {
         TeacherEntity newTeacher = createAndSaveTeacher("정선생", "jung@test.com", true);
 
         // When: 교사 감독 정보 조회
-        List<SupervisionAutoAssignRepository.TeacherSupervisionInfoProjection> result = 
+        List<TeacherSupervisionInfoVo> result = 
                 autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER);
 
         // Then: 새 교사는 총 횟수 0, 최근 날짜 null
         var newTeacherInfo = result.stream()
-                .filter(t -> t.getTeacherName().equals("정선생"))
+                .filter(t -> t.teacherName().equals("정선생"))
                 .findFirst()
                 .orElseThrow();
         
-        assertThat(newTeacherInfo.getTotalSupervisionCount()).isEqualTo(0L);
-        assertThat(newTeacherInfo.getLastSupervisionDate()).isNull();
+        assertThat(newTeacherInfo.totalSupervisionCount()).isEqualTo(0L);
+        assertThat(newTeacherInfo.lastSupervisionDate()).isNull();
     }
 
     // Helper methods

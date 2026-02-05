@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import solvit.teachmon.domain.supervision.application.mapper.SupervisionScheduleRequestMapper;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
@@ -31,6 +32,7 @@ public class SupervisionScheduleService {
 
     private final SupervisionScheduleRepository supervisionScheduleRepository;
     private final TeacherRepository teacherRepository;
+    private final SupervisionScheduleRequestMapper mapper;
 
     @Transactional
     public void createSupervisionSchedule(SupervisionScheduleCreateRequestDto requestDto) {
@@ -43,16 +45,9 @@ public class SupervisionScheduleService {
         supervisionScheduleRepository.deleteByDay(requestDto.day());
         
         // 새로운 감독 일정 생성
-        createSupervisionSchedulesInternal(convertToCreateRequest(requestDto));
+        createSupervisionSchedulesInternal(mapper.toCreateRequest(requestDto));
     }
     
-    private SupervisionScheduleCreateRequestDto convertToCreateRequest(SupervisionScheduleUpdateRequestDto updateRequest) {
-        return SupervisionScheduleCreateRequestDto.builder()
-                .day(updateRequest.day())
-                .selfStudySupervisionTeacherId(updateRequest.selfStudySupervisionTeacherId())
-                .leaveSeatSupervisionTeacherId(updateRequest.leaveSeatSupervisionTeacherId())
-                .build();
-    }
 
     private void createSupervisionSchedulesInternal(SupervisionScheduleCreateRequestDto requestDto) {
         // 교사 조회

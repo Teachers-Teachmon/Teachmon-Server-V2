@@ -3,9 +3,11 @@ package solvit.teachmon.domain.supervision.application.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import solvit.teachmon.domain.supervision.domain.dto.DailySupervisionAssignment;
-import solvit.teachmon.domain.supervision.domain.dto.TeacherPriorityInfo;
-import solvit.teachmon.domain.supervision.domain.dto.TeacherSupervisionInfo;
+import solvit.teachmon.domain.supervision.application.mapper.SupervisionAssignmentMapper;
+import solvit.teachmon.domain.supervision.domain.vo.TeacherPriorityInfo;
+import solvit.teachmon.domain.supervision.domain.vo.DailySupervisionAssignment;
+import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionCalculator;
+import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfo;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionAutoAssignRepository;
@@ -13,7 +15,9 @@ import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleR
 import solvit.teachmon.domain.supervision.domain.strategy.SupervisionPriorityStrategy;
 import solvit.teachmon.domain.supervision.exception.InsufficientTeachersException;
 import solvit.teachmon.domain.supervision.exception.InvalidAssignmentException;
+import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
+import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -32,6 +36,7 @@ public class SupervisionAssignmentProcessor {
     private final SupervisionScheduleRepository scheduleRepository;
     private final TeacherRepository teacherRepository;
     private final SupervisionPriorityStrategy priorityStrategy;
+    private final SupervisionAssignmentMapper mapper;
 
     public List<SupervisionScheduleEntity> processDateAssignments(List<LocalDate> targetDates, 
                                                                   List<TeacherSupervisionInfo> teacherInfos) {
@@ -55,7 +60,7 @@ public class SupervisionAssignmentProcessor {
                                            List<SupervisionScheduleEntity> schedules) {
         DailySupervisionAssignment assignment = assignDailySupervision(teacherInfoMap.values(), date);
         
-        List<SupervisionScheduleEntity> dailySchedules = assignment.toScheduleEntities(date, teacherRepository);
+        List<SupervisionScheduleEntity> dailySchedules = convertToScheduleEntities(assignment, date);
         schedules.addAll(dailySchedules);
 
         updateTeacherInfosAfterAssignment(teacherInfoMap, assignment, date);
@@ -73,7 +78,7 @@ public class SupervisionAssignmentProcessor {
 
     private List<TeacherSupervisionInfo> getAvailableTeachers(Collection<TeacherSupervisionInfo> teacherInfos, LocalDate date) {
         List<TeacherSupervisionInfo> availableTeachers = teacherInfos.stream()
-                .filter(info -> !info.isBanDay(date.getDayOfWeek()))
+                .filter(info -> !new TeacherSupervisionCalculator(info).isBanDay(date.getDayOfWeek()))
                 .toList();
 
         if (availableTeachers.size() < 2) {
@@ -149,12 +154,23 @@ public class SupervisionAssignmentProcessor {
                                                   DailySupervisionAssignment assignment, LocalDate date) {
         // 자습 감독 교사 정보 업데이트
         Long selfStudyTeacherId = assignment.selfStudyTeacher().teacherId();
+        TeacherSupervisionCalculator selfStudyCalculator = new TeacherSupervisionCalculator(assignment.selfStudyTeacher());
         teacherInfoMap.put(selfStudyTeacherId,
-                assignment.selfStudyTeacher().withUpdatedSupervision(date, SupervisionType.SELF_STUDY_SUPERVISION));
+                selfStudyCalculator.withUpdatedSupervision(date, SupervisionType.SELF_STUDY_SUPERVISION));
 
         // 이석 감독 교사 정보 업데이트
         Long leaveSeatTeacherId = assignment.leaveSeatTeacher().teacherId();
+        TeacherSupervisionCalculator leaveSeatCalculator = new TeacherSupervisionCalculator(assignment.leaveSeatTeacher());
         teacherInfoMap.put(leaveSeatTeacherId,
-                assignment.leaveSeatTeacher().withUpdatedSupervision(date, SupervisionType.LEAVE_SEAT_SUPERVISION));
+                leaveSeatCalculator.withUpdatedSupervision(date, SupervisionType.LEAVE_SEAT_SUPERVISION));
+    }
+
+    private List<SupervisionScheduleEntity> convertToScheduleEntities(DailySupervisionAssignment assignment, LocalDate date) {
+        TeacherEntity selfStudyTeacherEntity = teacherRepository.findById(assignment.selfStudyTeacher().teacherId())
+                .orElseThrow(TeacherNotFoundException::new);
+        TeacherEntity leaveSeatTeacherEntity = teacherRepository.findById(assignment.leaveSeatTeacher().teacherId())
+                .orElseThrow(TeacherNotFoundException::new);
+                
+        return mapper.toScheduleEntities(assignment, date, selfStudyTeacherEntity, leaveSeatTeacherEntity);
     }
 }

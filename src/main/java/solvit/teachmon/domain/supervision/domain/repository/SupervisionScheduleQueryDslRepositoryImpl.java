@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.management.teacher.presentation.dto.response.QTeacherListResponse;
 import solvit.teachmon.domain.management.teacher.presentation.dto.response.TeacherListResponse;
+import solvit.teachmon.domain.supervision.application.mapper.SupervisionResponseMapper;
 import solvit.teachmon.domain.supervision.domain.entity.QSupervisionScheduleEntity;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionScheduleQueryDslRepository {
     private final JPAQueryFactory queryFactory;
+    private final SupervisionResponseMapper mapper;
 
     @Override
     public List<TeacherListResponse> countTeacherSupervision(String query) {
@@ -42,7 +44,7 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
                 ))
                 .from(teacher)
                 .leftJoin(schedule).on(schedule.teacher.eq(teacher))
-                .where(nameContains(query))
+                .where(teacherNameContains(teacher, query))
                 .groupBy(teacher.id)
                 .fetch();
     }
@@ -57,7 +59,7 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
                 .join(schedule.teacher, teacher).fetchJoin()
                 .where(
                     monthEquals(month),
-                    query != null && !query.isBlank() ? teacher.name.containsIgnoreCase(query) : null
+                    teacherNameContains(teacher, query)
                 )
                 .orderBy(schedule.day.asc(), schedule.period.asc(), schedule.type.asc())
                 .fetch();
@@ -77,54 +79,9 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
                 ));
         
         // SupervisionScheduleResponseDto로 변환
-        return groupedByDay.entrySet().stream()
-                .map(this::convertToResponseDto)
-                .collect(Collectors.toList());
+        return mapper.convertToResponseDtos(schedules);
     }
 
-    private SupervisionScheduleResponseDto convertToResponseDto(Map.Entry<LocalDate, List<SupervisionScheduleEntity>> entry) {
-        LocalDate day = entry.getKey();
-        List<SupervisionScheduleEntity> daySchedules = entry.getValue();
-        
-        SupervisionScheduleResponseDto.SupervisionInfo selfStudySupervision = findSupervisionByType(daySchedules, SupervisionType.SELF_STUDY_SUPERVISION);
-        SupervisionScheduleResponseDto.SupervisionInfo leaveSeatSupervision = findSupervisionByType(daySchedules, SupervisionType.LEAVE_SEAT_SUPERVISION);
-        
-        return SupervisionScheduleResponseDto.builder()
-                .day(day)
-                .selfStudySupervision(selfStudySupervision)
-                .leaveSeatSupervision(leaveSeatSupervision)
-                .build();
-    }
-
-    private SupervisionScheduleResponseDto.SupervisionInfo findSupervisionByType(
-            List<SupervisionScheduleEntity> schedules, SupervisionType type) {
-        return schedules.stream()
-                .filter(schedule -> schedule.getType() == type)
-                .findFirst()
-                .map(this::convertToSupervisionInfo)
-                .orElse(null);
-    }
-
-    private SupervisionScheduleResponseDto.SupervisionInfo convertToSupervisionInfo(SupervisionScheduleEntity schedule) {
-        return SupervisionScheduleResponseDto.SupervisionInfo.builder()
-                .id(schedule.getId())
-                .teacher(convertToTeacherInfo(schedule.getTeacher()))
-                .build();
-    }
-
-    private SupervisionScheduleResponseDto.SupervisionInfo.TeacherInfo convertToTeacherInfo(TeacherEntity teacher) {
-        return SupervisionScheduleResponseDto.SupervisionInfo.TeacherInfo.builder()
-                .id(teacher.getId())
-                .name(teacher.getName())
-                .build();
-    }
-
-    private BooleanExpression nameContains(String query) {
-        QTeacherEntity teacher = QTeacherEntity.teacherEntity;
-        return query != null && !query.isBlank()
-                ? teacher.name.containsIgnoreCase(query)
-                : null;
-    }
 
     private BooleanExpression monthEquals(Integer month) {
         QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
@@ -133,44 +90,8 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
                 : null;
     }
 
-    @Override
-    public List<LocalDate> findSupervisionDaysByTeacherAndMonth(Long teacherId, Integer month) {
-        QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
-
-        return queryFactory
-                .select(schedule.day)
-                .from(schedule)
-                .where(
-                    teacherIdEquals(teacherId),
-                    monthEquals(month)
-                )
-                .distinct()
-                .orderBy(schedule.day.asc())
-                .fetch();
-    }
 
 
-    @Override
-    public List<SupervisionType> findTodaySupervisionTypesByTeacher(Long teacherId, LocalDate today) {
-        QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
-
-        return queryFactory
-                .select(schedule.type)
-                .from(schedule)
-                .where(
-                    teacherIdEquals(teacherId),
-                    dayEquals(today)
-                )
-                .distinct()
-                .fetch();
-    }
-
-    private BooleanExpression teacherIdEquals(Long teacherId) {
-        QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
-        return teacherId != null 
-                ? schedule.teacher.id.eq(teacherId)
-                : null;
-    }
 
     @Override
     public List<SupervisionRankResponseDto> findSupervisionRankings(String query, SupervisionSortOrder sortOrder) {
@@ -191,7 +112,7 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
                     .and(selfStudySchedule.type.eq(SupervisionType.SELF_STUDY_SUPERVISION)))
                 .leftJoin(leaveSeatSchedule).on(leaveSeatSchedule.teacher.eq(teacher)
                     .and(leaveSeatSchedule.type.eq(SupervisionType.LEAVE_SEAT_SUPERVISION)))
-                .where(query != null ? teacher.name.containsIgnoreCase(query) : null)
+                .where(teacherNameContains(teacher, query))
                 .groupBy(teacher.id, teacher.name)
                 .orderBy(sortOrder == SupervisionSortOrder.DESC ? 
                     totalCount.desc() : totalCount.asc())
@@ -223,6 +144,19 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
         QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
         return day != null 
                 ? schedule.day.eq(day)
+                : null;
+    }
+    
+    private BooleanExpression teacherNameContains(QTeacherEntity teacher, String query) {
+        return query != null && !query.isBlank() 
+                ? teacher.name.containsIgnoreCase(query) 
+                : null;
+    }
+
+    private BooleanExpression supervisionTypeEquals(SupervisionType type) {
+        QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
+        return type != null 
+                ? schedule.type.eq(type)
                 : null;
     }
 }

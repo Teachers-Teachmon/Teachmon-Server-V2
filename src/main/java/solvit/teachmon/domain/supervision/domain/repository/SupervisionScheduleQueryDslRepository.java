@@ -14,7 +14,5 @@ public interface SupervisionScheduleQueryDslRepository {
     List<TeacherListResponse> countTeacherSupervision(String query);
     List<SupervisionScheduleEntity> findByMonthAndQuery(Integer month, String query);
     List<SupervisionScheduleResponseDto> findSchedulesGroupedByDayAndQuery(Integer month, String query);
-    List<LocalDate> findSupervisionDaysByTeacherAndMonth(Long teacherId, Integer month);
-    List<SupervisionType> findTodaySupervisionTypesByTeacher(Long teacherId, LocalDate today);
     List<SupervisionRankResponseDto> findSupervisionRankings(String query, SupervisionSortOrder sortOrder);
 }

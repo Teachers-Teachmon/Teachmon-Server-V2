@@ -6,6 +6,5 @@ import solvit.teachmon.domain.supervision.domain.enums.SupervisionTodayType;
 
 @Builder
 public record SupervisionTodayResponseDto(
-        @JsonProperty("type")
         SupervisionTodayType type
 ) {}

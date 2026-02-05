@@ -8,7 +8,6 @@ import java.time.LocalDate;
 
 @Builder
 public record SupervisionScheduleCreateRequestDto(
-        @JsonProperty("day")
         @NotNull(message = "감독 일정 날짜는 필수입니다.")
         LocalDate day,
 

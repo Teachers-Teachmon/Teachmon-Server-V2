@@ -9,38 +9,28 @@ import java.time.LocalDate;
 
 @Builder
 public record SupervisionExchangeResponseDto(
-        @JsonProperty("id")
         Long id,
 
-        @JsonProperty("requestor")
         SupervisionInfo requestor,
 
-        @JsonProperty("responser")
         SupervisionInfo responser,
 
-        @JsonProperty("status")
         SupervisionExchangeType status,
 
-        @JsonProperty("reason")
         String reason
 ) {
     @Builder
     public record SupervisionInfo(
-            @JsonProperty("teacher")
             TeacherInfo teacher,
 
-            @JsonProperty("day")
             LocalDate day,
 
-            @JsonProperty("type")
             String type
     ) {
         @Builder
         public record TeacherInfo(
-                @JsonProperty("id")
                 Long id,
 
-                @JsonProperty("name")
                 String name
         ) {
         }

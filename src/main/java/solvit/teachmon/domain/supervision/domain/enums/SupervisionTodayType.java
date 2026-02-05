@@ -1,7 +1,11 @@
 package solvit.teachmon.domain.supervision.domain.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public enum SupervisionTodayType {
     NONE("NONE"),
     SELF_STUDY("SELF_STUDY"),
@@ -9,10 +13,6 @@ public enum SupervisionTodayType {
     ALL("ALL");
 
     private final String value;
-
-    SupervisionTodayType(String value) {
-        this.value = value;
-    }
 
     @JsonValue
     public String getValue() {
