@@ -165,6 +165,7 @@ class SupervisionAutoAssignQueryDslRepositoryTest {
     @DisplayName("감독 이력이 없는 교사는 총 횟수가 0으로 조회된다")
     void shouldReturnZeroCountForTeachersWithNoHistory() {
         // Given: 감독 이력이 없는 새 교사
+        createAndSaveTeacher("정선생", "jung@test.com");
 
         // When: 교사 감독 정보 조회
         List<TeacherSupervisionInfoVo> result = 
