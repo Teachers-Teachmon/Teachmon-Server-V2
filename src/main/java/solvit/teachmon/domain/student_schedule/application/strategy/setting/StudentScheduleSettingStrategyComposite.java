@@ -27,6 +27,12 @@ public class StudentScheduleSettingStrategyComposite {
     }
 
     public List<StudentScheduleSettingStrategy> getAllStrategies() {
-        return List.copyOf(studentScheduleStrategyMap.values());
+        return List.of(
+                getStrategy(ScheduleType.SELF_STUDY),
+                getStrategy(ScheduleType.AFTER_SCHOOL),
+                getStrategy(ScheduleType.LEAVE_SEAT),
+                getStrategy(ScheduleType.ADDITIONAL_SELF_STUDY),
+                getStrategy(ScheduleType.AFTER_SCHOOL_REINFORCEMENT)
+        );
     }
 }
