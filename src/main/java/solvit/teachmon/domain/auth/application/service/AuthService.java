@@ -42,4 +42,3 @@ public class AuthService {
         return accessToken;
     }
 }
-
