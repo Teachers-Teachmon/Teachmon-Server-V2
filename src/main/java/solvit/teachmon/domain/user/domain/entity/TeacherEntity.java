@@ -45,10 +45,10 @@ public class TeacherEntity extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Column(name = "provider_id", nullable = false, updatable = false)
+    @Column(name = "provider_id", updatable = false)
     private String providerId;
 
-    @Column(name = "oauth2_type", nullable = false, updatable = false)
+    @Column(name = "oauth2_type", updatable = false)
     @Enumerated(EnumType.STRING)
     private OAuth2Type oAuth2Type;
 
@@ -58,8 +58,6 @@ public class TeacherEntity extends BaseEntity {
     @Builder
     public TeacherEntity(String mail, String name, String profile, String providerId, OAuth2Type oAuth2Type) {
         validateMail(mail);
-        validateProviderId(providerId);
-        validateOAuth2Type(oAuth2Type);
         validateName(name);
 
         this.mail = mail;
@@ -74,16 +72,6 @@ public class TeacherEntity extends BaseEntity {
     private void validateMail(String mail) {
         if(mail == null || mail.trim().isEmpty())
             throw new InvalidTeacherInfoException("메일은 비어 있을 수 없습니다.");
-    }
-
-    private void validateProviderId(String providerId) {
-        if(providerId == null || providerId.trim().isEmpty())
-            throw new InvalidTeacherInfoException("Provider 아이디는 비어 있을 수 없습니다.");
-    }
-
-    private void validateOAuth2Type(OAuth2Type oAuth2Type) {
-        if(oAuth2Type == null)
-            throw new InvalidTeacherInfoException("OAuth2 타입은 비어 있을 수 없습니다.");
     }
 
     private void validateName(String name) {

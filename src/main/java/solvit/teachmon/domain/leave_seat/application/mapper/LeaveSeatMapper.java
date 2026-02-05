@@ -2,7 +2,6 @@ package solvit.teachmon.domain.leave_seat.application.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import solvit.teachmon.domain.leave_seat.domain.entity.LeaveSeatEntity;
 import solvit.teachmon.domain.leave_seat.domain.entity.LeaveSeatStudentEntity;
 import solvit.teachmon.domain.leave_seat.presentation.dto.response.LeaveSeatDetailResponse;
@@ -22,7 +21,7 @@ public interface LeaveSeatMapper {
     @Mapping(target = "teacher", source = "leaveSeat.teacher.name")
     @Mapping(target = "place", source = "leaveSeat.place.name")
     @Mapping(target = "personnel", expression = "java(leaveSeatStudents.size())")
-    @Mapping(target = "students", source = "leaveSeatStudents", qualifiedByName = "mapStudentNames")
+    @Mapping(target = "students", source = "leaveSeatStudents")
     LeaveSeatListResponse toListResponse(
             LeaveSeatEntity leaveSeat,
             List<LeaveSeatStudentEntity> leaveSeatStudents
@@ -40,12 +39,12 @@ public interface LeaveSeatMapper {
             Map<Long, ScheduleType> studentLastScheduleTypes
     );
 
-    @Named("mapStudentNames")
-    default List<String> mapStudentNames(List<LeaveSeatStudentEntity> leaveSeatStudents) {
-        return leaveSeatStudents.stream()
-                .map(ls -> ls.getStudent().calculateStudentNumber() + ls.getStudent().getName())
-                .toList();
+    default String toStudentName(LeaveSeatStudentEntity entity) {
+        return entity.getStudent().calculateStudentNumber()
+                + entity.getStudent().getName();
     }
+
+    List<String> toStudentNames(List<LeaveSeatStudentEntity> entities);
 
     default List<StudentInfoResponse> mapStudentInfosWithScheduleTypes(
             List<StudentEntity> students,

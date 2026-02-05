@@ -106,6 +106,6 @@ public class PlaceStudentScheduleService {
                 .map(studentScheduleMapper::toStudentScheduleResponse)
                 .toList();
 
-        return placeStudentScheduleMapper.toPlaceStudentScheduleResponses(place, studentScheduleResponses);
+        return placeStudentScheduleMapper.toPlaceStudentScheduleResponse(place, studentScheduleResponses);
     }
 }

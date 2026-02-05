@@ -1,6 +1,7 @@
 package solvit.teachmon.domain.student_schedule.application.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.student_schedule.application.dto.PlaceScheduleDto;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.FloorStateResponse;
@@ -22,21 +23,22 @@ public interface PlaceStudentScheduleMapper {
                 .toList();
     }
 
-    default List<PlaceStateResponse> toPlaceStateResponses(List<PlaceScheduleDto> dtos) {
-        return dtos.stream()
-                .map(dto -> PlaceStateResponse.builder()
-                        .placeId(dto.place().getId())
-                        .placeName(dto.place().getName())
-                        .state(dto.scheduleType())
-                        .build())
-                .toList();
-    }
+    @Mapping(target = "placeId", source = "place.id")
+    @Mapping(target = "placeName", source = "place.name")
+    @Mapping(target = "state", source = "scheduleType")
+    PlaceStateResponse toPlaceStateResponse(
+            PlaceScheduleDto dto
+    );
 
-    default PlaceStudentScheduleResponse toPlaceStudentScheduleResponses(PlaceEntity place, List<StudentScheduleResponse> studentSchedules) {
-        return PlaceStudentScheduleResponse.builder()
-                .placeId(place.getId())
-                .placeName(place.getName())
-                .students(studentSchedules)
-                .build();
-    }
+    List<PlaceStateResponse> toPlaceStateResponses(
+            List<PlaceScheduleDto> dtos
+    );
+
+    @Mapping(target = "placeId", source = "place.id")
+    @Mapping(target = "placeName", source = "place.name")
+    @Mapping(target = "students", source = "studentSchedules")
+    PlaceStudentScheduleResponse toPlaceStudentScheduleResponse(
+            PlaceEntity place,
+            List<StudentScheduleResponse> studentSchedules
+    );
 }
