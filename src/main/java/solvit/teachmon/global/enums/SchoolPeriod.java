@@ -21,6 +21,16 @@ public enum SchoolPeriod {
     TEN_AND_ELEVEN_PERIOD("10~11교시", LocalTime.of(18, 10), LocalTime.of(23, 59, 59));
 
     private final String period;
+
+    public static String convertPeriodToKorean(SchoolPeriod period) {
+        return switch (period) {
+            case SEVEN_PERIOD -> "7교시";
+            case EIGHT_AND_NINE_PERIOD -> "8~9교시";
+            case TEN_AND_ELEVEN_PERIOD -> "10~11교시";
+            default -> throw new IllegalArgumentException("Unsupported SchoolPeriod: " + period);
+        };
+    }
+  
     private final LocalTime startTime;
     private final LocalTime endTime;
 

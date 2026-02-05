@@ -10,6 +10,7 @@ import java.util.List;
 public enum Role {
 
     GUEST("ROLE_GUEST"),
+    VIEWER("ROLE_VIEWER"),
     TEACHER("ROLE_TEACHER"),
     ADMIN("ROLE_ADMIN");
 

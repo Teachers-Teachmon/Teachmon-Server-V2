@@ -47,12 +47,10 @@ public class StudentEntity extends BaseEntity {
     }
 
     private Integer resolveYear(Integer year) {
-        // year 이 유효한지 검사
         return (year != null) ? year : getNowYear();
     }
 
     private Integer getNowYear() {
-        // year 설정 도메인 로직
         return LocalDate.now().getYear();
     }
 
@@ -66,6 +64,11 @@ public class StudentEntity extends BaseEntity {
         this.classNumber = classNumber;
         this.number = number;
         this.name = name;
+    }
+
+    // 학년(1자리) + 학반(1자리) + 학번(2자리) 조합
+    public Integer calculateStudentNumber() {
+        return (grade * 1000) + (classNumber * 100) + number;
     }
 
     private void validateGrade(Integer grade) {
@@ -90,11 +93,5 @@ public class StudentEntity extends BaseEntity {
         if (name == null || name.trim().isEmpty()) {
             throw new InvalidStudentInfoException("이름은 비어 있을 수 없습니다");
         }
-    }
-
-    public Integer calculateStudentNumber() {
-        return Integer.parseInt(
-                String.format("%d%d%02d", grade, classNumber, number)
-        );
     }
 }
