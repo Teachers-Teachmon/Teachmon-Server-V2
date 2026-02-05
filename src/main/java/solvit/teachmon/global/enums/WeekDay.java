@@ -1,6 +1,6 @@
 package solvit.teachmon.global.enums;
 
-import java.time.LocalDate;
+import java.time.DayOfWeek;
 
 public enum WeekDay {
     MON,
@@ -39,8 +39,9 @@ public enum WeekDay {
     public static String convertWeekDayToKorean(WeekDay weekDay) {
         return weekDay.toKoreanFull();
     }
-    public static WeekDay fromLocalDate(LocalDate date) {
-        return switch (date.getDayOfWeek()) {
+
+    public static WeekDay fromDayOfWeek(DayOfWeek dayOfWeek) {
+        return switch (dayOfWeek) {
             case MONDAY -> MON;
             case TUESDAY -> TUE;
             case WEDNESDAY -> WED;
