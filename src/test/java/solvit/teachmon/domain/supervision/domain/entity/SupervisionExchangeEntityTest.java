@@ -10,6 +10,7 @@ import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -29,6 +30,7 @@ class SupervisionExchangeEntityTest {
                 .providerId("1")
                 .oAuth2Type(OAuth2Type.GOOGLE)
                 .build();
+        ReflectionTestUtils.setField(senderTeacher, "id", 1L);
 
         recipientTeacher = TeacherEntity.builder()
                 .name("김선생")
@@ -36,6 +38,7 @@ class SupervisionExchangeEntityTest {
                 .providerId("2")
                 .oAuth2Type(OAuth2Type.GOOGLE)
                 .build();
+        ReflectionTestUtils.setField(recipientTeacher, "id", 2L);
 
         senderSchedule = SupervisionScheduleEntity.builder()
                 .teacher(senderTeacher)

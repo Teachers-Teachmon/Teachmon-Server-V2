@@ -24,6 +24,7 @@ import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionE
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
+import solvit.teachmon.domain.supervision.application.mapper.SupervisionExchangeResponseMapper;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -48,6 +49,9 @@ class SupervisionExchangeServiceTest {
     @Mock
     private TeacherRepository teacherRepository;
 
+    @Mock
+    private SupervisionExchangeResponseMapper supervisionExchangeResponseMapper;
+
     private SupervisionExchangeService supervisionExchangeService;
 
     @BeforeEach
@@ -55,7 +59,8 @@ class SupervisionExchangeServiceTest {
         supervisionExchangeService = new SupervisionExchangeService(
                 supervisionExchangeRepository,
                 supervisionScheduleRepository,
-                teacherRepository
+                teacherRepository,
+                supervisionExchangeResponseMapper
         );
     }
 
@@ -302,37 +307,59 @@ class SupervisionExchangeServiceTest {
     }
 
     @Test
-    @DisplayName("모든 교체 요청 목록을 성공적으로 조회한다")
+    @DisplayName("수신자의 교체 요청 목록을 성공적으로 조회한다")
     void shouldGetSupervisionExchangesSuccessfully() {
         // Given
         TeacherEntity senderTeacher = createMockTeacher(1L, "송혜정");
         TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
         SupervisionExchangeEntity exchangeEntity = createMockExchange(senderTeacher, recipientTeacher);
+        SupervisionExchangeResponseDto responseDto = SupervisionExchangeResponseDto.builder()
+                .id(1L)
+                .reason("개인 사유")
+                .status(SupervisionExchangeType.PENDING)
+                .requestor(SupervisionExchangeResponseDto.SupervisionInfo.builder()
+                        .teacher(SupervisionExchangeResponseDto.SupervisionInfo.TeacherInfo.builder()
+                                .id(1L)
+                                .name("송혜정")
+                                .build())
+                        .day(LocalDate.of(2025, 3, 2))
+                        .type("self_study")
+                        .build())
+                .responser(SupervisionExchangeResponseDto.SupervisionInfo.builder()
+                        .teacher(SupervisionExchangeResponseDto.SupervisionInfo.TeacherInfo.builder()
+                                .id(2L)
+                                .name("김선생")
+                                .build())
+                        .day(LocalDate.of(2025, 3, 2))
+                        .type("self_study")
+                        .build())
+                .build();
         
         List<SupervisionExchangeEntity> exchanges = List.of(exchangeEntity);
-        given(supervisionExchangeRepository.findAll()).willReturn(exchanges);
+        given(supervisionExchangeRepository.findByRecipientId(2L)).willReturn(exchanges);
+        given(supervisionExchangeResponseMapper.toResponseDto(exchangeEntity)).willReturn(responseDto);
 
         // When
-        List<SupervisionExchangeResponseDto> result = supervisionExchangeService.getSupervisionExchanges();
+        List<SupervisionExchangeResponseDto> result = supervisionExchangeService.getSupervisionExchanges(2L);
 
         // Then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).reason()).isEqualTo("개인 사유");
         assertThat(result.get(0).status()).isEqualTo(SupervisionExchangeType.PENDING);
-        verify(supervisionExchangeRepository).findAll();
+        verify(supervisionExchangeRepository).findByRecipientId(2L);
     }
 
     @Test
-    @DisplayName("빈 교체 요청 목록을 조회한다")
+    @DisplayName("수신자에 대한 빈 교체 요청 목록을 조회한다")
     void shouldReturnEmptyListWhenNoExchangeExists() {
         // Given
-        given(supervisionExchangeRepository.findAll()).willReturn(List.of());
+        given(supervisionExchangeRepository.findByRecipientId(2L)).willReturn(List.of());
 
         // When
-        List<SupervisionExchangeResponseDto> result = supervisionExchangeService.getSupervisionExchanges();
+        List<SupervisionExchangeResponseDto> result = supervisionExchangeService.getSupervisionExchanges(2L);
 
         // Then
         assertThat(result).isEmpty();
-        verify(supervisionExchangeRepository).findAll();
+        verify(supervisionExchangeRepository).findByRecipientId(2L);
     }
 }
