@@ -24,7 +24,6 @@ import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -78,8 +77,7 @@ class AfterSchoolServiceReinforcementTest {
         reinforcementRequest = new AfterSchoolReinforcementRequestDto(
                 LocalDate.now().plusDays(10), // 현재 날짜보다 10일 후
                 1L,
-                8,
-                9,
+                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
                 1L
         );
     }
@@ -111,8 +109,7 @@ class AfterSchoolServiceReinforcementTest {
         AfterSchoolReinforcementRequestDto request = new AfterSchoolReinforcementRequestDto(
                 LocalDate.now().plusDays(10),
                 1L,
-                10,
-                11,
+                SchoolPeriod.TEN_AND_ELEVEN_PERIOD,
                 1L
         );
         given(afterSchoolRepository.findWithAllRelations(1L))
@@ -171,8 +168,7 @@ class AfterSchoolServiceReinforcementTest {
         AfterSchoolReinforcementRequestDto request = new AfterSchoolReinforcementRequestDto(
                 LocalDate.now().plusDays(10),
                 1L,
-                7,
-                7,
+                SchoolPeriod.SEVEN_PERIOD,
                 1L
         );
         given(afterSchoolRepository.findWithAllRelations(1L))
@@ -192,14 +188,13 @@ class AfterSchoolServiceReinforcementTest {
     }
 
     @Test
-    @DisplayName("지원하지 않는 교시(6~7)로 보강 생성 시 예외가 발생한다")
-    void shouldThrowExceptionWhenUnsupportedPeriod6To7() {
+    @DisplayName("변경 교시가 누락되면 예외가 발생한다")
+    void shouldThrowExceptionWhenChangePeriodIsNull() {
         // Given
         AfterSchoolReinforcementRequestDto invalidRequest = new AfterSchoolReinforcementRequestDto(
                 LocalDate.now().plusDays(10),
                 1L,
-                6,
-                7,
+                null,
                 1L
         );
         given(afterSchoolRepository.findWithAllRelations(1L))
@@ -210,7 +205,7 @@ class AfterSchoolServiceReinforcementTest {
         // When & Then
         assertThatThrownBy(() -> afterSchoolService.createReinforcement(invalidRequest))
                 .isInstanceOf(InvalidAfterSchoolReinforcementException.class)
-                .hasMessageContaining("지원하지 않는 교시입니다: 6~7");
+                .hasMessageContaining("보강 교시는 필수입니다.");
 
         verify(afterSchoolReinforcementRepository, never()).save(any());
     }

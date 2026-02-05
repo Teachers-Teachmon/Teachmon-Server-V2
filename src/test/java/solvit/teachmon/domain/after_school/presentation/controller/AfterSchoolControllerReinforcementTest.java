@@ -13,6 +13,7 @@ import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundExceptio
 import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolReinforcementException;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolReinforcementRequestDto;
 import solvit.teachmon.domain.place.exception.PlaceNotFoundException;
+import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
 
@@ -36,8 +37,7 @@ class AfterSchoolControllerReinforcementTest {
         reinforcementRequest = new AfterSchoolReinforcementRequestDto(
                 LocalDate.now().plusDays(10),
                 107786687L,
-                8,
-                9,
+                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
                 536346L
         );
     }
@@ -63,8 +63,7 @@ class AfterSchoolControllerReinforcementTest {
         AfterSchoolReinforcementRequestDto invalidRequest = new AfterSchoolReinforcementRequestDto(
                 LocalDate.now().plusDays(10),
                 999999L,
-                8,
-                9,
+                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
                 536346L
         );
         willThrow(new AfterSchoolNotFoundException(999999L))
@@ -82,8 +81,7 @@ class AfterSchoolControllerReinforcementTest {
         AfterSchoolReinforcementRequestDto invalidRequest = new AfterSchoolReinforcementRequestDto(
                 LocalDate.now().plusDays(10),
                 107786687L,
-                8,
-                9,
+                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
                 999999L
         );
         willThrow(new PlaceNotFoundException())
@@ -95,22 +93,21 @@ class AfterSchoolControllerReinforcementTest {
     }
 
     @Test
-    @DisplayName("지원하지 않는 교시로 요청 시 예외가 발생한다")
-    void shouldThrowExceptionWhenUnsupportedPeriod() {
+    @DisplayName("보강 교시가 누락되면 예외가 발생한다")
+    void shouldThrowExceptionWhenChangePeriodIsNull() {
         // Given
         AfterSchoolReinforcementRequestDto invalidRequest = new AfterSchoolReinforcementRequestDto(
                 LocalDate.now().plusDays(10),
                 107786687L,
-                7,
-                7,
+                null,
                 536346L
         );
-        willThrow(new InvalidAfterSchoolReinforcementException("지원하지 않는 교시입니다: 7~7"))
+        willThrow(new InvalidAfterSchoolReinforcementException("보강 교시는 필수입니다."))
                 .given(afterSchoolService).createReinforcement(any(AfterSchoolReinforcementRequestDto.class));
 
         // When & Then
         assertThatThrownBy(() -> afterSchoolController.createReinforcement(invalidRequest))
                 .isInstanceOf(InvalidAfterSchoolReinforcementException.class)
-                .hasMessageContaining("지원하지 않는 교시입니다: 7~7");
+                .hasMessageContaining("보강 교시는 필수입니다.");
     }
 }
