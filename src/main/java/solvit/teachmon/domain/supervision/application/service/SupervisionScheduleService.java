@@ -22,10 +22,7 @@ import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -109,52 +106,7 @@ public class SupervisionScheduleService {
 
     @Transactional(readOnly = true)
     public List<SupervisionScheduleResponseDto> searchSupervisionSchedules(Integer month, String query) {
-        List<SupervisionScheduleEntity> schedules = supervisionScheduleRepository.findByMonthAndQuery(month, query);
-        
-        Map<LocalDate, List<SupervisionScheduleEntity>> groupedByDay = schedules.stream()
-                .collect(Collectors.groupingBy(SupervisionScheduleEntity::getDay));
-        
-        return groupedByDay.entrySet().stream()
-                .map(this::convertToResponseDto)
-                .sorted(Comparator.comparing(SupervisionScheduleResponseDto::day))
-                .collect(Collectors.toList());
-    }
-
-    private SupervisionScheduleResponseDto convertToResponseDto(Map.Entry<LocalDate, List<SupervisionScheduleEntity>> entry) {
-        LocalDate day = entry.getKey();
-        List<SupervisionScheduleEntity> daySchedules = entry.getValue();
-        
-        SupervisionScheduleResponseDto.SupervisionInfo selfStudySupervision = findSupervisionByType(daySchedules, SupervisionType.SELF_STUDY_SUPERVISION);
-        SupervisionScheduleResponseDto.SupervisionInfo leaveSeatSupervision = findSupervisionByType(daySchedules, SupervisionType.LEAVE_SEAT_SUPERVISION);
-        
-        return SupervisionScheduleResponseDto.builder()
-                .day(day)
-                .selfStudySupervision(selfStudySupervision)
-                .leaveSeatSupervision(leaveSeatSupervision)
-                .build();
-    }
-
-    private SupervisionScheduleResponseDto.SupervisionInfo findSupervisionByType(
-            List<SupervisionScheduleEntity> schedules, SupervisionType type) {
-        return schedules.stream()
-                .filter(schedule -> schedule.getType() == type)
-                .findFirst()
-                .map(this::convertToSupervisionInfo)
-                .orElse(null);
-    }
-
-    private SupervisionScheduleResponseDto.SupervisionInfo convertToSupervisionInfo(SupervisionScheduleEntity schedule) {
-        return SupervisionScheduleResponseDto.SupervisionInfo.builder()
-                .id(schedule.getId())
-                .teacher(convertToTeacherInfo(schedule.getTeacher()))
-                .build();
-    }
-
-    private SupervisionScheduleResponseDto.SupervisionInfo.TeacherInfo convertToTeacherInfo(TeacherEntity teacher) {
-        return SupervisionScheduleResponseDto.SupervisionInfo.TeacherInfo.builder()
-                .id(teacher.getId())
-                .name(teacher.getName())
-                .build();
+        return supervisionScheduleRepository.findSchedulesGroupedByDayAndQuery(month, query);
     }
 
     @Transactional(readOnly = true)

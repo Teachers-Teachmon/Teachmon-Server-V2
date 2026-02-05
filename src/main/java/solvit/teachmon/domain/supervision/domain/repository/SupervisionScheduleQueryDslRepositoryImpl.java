@@ -11,11 +11,16 @@ import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntit
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionSortOrder;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionRankResponseDto;
+import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionScheduleResponseDto;
 import solvit.teachmon.domain.user.domain.entity.QTeacherEntity;
+import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -56,6 +61,62 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
                 )
                 .orderBy(schedule.day.asc(), schedule.period.asc(), schedule.type.asc())
                 .fetch();
+    }
+
+    @Override
+    public List<SupervisionScheduleResponseDto> findSchedulesGroupedByDayAndQuery(Integer month, String query) {
+        // 먼저 데이터를 조회
+        List<SupervisionScheduleEntity> schedules = findByMonthAndQuery(month, query);
+        
+        // 날짜별로 그룹핑 (LinkedHashMap으로 순서 보장)
+        Map<LocalDate, List<SupervisionScheduleEntity>> groupedByDay = schedules.stream()
+                .collect(Collectors.groupingBy(
+                    SupervisionScheduleEntity::getDay,
+                    LinkedHashMap::new,
+                    Collectors.toList()
+                ));
+        
+        // SupervisionScheduleResponseDto로 변환
+        return groupedByDay.entrySet().stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    private SupervisionScheduleResponseDto convertToResponseDto(Map.Entry<LocalDate, List<SupervisionScheduleEntity>> entry) {
+        LocalDate day = entry.getKey();
+        List<SupervisionScheduleEntity> daySchedules = entry.getValue();
+        
+        SupervisionScheduleResponseDto.SupervisionInfo selfStudySupervision = findSupervisionByType(daySchedules, SupervisionType.SELF_STUDY_SUPERVISION);
+        SupervisionScheduleResponseDto.SupervisionInfo leaveSeatSupervision = findSupervisionByType(daySchedules, SupervisionType.LEAVE_SEAT_SUPERVISION);
+        
+        return SupervisionScheduleResponseDto.builder()
+                .day(day)
+                .selfStudySupervision(selfStudySupervision)
+                .leaveSeatSupervision(leaveSeatSupervision)
+                .build();
+    }
+
+    private SupervisionScheduleResponseDto.SupervisionInfo findSupervisionByType(
+            List<SupervisionScheduleEntity> schedules, SupervisionType type) {
+        return schedules.stream()
+                .filter(schedule -> schedule.getType() == type)
+                .findFirst()
+                .map(this::convertToSupervisionInfo)
+                .orElse(null);
+    }
+
+    private SupervisionScheduleResponseDto.SupervisionInfo convertToSupervisionInfo(SupervisionScheduleEntity schedule) {
+        return SupervisionScheduleResponseDto.SupervisionInfo.builder()
+                .id(schedule.getId())
+                .teacher(convertToTeacherInfo(schedule.getTeacher()))
+                .build();
+    }
+
+    private SupervisionScheduleResponseDto.SupervisionInfo.TeacherInfo convertToTeacherInfo(TeacherEntity teacher) {
+        return SupervisionScheduleResponseDto.SupervisionInfo.TeacherInfo.builder()
+                .id(teacher.getId())
+                .name(teacher.getName())
+                .build();
     }
 
     private BooleanExpression nameContains(String query) {

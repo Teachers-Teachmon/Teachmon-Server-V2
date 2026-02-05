@@ -12,6 +12,7 @@ import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleR
 import solvit.teachmon.domain.supervision.domain.strategy.SupervisionPriorityStrategy;
 import solvit.teachmon.domain.supervision.exception.InsufficientTeachersException;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionScheduleResponseDto;
+import solvit.teachmon.domain.supervision.application.mapper.SupervisionResponseMapper;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
@@ -28,223 +29,128 @@ import static org.mockito.BDDMockito.*;
 class SupervisionAutoAssignServiceTest {
 
     @Mock
-    private SupervisionAutoAssignRepository autoAssignRepository;
-    
-    @Mock
     private SupervisionScheduleRepository scheduleRepository;
     
     @Mock
-    private TeacherRepository teacherRepository;
+    private TeacherSupervisionInfoService teacherSupervisionInfoService;
     
     @Mock
-    private SupervisionPriorityStrategy priorityStrategy;
+    private SupervisionAssignmentProcessor assignmentProcessor;
+    
+    @Mock
+    private SupervisionDateExtractor dateExtractor;
+    
+    @Mock
+    private SupervisionResponseMapper responseMapper;
 
     private SupervisionAutoAssignService autoAssignService;
     
     // 테스트 데이터
     private LocalDate startDate;
     private LocalDate endDate;
-    private List<SupervisionAutoAssignRepository.TeacherSupervisionInfoProjection> teacherProjections;
-    private List<SupervisionAutoAssignRepository.SupervisionBanDayProjection> banDayProjections;
-    private TeacherEntity teacher1;
-    private TeacherEntity teacher2;
-    private TeacherEntity teacher3;
 
     @BeforeEach
     void setUp() {
         autoAssignService = new SupervisionAutoAssignService(
-                autoAssignRepository, scheduleRepository, teacherRepository, priorityStrategy);
+                scheduleRepository, teacherSupervisionInfoService, assignmentProcessor, dateExtractor, responseMapper);
         
         // 테스트 기간 설정 (2025-02-03 ~ 2025-02-06, 월~목)
         startDate = LocalDate.of(2025, 2, 3);
         endDate = LocalDate.of(2025, 2, 6);
-        
-        // 교사 엔티티 생성
-        teacher1 = createTeacher(1L, "김선생", true);
-        teacher2 = createTeacher(2L, "이선생", true);
-        teacher3 = createTeacher(3L, "박선생", true);
-        
-        // 교사 Projection 데이터
-        teacherProjections = List.of(
-            createTeacherProjection(1L, "김선생", null, 0L),
-            createTeacherProjection(2L, "이선생", LocalDate.of(2025, 1, 15), 2L),
-            createTeacherProjection(3L, "박선생", LocalDate.of(2025, 1, 20), 1L)
-        );
-        
-        // 금지요일 데이터 (김선생은 화요일 금지)
-        banDayProjections = List.of(
-            createBanDayProjection(1L, WeekDay.TUE)
-        );
     }
 
     @Test
     @DisplayName("정상적인 기간으로 자동 배정 시 성공적으로 스케줄이 생성된다")
     void shouldCreateSchedulesSuccessfullyWhenValidPeriodProvided() {
-        // Given: 정상적인 교사 데이터와 기간이 준비됨
-        given(autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER))
-                .willReturn(teacherProjections);
-        given(autoAssignRepository.findBanDaysByTeacherIds(anyList()))
-                .willReturn(banDayProjections);
-        given(autoAssignRepository.existsScheduleByDate(any(LocalDate.class)))
-                .willReturn(false);
-        
-        // 우선순위 설정 (김선생 > 이선생 > 박선생)
-        given(priorityStrategy.calculatePriority(any(TeacherSupervisionInfo.class), any(LocalDate.class)))
-                .willReturn(10.0, 8.0, 6.0); // 첫 번째가 가장 높은 우선순위
-        
-        given(teacherRepository.findById(1L)).willReturn(Optional.of(teacher1));
-        given(teacherRepository.findById(2L)).willReturn(Optional.of(teacher2));
-        given(teacherRepository.findById(3L)).willReturn(Optional.of(teacher3));
-        
-        given(scheduleRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
-
-        // When: 자동 배정 실행
-        List<SupervisionScheduleResponseDto> result = autoAssignService.autoAssignSupervisionSchedules(startDate, endDate);
-
-        // Then: 4일간 스케줄이 생성됨 (월~목)
-        assertThat(result).isNotEmpty();
-        assertThat(result).hasSize(4); // 4일 (월, 화, 수, 목)
-        
-        // 각 날짜별로 자습감독과 이석감독이 배정되었는지 확인
-        result.forEach(schedule -> {
-            assertThat(schedule.selfStudySupervision()).isNotNull();
-            assertThat(schedule.leaveSeatSupervision()).isNotNull();
-            assertThat(schedule.selfStudySupervision().teacher()).isNotNull();
-            assertThat(schedule.leaveSeatSupervision().teacher()).isNotNull();
-        });
-        
-        // Repository 호출 검증
-        verify(autoAssignRepository).findTeacherSupervisionInfoByRole(Role.TEACHER);
-        verify(scheduleRepository).saveAll(anyList());
-    }
-
-    @Test
-    @DisplayName("교사가 2명 미만일 때 빈 스케줄 리스트가 반환된다")
-    void shouldReturnEmptySchedulesWhenLessThanTwoTeachers() {
-        // Given: 교사가 1명만 있음
-        List<SupervisionAutoAssignRepository.TeacherSupervisionInfoProjection> oneTeacher = List.of(
-            createTeacherProjection(1L, "김선생", null, 0L)
+        // Given: 모든 서비스들이 성공적인 응답을 반환하도록 설정
+        List<TeacherSupervisionInfo> teacherInfos = List.of(
+                TeacherSupervisionInfo.builder()
+                        .teacherId(1L)
+                        .teacherName("김선생")
+                        .banDays(Set.of())
+                        .totalSupervisionCount(0)
+                        .supervisionCounts(new HashMap<>())
+                        .build(),
+                TeacherSupervisionInfo.builder()
+                        .teacherId(2L)
+                        .teacherName("이선생")
+                        .banDays(Set.of())
+                        .totalSupervisionCount(0)
+                        .supervisionCounts(new HashMap<>())
+                        .build()
         );
         
-        given(autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER))
-                .willReturn(oneTeacher);
-        given(autoAssignRepository.findBanDaysByTeacherIds(anyList()))
-                .willReturn(Collections.emptyList());
-        given(autoAssignRepository.existsScheduleByDate(any(LocalDate.class)))
-                .willReturn(false);
-        given(scheduleRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
+        List<LocalDate> targetDates = List.of(
+                startDate, startDate.plusDays(1), startDate.plusDays(2), startDate.plusDays(3)
+        );
+        
+        List<solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity> schedules = new ArrayList<>();
+        
+        List<SupervisionScheduleResponseDto> expectedResult = List.of(
+                SupervisionScheduleResponseDto.builder()
+                        .day(startDate)
+                        .build()
+        );
+        
+        given(teacherSupervisionInfoService.getTeacherSupervisionInfos()).willReturn(teacherInfos);
+        given(dateExtractor.extractWeekdays(startDate, endDate)).willReturn(targetDates);
+        given(assignmentProcessor.processDateAssignments(targetDates, teacherInfos)).willReturn(schedules);
+        given(scheduleRepository.saveAll(schedules)).willReturn(schedules);
+        given(responseMapper.convertToResponseDtos(schedules)).willReturn(expectedResult);
 
         // When: 자동 배정 실행
         List<SupervisionScheduleResponseDto> result = autoAssignService.autoAssignSupervisionSchedules(startDate, endDate);
 
-        // Then: 빈 리스트 반환 (각 날짜별로 배정 실패하여 스케줄이 생성되지 않음)
-        assertThat(result).isEmpty();
+        // Then: 결과가 반환됨
+        assertThat(result).isEqualTo(expectedResult);
+        
+        // 모든 서비스 호출 검증
+        verify(teacherSupervisionInfoService).getTeacherSupervisionInfos();
+        verify(dateExtractor).extractWeekdays(startDate, endDate);
+        verify(assignmentProcessor).processDateAssignments(targetDates, teacherInfos);
+        verify(scheduleRepository).saveAll(schedules);
+        verify(responseMapper).convertToResponseDtos(schedules);
     }
 
     @Test
-    @DisplayName("교사가 없을 때 InsufficientTeachersException이 발생한다")
-    void shouldThrowInsufficientTeachersExceptionWhenNoTeachersAvailable() {
-        // Given: 교사가 전혀 없음
-        given(autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER))
-                .willReturn(Collections.emptyList());
+    @DisplayName("교사 정보가 없을 때 예외가 전파된다")
+    void shouldPropagateExceptionWhenNoTeachersAvailable() {
+        // Given: teacherSupervisionInfoService에서 예외 발생
+        given(teacherSupervisionInfoService.getTeacherSupervisionInfos())
+                .willThrow(new InsufficientTeachersException("감독 배정 가능한 교사가 없습니다."));
 
-        // When & Then: 예외 발생
+        // When & Then: 예외가 전파됨
         assertThatThrownBy(() -> autoAssignService.autoAssignSupervisionSchedules(startDate, endDate))
                 .isInstanceOf(InsufficientTeachersException.class)
                 .hasMessage("감독 배정 가능한 교사가 없습니다.");
     }
 
     @Test
-    @DisplayName("이미 스케줄이 존재하는 날짜는 건너뛴다")
-    void shouldSkipDatesWhenScheduleAlreadyExists() {
-        // Given: 특정 날짜에 이미 스케줄 존재
-        given(autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER))
-                .willReturn(teacherProjections);
-        given(autoAssignRepository.findBanDaysByTeacherIds(anyList()))
-                .willReturn(banDayProjections);
-        
-        // 월요일에는 이미 스케줄 존재, 나머지는 없음
-        given(autoAssignRepository.existsScheduleByDate(startDate)).willReturn(true); // 월요일
-        given(autoAssignRepository.existsScheduleByDate(startDate.plusDays(1))).willReturn(false); // 화요일
-        given(autoAssignRepository.existsScheduleByDate(startDate.plusDays(2))).willReturn(false); // 수요일
-        given(autoAssignRepository.existsScheduleByDate(startDate.plusDays(3))).willReturn(false); // 목요일
+    @DisplayName("시작일이 종료일보다 늦으면 예외가 발생한다")
+    void shouldThrowExceptionWhenStartDateAfterEndDate() {
+        // Given: 잘못된 날짜 범위
+        LocalDate invalidStartDate = LocalDate.of(2025, 2, 10);
+        LocalDate invalidEndDate = LocalDate.of(2025, 2, 5);
 
-        given(priorityStrategy.calculatePriority(any(TeacherSupervisionInfo.class), any(LocalDate.class)))
-                .willReturn(10.0, 8.0, 6.0);
-        
-        given(teacherRepository.findById(anyLong())).willReturn(Optional.of(teacher1));
-        given(scheduleRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
-
-        // When: 자동 배정 실행
-        List<SupervisionScheduleResponseDto> result = autoAssignService.autoAssignSupervisionSchedules(startDate, endDate);
-
-        // Then: 3일만 생성됨 (화, 수, 목)
-        assertThat(result).hasSize(3);
+        // When & Then: 예외 발생
+        assertThatThrownBy(() -> autoAssignService.autoAssignSupervisionSchedules(invalidStartDate, invalidEndDate))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("시작일")
+                .hasMessageContaining("종료일")
+                .hasMessageContaining("늦을 수 없습니다");
     }
 
     @Test
-    @DisplayName("금지요일에 해당하는 교사는 배정되지 않는다")
-    void shouldNotAssignTeachersOnTheirBanDays() {
-        // Given: 김선생은 화요일 금지
-        given(autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER))
-                .willReturn(teacherProjections);
-        given(autoAssignRepository.findBanDaysByTeacherIds(anyList()))
-                .willReturn(banDayProjections);
-        given(autoAssignRepository.existsScheduleByDate(any(LocalDate.class)))
-                .willReturn(false);
+    @DisplayName("null 날짜가 전달되면 예외가 발생한다")
+    void shouldThrowExceptionWhenDateIsNull() {
+        // When & Then: null 시작일
+        assertThatThrownBy(() -> autoAssignService.autoAssignSupervisionSchedules(null, endDate))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("시작일과 종료일은 필수입니다.");
 
-        // 화요일에는 김선생 제외하고 우선순위 계산
-        given(priorityStrategy.calculatePriority(any(TeacherSupervisionInfo.class), any(LocalDate.class)))
-                .willReturn(10.0, 8.0);
-        
-        given(teacherRepository.findById(anyLong())).willReturn(Optional.of(teacher2));
-        given(scheduleRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
-
-        // When: 화요일 하루만 배정
-        LocalDate tuesday = LocalDate.of(2025, 2, 4); // 화요일
-        List<SupervisionScheduleResponseDto> result = autoAssignService.autoAssignSupervisionSchedules(tuesday, tuesday);
-
-        // Then: 성공적으로 배정됨 (김선생 제외)
-        assertThat(result).hasSize(1);
-        
-        verify(priorityStrategy, atLeastOnce()).calculatePriority(any(TeacherSupervisionInfo.class), eq(tuesday));
-    }
-
-    // Helper methods
-    private TeacherEntity createTeacher(Long id, String name, boolean isActive) {
-        return TeacherEntity.builder()
-                .name(name)
-                .mail(name.toLowerCase() + "@test.com")
-                .providerId("provider_" + id)
-                .oAuth2Type(solvit.teachmon.domain.user.domain.enums.OAuth2Type.GOOGLE)
-                .build(); // isActive는 builder에서 자동으로 true로 설정됨
-    }
-
-    private SupervisionAutoAssignRepository.TeacherSupervisionInfoProjection createTeacherProjection(
-            Long teacherId, String teacherName, LocalDate lastDate, Long totalCount) {
-        return new SupervisionAutoAssignRepository.TeacherSupervisionInfoProjection() {
-            @Override
-            public Long getTeacherId() { return teacherId; }
-            
-            @Override
-            public String getTeacherName() { return teacherName; }
-            
-            @Override
-            public LocalDate getLastSupervisionDate() { return lastDate; }
-            
-            @Override
-            public Long getTotalSupervisionCount() { return totalCount; }
-        };
-    }
-
-    private SupervisionAutoAssignRepository.SupervisionBanDayProjection createBanDayProjection(
-            Long teacherId, WeekDay weekDay) {
-        return new SupervisionAutoAssignRepository.SupervisionBanDayProjection() {
-            @Override
-            public Long getTeacherId() { return teacherId; }
-            
-            @Override
-            public WeekDay getWeekDay() { return weekDay; }
-        };
+        // When & Then: null 종료일
+        assertThatThrownBy(() -> autoAssignService.autoAssignSupervisionSchedules(startDate, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("시작일과 종료일은 필수입니다.");
     }
 }

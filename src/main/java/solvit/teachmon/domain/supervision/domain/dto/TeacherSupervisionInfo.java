@@ -35,11 +35,11 @@ public record TeacherSupervisionInfo(
 
     /**
      * 최근 감독일로부터 경과일 계산
-     * 감독한 적이 없으면 Long.MAX_VALUE (최고 우선순위)
+     * 감독한 적이 없으면 365일 (1년, 최고 우선순위)
      */
     public long getDaysSinceLastSupervision(LocalDate targetDate) {
         if (lastSupervisionDate == null) {
-            return Long.MAX_VALUE;
+            return 365L; // 1년에 해당하는 일수로 충분히 높은 우선순위 보장
         }
         return ChronoUnit.DAYS.between(lastSupervisionDate, targetDate);
     }
