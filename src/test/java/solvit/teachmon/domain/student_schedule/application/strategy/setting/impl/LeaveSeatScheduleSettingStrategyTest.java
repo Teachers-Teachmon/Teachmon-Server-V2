@@ -16,7 +16,6 @@ import solvit.teachmon.domain.leave_seat.domain.repository.FixedLeaveSeatStudent
 import solvit.teachmon.domain.leave_seat.domain.repository.LeaveSeatRepository;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
-import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.schedules.LeaveSeatScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
