@@ -34,6 +34,11 @@ public class StudentEntity extends BaseEntity {
 
     @Builder
     public StudentEntity(Integer year, Integer grade, Integer classNumber, Integer number, String name) {
+        validateGrade(grade);
+        validateClassNumber(classNumber);
+        validateNumber(number);
+        validateName(name);
+
         this.year = resolveYear(year);
         this.grade = grade;
         this.classNumber = classNumber;

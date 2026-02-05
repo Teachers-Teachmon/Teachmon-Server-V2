@@ -35,7 +35,7 @@ public class AdditionalSelfStudyController {
 
     @GetMapping
     public ResponseEntity<List<AdditionalSelfStudyGetResponse>> getAdditionalSelfStudy(
-            @NotNull(message = "일별 자습 추가 조회에서 year(년도)는 필수 입니다")
+            @NotNull(message = "일별 자습 추가 조회에서 year(년도)는 필수입니다.")
             @RequestParam("year") Integer year
     ) {
         List<AdditionalSelfStudyGetResponse> results = additionalSelfStudyService.getAdditionalSelfStudy(year);
@@ -46,7 +46,7 @@ public class AdditionalSelfStudyController {
 
     @DeleteMapping("/{additional_id}")
     public ResponseEntity<String> deleteAdditionalSelfStudy(
-            @PathVariable("additional_id") @Min(value = 1, message = "올바르지 않은 id 입니다") Long additionalId
+            @PathVariable("additional_id") @Min(value = 1, message = "일별 자습 삭제에서 additional_id(추가 자습 ID)는 1 이상이어야 합니다.") Long additionalId
     ) {
         additionalSelfStudyService.deleteAdditionalSelfStudy(additionalId);
 
