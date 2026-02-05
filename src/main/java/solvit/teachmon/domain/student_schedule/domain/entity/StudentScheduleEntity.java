@@ -51,19 +51,19 @@ public class StudentScheduleEntity extends BaseEntity {
     }
 
     private void validateStudent(StudentEntity student) {
-        if(!this.student.equals(student)) {
+        if(student == null) {
             throw new StudentScheduleValueInvalidException("학생은 null 일 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
     }
 
     private void validateDay(LocalDate day) {
-        if (!this.day.equals(day)) {
+        if(day == null) {
             throw new StudentScheduleValueInvalidException("날짜는 null 일 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
     }
 
     private void validatePeriod(SchoolPeriod period) {
-        if (!this.period.equals(period)) {
+        if(period == null) {
             throw new StudentScheduleValueInvalidException("교시는 null 일 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
     }

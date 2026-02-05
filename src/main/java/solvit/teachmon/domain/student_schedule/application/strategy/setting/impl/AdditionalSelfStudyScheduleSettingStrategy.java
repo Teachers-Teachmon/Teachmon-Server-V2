@@ -105,7 +105,7 @@ public class AdditionalSelfStudyScheduleSettingStrategy implements StudentSchedu
     private ScheduleEntity createNewSchedule(StudentScheduleEntity studentSchedule) {
         // 새로운 스케줄 생성
         Integer lastStackOrder = scheduleRepository.findLastStackOrderByStudentScheduleId(studentSchedule.getId());
-        ScheduleEntity newSchedule = ScheduleEntity.createNewStudentSchedule(studentSchedule, lastStackOrder, ScheduleType.SELF_STUDY);
+        ScheduleEntity newSchedule = ScheduleEntity.createNewStudentSchedule(studentSchedule, lastStackOrder, ScheduleType.ADDITIONAL_SELF_STUDY);
 
         scheduleRepository.save(newSchedule);
 

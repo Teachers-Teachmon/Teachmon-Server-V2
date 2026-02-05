@@ -63,9 +63,10 @@ public class LeaveSeatScheduleSettingStrategy implements StudentScheduleSettingS
             List<StudentScheduleEntity> studentSchedules,
             FixedLeaveSeatEntity fixedLeaveSeat
     ) {
+        LeaveSeatEntity leaveSeat = createLeaveSeat(fixedLeaveSeat);
+
         for(StudentScheduleEntity studentSchedule : studentSchedules) {
             ScheduleEntity newSchedule = createNewSchedule(studentSchedule);
-            LeaveSeatEntity leaveSeat = createLeaveSeat(fixedLeaveSeat);
             createLeaveSeatSchedule(newSchedule, leaveSeat);
         }
     }

@@ -51,8 +51,8 @@ public class AdditionalSelfStudyScheduleEntity extends BaseEntity {
         if(schedule == null) {
             throw new SelfStudyScheduleValueInvalidException("스케줄은 null 일 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
-        else if(!schedule.getType().equals(ScheduleType.SELF_STUDY)) {
-            throw new AdditionalSelfStudyScheduleValueInvalidException("스케줄 타입은 자습이여야 합니다.", HttpStatus.BAD_REQUEST);
+        else if(!schedule.getType().equals(ScheduleType.ADDITIONAL_SELF_STUDY)) {
+            throw new AdditionalSelfStudyScheduleValueInvalidException("스케줄 타입은 추가 자습이여야 합니다.", HttpStatus.BAD_REQUEST);
         }
     }
 

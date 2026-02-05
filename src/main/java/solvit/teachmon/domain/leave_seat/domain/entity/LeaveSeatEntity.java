@@ -41,10 +41,10 @@ public class LeaveSeatEntity extends BaseEntity {
     private String cause;
 
     @OneToMany(mappedBy = "leaveSeat", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<LeaveSeatScheduleEntity> leaveSeatSchedules;
+    private List<LeaveSeatScheduleEntity> leaveSeatSchedules = new java.util.ArrayList<>();
 
     @OneToMany(mappedBy = "leaveSeat", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LeaveSeatStudentEntity> leaveSeatStudents;
+    private List<LeaveSeatStudentEntity> leaveSeatStudents = new java.util.ArrayList<>();
 
     @Builder
     public LeaveSeatEntity(TeacherEntity teacher, PlaceEntity place, LocalDate day, SchoolPeriod period, String cause) {
