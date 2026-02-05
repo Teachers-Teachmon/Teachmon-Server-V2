@@ -31,7 +31,7 @@ public class ManagementStudentController {
 
     @PatchMapping("/{student_id}")
     public ResponseEntity<String> updateStudent(
-            @PathVariable("student_id") @Min(value = 1, message = "student_id는 1이상입니다") Long studentId,
+            @PathVariable("student_id") @Min(value = 1, message = "student_id는 1 이상입니다.") Long studentId,
             @RequestBody @Valid StudentRequest request
     )  {
         managementStudentService.updateStudent(studentId, request);
@@ -43,7 +43,7 @@ public class ManagementStudentController {
 
     @DeleteMapping("/{student_id}")
     public ResponseEntity<String> deleteStudent(
-            @PathVariable("student_id") @Min(value = 1, message = "student_id는 1이상입니다") Long studentId
+            @PathVariable("student_id") @Min(value = 1, message = "student_id는 1 이상입니다.") Long studentId
     ) {
         managementStudentService.deleteStudent(studentId);
 

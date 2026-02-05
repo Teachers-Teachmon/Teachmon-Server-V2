@@ -10,21 +10,23 @@ import solvit.teachmon.domain.team.presentation.dto.response.QTeamResponseDto;
 
 import java.util.List;
 
+import static solvit.teachmon.domain.team.domain.entity.QTeamEntity.teamEntity;
+
 @Repository
 @RequiredArgsConstructor
 public class TeamRepositoryImpl implements TeamQueryDslRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TeamResponseDto> searchTeamByQuery(String query) {
+    public List<TeamResponseDto> findTeamsBySearchKeyword(String keyword) {
         return queryFactory.select(
                 new QTeamResponseDto(
-                        QTeamEntity.teamEntity.id,
-                        QTeamEntity.teamEntity.name
+                        teamEntity.id,
+                        teamEntity.name
                 )
         )
-        .from(QTeamEntity.teamEntity)
-        .where(QTeamEntity.teamEntity.name.containsIgnoreCase(query))
+        .from(teamEntity)
+        .where(teamEntity.name.containsIgnoreCase(keyword))
         .fetch();
     }
 }

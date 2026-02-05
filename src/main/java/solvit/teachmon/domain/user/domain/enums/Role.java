@@ -3,6 +3,8 @@ package solvit.teachmon.domain.user.domain.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @RequiredArgsConstructor
 public enum Role {
@@ -12,4 +14,8 @@ public enum Role {
     ADMIN("ROLE_ADMIN");
 
     private final String value;
+
+    public boolean isContains(List<Role> roles) {
+        return roles != null && roles.contains(this);
+    }
 }
