@@ -32,7 +32,7 @@ public class StudentScheduleEntity extends BaseEntity {
 
     @OneToMany(
             mappedBy = "studentSchedule",
-            cascade = CascadeType.ALL,
+            cascade = CascadeType.REMOVE,
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
