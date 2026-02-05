@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 감독 자동 배정을 위한 Repository (QueryDSL 구현)
  */
-public interface SupervisionAutoAssignRepository {
+public interface SupervisionAutoAssignQueryDslRepository {
 
     /**
      * Role이 TEACHER인 교사들의 감독 정보 조회

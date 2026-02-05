@@ -19,7 +19,7 @@ import java.util.List;
  */
 @Repository
 @RequiredArgsConstructor
-public class SupervisionAutoAssignRepositoryImpl implements SupervisionAutoAssignRepository {
+public class SupervisionAutoAssignQueryDslRepositoryImpl implements SupervisionAutoAssignQueryDslRepository {
 
     private final JPAQueryFactory queryFactory;
 

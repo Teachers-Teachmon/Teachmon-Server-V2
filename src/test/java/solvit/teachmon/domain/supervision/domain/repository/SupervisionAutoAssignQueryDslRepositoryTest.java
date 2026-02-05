@@ -29,10 +29,10 @@ import static org.assertj.core.api.Assertions.*;
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("감독 자동 배정 저장소 테스트")
-class SupervisionAutoAssignRepositoryTest {
+class SupervisionAutoAssignQueryDslRepositoryTest {
 
     @Autowired
-    private SupervisionAutoAssignRepository autoAssignRepository;
+    private SupervisionAutoAssignQueryDslRepository autoAssignRepository;
 
     @Autowired
     private SupervisionScheduleRepository scheduleRepository;
@@ -50,9 +50,9 @@ class SupervisionAutoAssignRepositoryTest {
     @BeforeEach
     void setUp() {
         // 교사 생성
-        teacher1 = createAndSaveTeacher("김선생", "kim@test.com", true);
-        teacher2 = createAndSaveTeacher("이선생", "lee@test.com", true);
-        teacher3 = createAndSaveTeacher("박선생", "park@test.com", true);
+        teacher1 = createAndSaveTeacher("김선생", "kim@test.com");
+        teacher2 = createAndSaveTeacher("이선생", "lee@test.com");
+        teacher3 = createAndSaveTeacher("박선생", "park@test.com");
         
         // 기존 감독 이력 생성
         createSupervisionHistory();
@@ -120,7 +120,7 @@ class SupervisionAutoAssignRepositoryTest {
         // Then: 김선생의 화요일 금지요일만 조회됨
         assertThat(result).hasSize(1);
         
-        var banDay = result.get(0);
+        var banDay = result.getFirst();
         assertThat(banDay.teacherId()).isEqualTo(teacher1.getId());
         assertThat(banDay.weekDay()).isEqualTo(WeekDay.TUE);
     }
@@ -165,7 +165,6 @@ class SupervisionAutoAssignRepositoryTest {
     @DisplayName("감독 이력이 없는 교사는 총 횟수가 0으로 조회된다")
     void shouldReturnZeroCountForTeachersWithNoHistory() {
         // Given: 감독 이력이 없는 새 교사
-        TeacherEntity newTeacher = createAndSaveTeacher("정선생", "jung@test.com", true);
 
         // When: 교사 감독 정보 조회
         List<TeacherSupervisionInfoVo> result = 
@@ -182,7 +181,7 @@ class SupervisionAutoAssignRepositoryTest {
     }
 
     // Helper methods
-    private TeacherEntity createAndSaveTeacher(String name, String email, boolean isActive) {
+    private TeacherEntity createAndSaveTeacher(String name, String email) {
         TeacherEntity teacher = TeacherEntity.builder()
                 .name(name)
                 .mail(email)

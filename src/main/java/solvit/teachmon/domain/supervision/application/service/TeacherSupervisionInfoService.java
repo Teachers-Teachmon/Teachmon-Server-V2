@@ -2,7 +2,7 @@ package solvit.teachmon.domain.supervision.application.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import solvit.teachmon.domain.supervision.domain.repository.SupervisionAutoAssignRepository;
+import solvit.teachmon.domain.supervision.domain.repository.SupervisionAutoAssignQueryDslRepository;
 import solvit.teachmon.domain.supervision.domain.vo.SupervisionBanDayVo;
 import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfo;
 import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfoVo;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TeacherSupervisionInfoService {
 
-    private final SupervisionAutoAssignRepository autoAssignRepository;
+    private final SupervisionAutoAssignQueryDslRepository autoAssignRepository;
 
     public List<TeacherSupervisionInfo> getTeacherSupervisionInfos() {
         List<TeacherSupervisionInfoVo> teacherProjections = 

@@ -10,8 +10,7 @@ import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionCalculator
 import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfo;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
-import solvit.teachmon.domain.supervision.domain.repository.SupervisionAutoAssignRepository;
-import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
+import solvit.teachmon.domain.supervision.domain.repository.SupervisionAutoAssignQueryDslRepository;
 import solvit.teachmon.domain.supervision.domain.strategy.SupervisionPriorityStrategy;
 import solvit.teachmon.domain.supervision.exception.InsufficientTeachersException;
 import solvit.teachmon.domain.supervision.exception.InvalidAssignmentException;
@@ -32,8 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SupervisionAssignmentProcessor {
 
-    private final SupervisionAutoAssignRepository autoAssignRepository;
-    private final SupervisionScheduleRepository scheduleRepository;
+    private final SupervisionAutoAssignQueryDslRepository autoAssignRepository;
     private final TeacherRepository teacherRepository;
     private final SupervisionPriorityStrategy priorityStrategy;
     private final SupervisionAssignmentMapper mapper;

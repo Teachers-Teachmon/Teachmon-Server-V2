@@ -7,16 +7,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfo;
-import solvit.teachmon.domain.supervision.domain.repository.SupervisionAutoAssignRepository;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
-import solvit.teachmon.domain.supervision.domain.strategy.SupervisionPriorityStrategy;
 import solvit.teachmon.domain.supervision.exception.InsufficientTeachersException;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionScheduleResponseDto;
 import solvit.teachmon.domain.supervision.application.mapper.SupervisionResponseMapper;
-import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
-import solvit.teachmon.domain.user.domain.enums.Role;
-import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
-import solvit.teachmon.global.enums.WeekDay;
 
 import java.time.LocalDate;
 import java.util.*;
