@@ -10,6 +10,7 @@ import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolBusiness
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolReinforcementRepository;
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolRepository;
 import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDomainService;
+import solvit.teachmon.domain.after_school.domain.vo.StudentAssignmentResultVo;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundException;
 import solvit.teachmon.domain.place.exception.PlaceNotFoundException;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolBusinessTripRequestDto;
@@ -49,6 +50,7 @@ public class AfterSchoolService {
     private final StudentRepository studentRepository;
     private final BranchRepository branchRepository;
     private final PlaceRepository placeRepository;
+    private final AfterSchoolScheduleService afterSchoolScheduleService;
 
     @Transactional
     public void createAfterSchool(AfterSchoolCreateRequestDto requestDto) {
@@ -56,7 +58,7 @@ public class AfterSchoolService {
         PlaceEntity place = getPlaceById(requestDto.placeId());
         BranchEntity branch = getCurrentBranch();
         List<StudentEntity> students = fetchStudentsByIds(requestDto.studentsId());
-        
+
         AfterSchoolEntity afterSchool = AfterSchoolEntity.builder()
                 .teacher(teacher)
                 .branch(branch)
@@ -68,8 +70,9 @@ public class AfterSchoolService {
                 .year(requestDto.year())
                 .build();
 
-        afterSchoolStudentDomainService.assignStudents(afterSchool, students);
-        
+        StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(afterSchool, students);
+        afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
+
         afterSchoolRepository.save(afterSchool);
     }
 
@@ -102,7 +105,7 @@ public class AfterSchoolService {
     public void deleteAfterSchool(Long afterSchoolId) {
         AfterSchoolEntity afterSchool = afterSchoolRepository.findById(afterSchoolId)
                 .orElseThrow(() -> new AfterSchoolNotFoundException(afterSchoolId));
-        
+
         afterSchoolRepository.delete(afterSchool);
     }
 
@@ -182,10 +185,11 @@ public class AfterSchoolService {
 
     private void updateStudentsIfPresent(List<Long> studentIds, AfterSchoolEntity afterSchool) {
         if (studentIds == null) return;
-        afterSchoolStudentDomainService.assignStudents(
+        StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(
                 afterSchool,
                 fetchStudentsByIds(studentIds)
         );
+        afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
     }
 
     @Transactional
