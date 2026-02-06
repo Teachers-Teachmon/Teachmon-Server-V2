@@ -21,12 +21,16 @@ import solvit.teachmon.domain.student_schedule.presentation.dto.response.PeriodS
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.StudentScheduleResponse;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.enums.OAuth2Type;
-import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
+import solvit.teachmon.global.security.user.TeachmonUserDetails;
+import org.springframework.core.MethodParameter;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -48,15 +52,36 @@ class StudentScheduleControllerTest {
     @Mock
     private StudentScheduleService studentScheduleService;
 
-    @Mock
-    private TeacherRepository teacherRepository;
-
     @InjectMocks
     private StudentScheduleController studentScheduleController;
 
+    private TeacherEntity mockTeacher;
+
     @BeforeEach
     void setUp() {
+        // Mock teacher 생성
+        mockTeacher = TeacherEntity.builder()
+                .name("테스트 선생님")
+                .mail("test@teacher.com")
+                .profile("테스트")
+                .providerId("test-provider-id")
+                .oAuth2Type(OAuth2Type.GOOGLE)
+                .build();
+
+        // TeachmonUserDetails를 주입하기 위한 커스텀 ArgumentResolver
         mockMvc = MockMvcBuilders.standaloneSetup(studentScheduleController)
+                .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
+                    @Override
+                    public boolean supportsParameter(MethodParameter parameter) {
+                        return parameter.getParameterType().equals(TeachmonUserDetails.class);
+                    }
+
+                    @Override
+                    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+                        return new TeachmonUserDetails(mockTeacher);
+                    }
+                })
                 .defaultResponseCharacterEncoding(java.nio.charset.StandardCharsets.UTF_8)
                 .build();
         objectMapper = new ObjectMapper();
@@ -157,15 +182,6 @@ class StudentScheduleControllerTest {
         Long scheduleId = 1L;
         StudentScheduleUpdateRequest request = new StudentScheduleUpdateRequest(ScheduleType.AWAY);
 
-        TeacherEntity teacher = TeacherEntity.builder()
-                .name("테스트 선생님")
-                .mail("test@teacher.com")
-                .profile("테스트")
-                .providerId("test-provider-id")
-                .oAuth2Type(OAuth2Type.GOOGLE)
-                .build();
-        given(teacherRepository.findById(anyLong())).willReturn(Optional.of(teacher));
-
         // When & Then: PATCH 요청을 보내면 스케줄이 수정된다
         mockMvc.perform(patch("/student-schedule/{scheduleId}", scheduleId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -198,14 +214,6 @@ class StudentScheduleControllerTest {
         Long nonExistentId = 999L;
         StudentScheduleUpdateRequest request = new StudentScheduleUpdateRequest(ScheduleType.AWAY);
 
-        TeacherEntity teacher = TeacherEntity.builder()
-                .name("테스트 선생님")
-                .mail("test@teacher.com")
-                .profile("테스트")
-                .providerId("test-provider-id")
-                .oAuth2Type(OAuth2Type.GOOGLE)
-                .build();
-        given(teacherRepository.findById(anyLong())).willReturn(Optional.of(teacher));
         doThrow(new StudentScheduleNotFoundException())
                 .when(studentScheduleService)
                 .updateStudentSchedule(eq(nonExistentId), any(StudentScheduleUpdateRequest.class), any());

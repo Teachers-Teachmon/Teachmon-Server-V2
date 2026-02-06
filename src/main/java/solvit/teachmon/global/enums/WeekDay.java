@@ -50,6 +50,16 @@ public enum WeekDay {
         };
     }
 
+    public static WeekDay fromDayOfWeek(DayOfWeek dayOfWeek) {
+        return switch (dayOfWeek) {
+            case MONDAY -> MON;
+            case TUESDAY -> TUE;
+            case WEDNESDAY -> WED;
+            case THURSDAY -> THU;
+            default -> throw new IllegalArgumentException("서비스에서 지원하는 요일이 아닙니다.");
+        };
+    }
+
     public DayOfWeek toDayOfWeek() {
         return switch (this) {
             case MON -> DayOfWeek.MONDAY;

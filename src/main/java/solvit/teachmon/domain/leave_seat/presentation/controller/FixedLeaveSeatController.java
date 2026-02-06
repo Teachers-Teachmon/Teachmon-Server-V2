@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import solvit.teachmon.domain.leave_seat.application.facade.FixedLeaveSeatFacadeService;
@@ -12,7 +13,7 @@ import solvit.teachmon.domain.leave_seat.presentation.dto.request.FixedLeaveSeat
 import solvit.teachmon.domain.leave_seat.presentation.dto.response.FixedLeaveSeatDetailResponse;
 import solvit.teachmon.domain.leave_seat.presentation.dto.response.FixedLeaveSeatListResponse;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
-import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
+import solvit.teachmon.global.security.user.TeachmonUserDetails;
 
 import java.util.List;
 
@@ -21,16 +22,14 @@ import java.util.List;
 @RequestMapping("/leaveseat/static")
 @RequiredArgsConstructor
 public class FixedLeaveSeatController {
-    // TODO: 인증 로직 추가 후, 실제 TeacherRepository 주입 무조건 삭제!!
-    private final TeacherRepository teacherRepository;
     private final FixedLeaveSeatFacadeService fixedLeaveSeatFacadeService;
 
     @PostMapping
     public ResponseEntity<String> createStaticLeaveSeat(
-            @RequestBody @Valid FixedLeaveSeatCreateRequest request
+            @RequestBody @Valid FixedLeaveSeatCreateRequest request,
+            @AuthenticationPrincipal TeachmonUserDetails teachmonUserDetails
     ) {
-        // TODO: 인증 로직 추가 후, 실제 TeacherEntity 주입
-        TeacherEntity teacher = teacherRepository.findById(1L).orElseThrow();
+        TeacherEntity teacher = teachmonUserDetails.teacherEntity();
 
         fixedLeaveSeatFacadeService.createStaticLeaveSeat(request, teacher);
 
@@ -62,10 +61,10 @@ public class FixedLeaveSeatController {
     @PatchMapping("/{static_leaveseat_id}")
     public ResponseEntity<String> updateStaticLeaveSeat(
             @PathVariable("static_leaveseat_id") @Positive(message = "고정 이석 수정에서 static_leaveseat_id(고정 이석 ID)는 양수여야 합니다.") Long staticLeaveSeatId,
-            @Valid @RequestBody FixedLeaveSeatUpdateRequest request
+            @Valid @RequestBody FixedLeaveSeatUpdateRequest request,
+            @AuthenticationPrincipal TeachmonUserDetails teachmonUserDetails
     ) {
-        // TODO: 인증 로직 추가 후, 실제 TeacherEntity 주입
-        TeacherEntity teacher = teacherRepository.findById(1L).orElseThrow();
+        TeacherEntity teacher = teachmonUserDetails.teacherEntity();
 
         fixedLeaveSeatFacadeService.updateStaticLeaveSeat(staticLeaveSeatId, request, teacher);
 
