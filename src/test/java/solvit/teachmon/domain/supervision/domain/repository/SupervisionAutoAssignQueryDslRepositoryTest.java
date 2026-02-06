@@ -224,6 +224,7 @@ class SupervisionAutoAssignQueryDslRepositoryTest {
         SupervisionBanDayEntity kimBanDay = SupervisionBanDayEntity.builder()
                 .teacher(teacher1)
                 .weekDay(WeekDay.TUE)
+                .isAfterschool(false)
                 .build();
         
         banDayRepository.save(kimBanDay);
