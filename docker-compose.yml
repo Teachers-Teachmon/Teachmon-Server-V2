@@ -29,6 +29,8 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    volumes:
+      - /root/spread-sheet-account.json:/root/spread-sheet-account.json:ro
     networks:
       - backend
     depends_on:
