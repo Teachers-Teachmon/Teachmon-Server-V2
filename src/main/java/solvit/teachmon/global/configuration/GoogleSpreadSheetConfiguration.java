@@ -28,18 +28,19 @@ public class GoogleSpreadSheetConfiguration {
 
     @Bean
     public Credential googleCredential() throws IOException {
-        String path = googleSpreadSheetProperties.getCredentialPath();
-        Resource resource = resourceLoader.getResource("file:" + path);
+        String location = googleSpreadSheetProperties.getCredentialPath();
+        Resource resource = resourceLoader.getResource(location);
+
         if (!resource.exists()) {
-            resource = resourceLoader.getResource("classpath:" + path);
+            throw new IOException("Google 서비스 계정 키 설정을 읽을 수 없습니다. path=" + location);
         }
+
         try (InputStream is = resource.getInputStream()) {
             return GoogleCredential.fromStream(is)
                     .createScoped(Collections.singletonList(SheetsScopes.SPREADSHEETS));
-        } catch (IOException e) {
-            throw new IOException("Google 서비스 계정 키 설정을 읽을 수 없습니다. path=" + path, e);
         }
     }
+
 
     @Bean
     public Sheets googleSheetsService(Credential credential) throws GeneralSecurityException, IOException {

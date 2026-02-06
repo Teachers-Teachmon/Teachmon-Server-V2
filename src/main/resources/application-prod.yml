@@ -46,4 +46,4 @@ google-spreadsheet:
   application-name: ${GOOGLE_SPREADSHEET_APPLICATION_NAME}
   credentials-scope: ${GOOGLE_SPREADSHEET_CREDENTIALS_SCOPE}
   page: ${GOOGLE_SPREADSHEET_PAGE}
-  credential-path: ${GOOGLE_SPREADSHEET_CREDENTIALS}
+  credential-path: file:/root/spread-sheet-account.json
