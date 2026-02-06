@@ -1,11 +1,12 @@
 package solvit.teachmon.global.configuration;
 
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -20,32 +21,43 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 
 @Configuration
-@ConditionalOnProperty(name = "google-spreadsheet.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(
+        name = "google-spreadsheet.enabled",
+        havingValue = "true",
+        matchIfMissing = false
+)
 @RequiredArgsConstructor
 public class GoogleSpreadSheetConfiguration {
+
     private final GoogleSpreadSheetProperties googleSpreadSheetProperties;
     private final ResourceLoader resourceLoader;
 
     @Bean
-    public Credential googleCredential() throws IOException {
+    public GoogleCredentials googleCredentials() throws IOException {
         String location = googleSpreadSheetProperties.getCredentialPath();
         Resource resource = resourceLoader.getResource(location);
 
         if (!resource.exists()) {
-            throw new IOException("Google 서비스 계정 키 설정을 읽을 수 없습니다. path=" + location);
+            throw new IOException(
+                    "Google 서비스 계정 키 파일을 찾을 수 없습니다. location=" + location
+            );
         }
 
         try (InputStream is = resource.getInputStream()) {
-            return GoogleCredential.fromStream(is)
-                    .createScoped(Collections.singletonList(SheetsScopes.SPREADSHEETS));
+            return ServiceAccountCredentials.fromStream(is)
+                    .createScoped(Collections.singleton(SheetsScopes.SPREADSHEETS));
         }
     }
 
-
     @Bean
-    public Sheets googleSheetsService(Credential credential) throws GeneralSecurityException, IOException {
-        JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-        return new Sheets.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory, credential)
+    public Sheets googleSheetsService(GoogleCredentials credentials)
+            throws GeneralSecurityException, IOException {
+
+        return new Sheets.Builder(
+                GoogleNetHttpTransport.newTrustedTransport(),
+                JacksonFactory.getDefaultInstance(),
+                new HttpCredentialsAdapter(credentials)
+        )
                 .setApplicationName(googleSpreadSheetProperties.getApplicationName())
                 .build();
     }
