@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import solvit.teachmon.domain.student_schedule.application.facade.PlaceStudentScheduleService;
@@ -16,8 +17,8 @@ import solvit.teachmon.domain.student_schedule.presentation.dto.request.StudentS
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.ClassStudentScheduleResponse;
 import solvit.teachmon.domain.student_schedule.presentation.dto.response.HistoryStudentScheduleResponse;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
-import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
+import solvit.teachmon.global.security.user.TeachmonUserDetails;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,8 +30,6 @@ import java.util.List;
 public class StudentScheduleController {
     private final StudentScheduleService studentScheduleService;
     private final PlaceStudentScheduleService placeStudentScheduleService;
-    // TODO: 인증 로직 추가 후, 실제 TeacherRepository 주입 무조건 삭제!!
-    private final TeacherRepository teacherRepository;
 
     @GetMapping
     public ResponseEntity<List<ClassStudentScheduleResponse>> getGradeStudentSchedules(
@@ -48,10 +47,10 @@ public class StudentScheduleController {
     @PatchMapping("/{scheduleId}")
     public ResponseEntity<String> updateStudentSchedule(
             @PathVariable("scheduleId") @NotNull(message = "학생 상태 변경에서 scheduleId(스케줄 id)는 필수입니다.") Long scheduleId,
-            @RequestBody @Valid StudentScheduleUpdateRequest request
+            @RequestBody @Valid StudentScheduleUpdateRequest request,
+            @AuthenticationPrincipal TeachmonUserDetails teachmonUserDetails
     ) {
-        // TODO: 인증 로직 추가 후, 실제 TeacherEntity 주입
-        TeacherEntity teacher = teacherRepository.findById(1L).orElseThrow();
+        TeacherEntity teacher = teachmonUserDetails.teacherEntity();
 
         studentScheduleService.updateStudentSchedule(scheduleId, request, teacher);
 

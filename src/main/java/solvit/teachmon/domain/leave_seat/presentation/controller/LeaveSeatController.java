@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import solvit.teachmon.domain.leave_seat.application.facade.LeaveSeatFacadeService;
@@ -14,8 +15,8 @@ import solvit.teachmon.domain.leave_seat.presentation.dto.response.LeaveSeatDeta
 import solvit.teachmon.domain.leave_seat.presentation.dto.response.LeaveSeatListResponse;
 import solvit.teachmon.domain.leave_seat.presentation.dto.response.PlaceAvailabilityResponse;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
-import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
+import solvit.teachmon.global.security.user.TeachmonUserDetails;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,15 +27,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LeaveSeatController {
     private final LeaveSeatFacadeService leaveSeatFacadeService;
-    // TODO: 인증 로직 추가 후, 실제 TeacherRepository 주입 무조건 삭제!!
-    private final TeacherRepository teacherRepository;
 
     @PostMapping
     public ResponseEntity<String> createLeaveSeat(
-            @Valid @RequestBody LeaveSeatCreateRequest request
+            @Valid @RequestBody LeaveSeatCreateRequest request,
+            @AuthenticationPrincipal TeachmonUserDetails teachmonUserDetails
     ) {
-        // TODO: 인증 로직 추가 후, 실제 TeacherEntity 주입
-        TeacherEntity teacher = teacherRepository.findById(1L).orElseThrow();
+        TeacherEntity teacher = teachmonUserDetails.teacherEntity();
 
         leaveSeatFacadeService.createLeaveSeat(request, teacher);
 
@@ -69,10 +68,10 @@ public class LeaveSeatController {
     @PatchMapping("/{leaveseat_id}")
     public ResponseEntity<String> updateLeaveSeat(
             @PathVariable("leaveseat_id") @Positive(message = "이석 수정에서 leaveseat_id(이석 ID)는 양수여야 합니다.") Long leaveSeatId,
-            @Valid @RequestBody LeaveSeatUpdateRequest request
+            @Valid @RequestBody LeaveSeatUpdateRequest request,
+            @AuthenticationPrincipal TeachmonUserDetails teachmonUserDetails
     ) {
-        // TODO: 인증 로직 추가 후, 실제 TeacherEntity 주입
-        TeacherEntity teacher = teacherRepository.findById(1L).orElseThrow();
+        TeacherEntity teacher = teachmonUserDetails.teacherEntity();
 
         leaveSeatFacadeService.updateLeaveSeat(leaveSeatId, request, teacher);
 
