@@ -29,7 +29,7 @@ public class AfterSchoolScheduleService {
             AfterSchoolEntity afterSchool = assignmentResultVo.afterSchool();
             LocalDateTime now = currentDateTime();
             LocalDate afterSchoolDate =
-                    now.toLocalDate().with(TemporalAdjusters.previousOrSame(afterSchool.getWeekDay().toDayOfWeek()));
+                    now.toLocalDate().with(TemporalAdjusters.nextOrSame(afterSchool.getWeekDay().toDayOfWeek()));
 
             LocalDateTime afterSchoolEnd = afterSchoolDate.atTime(afterSchool.getPeriod().getEndTime());
 
@@ -77,8 +77,8 @@ public class AfterSchoolScheduleService {
                 .with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
                 .with(LocalTime.MIN);
 
-        LocalDateTime end = now
-                .with(TemporalAdjusters.nextOrSame(DayOfWeek.THURSDAY))
+        LocalDateTime end = start
+                .plusDays(4)
                 .with(LocalTime.of(20, 40, 0));
 
         return now.isAfter(start) && now.isBefore(end);
