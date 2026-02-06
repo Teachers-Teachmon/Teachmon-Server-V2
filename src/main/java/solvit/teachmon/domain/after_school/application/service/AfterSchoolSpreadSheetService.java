@@ -25,6 +25,8 @@ import solvit.teachmon.domain.branch.exception.BranchNotFoundException;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
+import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
+import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
@@ -50,6 +52,7 @@ import java.util.stream.Collectors;
 public class AfterSchoolSpreadSheetService {
     private final Sheets sheets;
     private final GoogleSpreadSheetProperties googleSpreadSheetProperties;
+    private final SupervisionBanDayRepository supervisionBanDayRepository;
     private final AfterSchoolRowValidator validator;
     private final AfterSchoolRepository afterSchoolRepository;
     private final TeacherRepository teacherRepository;
@@ -112,6 +115,8 @@ public class AfterSchoolSpreadSheetService {
         
         List<AfterSchoolEntity> allAfterSchools = afterSchoolRepository.findAllWithRelations();
         allAfterSchools.forEach(AfterSchoolEntity::endAfterSchool);
+
+        supervisionBanDayRepository.deleteAllByIsAfterschool();
         
         ReferenceDataCache cache = preloadReferenceData();
         
@@ -315,6 +320,14 @@ public class AfterSchoolSpreadSheetService {
             .build();
             
         afterSchoolRepository.save(afterSchool);
+
+        SupervisionBanDayEntity supervisionBanDayEntity = SupervisionBanDayEntity.builder()
+                .teacher(teacher)
+                .weekDay(weekDay)
+                .isAfterschool(true)
+                .build();
+
+        supervisionBanDayRepository.save(supervisionBanDayEntity);
         
         List<StudentEntity> students = studentInfos.stream()
             .map(info -> cache.getStudent(info.number().intValue()))
