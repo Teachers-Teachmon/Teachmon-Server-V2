@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
+import solvit.teachmon.domain.supervision.exception.InvalidSupervisionScheduleException;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.entity.BaseEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
@@ -34,9 +35,38 @@ public class SupervisionScheduleEntity extends BaseEntity {
 
     @Builder
     public SupervisionScheduleEntity(TeacherEntity teacher, LocalDate day, SchoolPeriod period, SupervisionType type) {
+        validateTeacher(teacher);
+        validateDay(day);
+        validatePeriod(period);
+        validateType(type);
+        
         this.teacher = teacher;
         this.day = day;
         this.period = period;
         this.type = type;
+    }
+    
+    private void validateTeacher(TeacherEntity teacher) {
+        if (teacher == null) {
+            throw new InvalidSupervisionScheduleException("감독 교사는 필수입니다.");
+        }
+    }
+    
+    private void validateDay(LocalDate day) {
+        if (day == null) {
+            throw new InvalidSupervisionScheduleException("감독 날짜는 필수입니다.");
+        }
+    }
+    
+    private void validatePeriod(SchoolPeriod period) {
+        if (period == null) {
+            throw new InvalidSupervisionScheduleException("감독 교시는 필수입니다.");
+        }
+    }
+    
+    private void validateType(SupervisionType type) {
+        if (type == null) {
+            throw new InvalidSupervisionScheduleException("감독 타입은 필수입니다.");
+        }
     }
 }

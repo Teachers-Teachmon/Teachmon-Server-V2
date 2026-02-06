@@ -10,11 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import solvit.teachmon.global.properties.GoogleSpreadSheetProperties;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Base64;
 import java.util.Collections;
@@ -28,15 +27,14 @@ public class GoogleSpreadSheetConfiguration {
     @Bean
     public Credential googleCredential() throws IOException {
         try {
-            byte[] decodedBytes = Base64.getDecoder().decode(googleSpreadSheetProperties.getCredentials());
-            String credentialsJson = new String(decodedBytes, StandardCharsets.UTF_8);
-
-            return GoogleCredential.fromStream(
-                    new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8))
-            ).createScoped(Collections.singletonList(SheetsScopes.SPREADSHEETS));
+            return GoogleCredential.fromStream(new ClassPathResource(googleSpreadSheetProperties.getCredentialPath()).getInputStream())
+                    .createScoped(Collections.singletonList("https://www.googleapis.com/auth/spreadsheets"));
         }
         catch (IOException e) {
             throw new IOException("Google 서비스 계정 키 설정을 읽을 수 없습니다.", e);
+        }
+        catch (IllegalArgumentException e) {
+            throw new IOException("Google 서비스 계정 키가 올바른 Base64 형식이 아닙니다.", e);
         }
     }
 
