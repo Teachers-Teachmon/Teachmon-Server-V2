@@ -10,12 +10,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import solvit.teachmon.global.properties.GoogleSpreadSheetProperties;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.GeneralSecurityException;
-import java.util.Base64;
 import java.util.Collections;
 
 @Configuration
@@ -23,18 +24,20 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class GoogleSpreadSheetConfiguration {
     private final GoogleSpreadSheetProperties googleSpreadSheetProperties;
+    private final ResourceLoader resourceLoader;
 
     @Bean
     public Credential googleCredential() throws IOException {
-        try {
-            return GoogleCredential.fromStream(new ClassPathResource(googleSpreadSheetProperties.getCredentialPath()).getInputStream())
-                    .createScoped(Collections.singletonList("https://www.googleapis.com/auth/spreadsheets"));
+        String path = googleSpreadSheetProperties.getCredentialPath();
+        Resource resource = resourceLoader.getResource("file:" + path);
+        if (!resource.exists()) {
+            resource = resourceLoader.getResource("classpath:" + path);
         }
-        catch (IOException e) {
-            throw new IOException("Google 서비스 계정 키 설정을 읽을 수 없습니다.", e);
-        }
-        catch (IllegalArgumentException e) {
-            throw new IOException("Google 서비스 계정 키가 올바른 Base64 형식이 아닙니다.", e);
+        try (InputStream is = resource.getInputStream()) {
+            return GoogleCredential.fromStream(is)
+                    .createScoped(Collections.singletonList(SheetsScopes.SPREADSHEETS));
+        } catch (IOException e) {
+            throw new IOException("Google 서비스 계정 키 설정을 읽을 수 없습니다. path=" + path, e);
         }
     }
 
