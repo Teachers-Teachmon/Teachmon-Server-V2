@@ -37,33 +37,33 @@ public class LeaveSeatScheduleSettingStrategy implements StudentScheduleSettingS
     }
 
     @Override
-    public void settingSchedule() {
+    public void settingSchedule(LocalDate baseDate) {
         List<FixedLeaveSeatEntity> fixedLeaveSeats = fixedLeaveSeatRepository.findAll();
 
         for(FixedLeaveSeatEntity fixedLeaveSeat : fixedLeaveSeats) {
-            List<StudentScheduleEntity> studentSchedules = findStudentScheduleByFixedLeaveSeat(fixedLeaveSeat);
-            settingLeaveSeatSchedule(studentSchedules, fixedLeaveSeat);
+            List<StudentScheduleEntity> studentSchedules = findStudentScheduleByFixedLeaveSeat(fixedLeaveSeat, baseDate);
+            settingLeaveSeatSchedule(studentSchedules, fixedLeaveSeat, baseDate);
         }
     }
 
-    private List<StudentScheduleEntity> findStudentScheduleByFixedLeaveSeat(FixedLeaveSeatEntity fixedLeaveSeat) {
+    private List<StudentScheduleEntity> findStudentScheduleByFixedLeaveSeat(FixedLeaveSeatEntity fixedLeaveSeat, LocalDate baseDate) {
         return studentScheduleRepository.findAllByFixedLeaveSeatAndDay(
                 fixedLeaveSeat,
-                calculateFixedLeaveSeatDay(fixedLeaveSeat),
+                calculateFixedLeaveSeatDay(fixedLeaveSeat, baseDate),
                 fixedLeaveSeat.getPeriod()
         );
     }
 
-    private LocalDate calculateFixedLeaveSeatDay(FixedLeaveSeatEntity fixedLeaveSeat) {
-        LocalDate today = LocalDate.now();
-        return today.with(fixedLeaveSeat.getWeekDay().toDayOfWeek()).plusWeeks(1);
+    private LocalDate calculateFixedLeaveSeatDay(FixedLeaveSeatEntity fixedLeaveSeat, LocalDate baseDate) {
+        return baseDate.with(fixedLeaveSeat.getWeekDay().toDayOfWeek());
     }
 
     private void settingLeaveSeatSchedule(
             List<StudentScheduleEntity> studentSchedules,
-            FixedLeaveSeatEntity fixedLeaveSeat
+            FixedLeaveSeatEntity fixedLeaveSeat,
+            LocalDate baseDate
     ) {
-        LeaveSeatEntity leaveSeat = createLeaveSeat(fixedLeaveSeat);
+        LeaveSeatEntity leaveSeat = createLeaveSeat(fixedLeaveSeat, baseDate);
 
         for(StudentScheduleEntity studentSchedule : studentSchedules) {
             ScheduleEntity newSchedule = createNewSchedule(studentSchedule);
@@ -81,9 +81,9 @@ public class LeaveSeatScheduleSettingStrategy implements StudentScheduleSettingS
         return newSchedule;
     }
 
-    private LeaveSeatEntity createLeaveSeat(FixedLeaveSeatEntity fixedLeaveSeat) {
+    private LeaveSeatEntity createLeaveSeat(FixedLeaveSeatEntity fixedLeaveSeat, LocalDate baseDate) {
         // 이석 생성
-        LeaveSeatEntity leaveSeat = LeaveSeatEntity.from(fixedLeaveSeat, calculateFixedLeaveSeatDay(fixedLeaveSeat));
+        LeaveSeatEntity leaveSeat = LeaveSeatEntity.from(fixedLeaveSeat, calculateFixedLeaveSeatDay(fixedLeaveSeat, baseDate));
 
         // 이석 학생 추가
         List<StudentEntity> leaveSeatStudents = fixedLeaveSeatStudentRepository.findAllByFixedLeaveSeat(fixedLeaveSeat);

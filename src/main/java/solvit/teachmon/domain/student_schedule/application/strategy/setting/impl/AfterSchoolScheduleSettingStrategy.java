@@ -36,30 +36,29 @@ public class AfterSchoolScheduleSettingStrategy implements StudentScheduleSettin
     }
 
     @Override
-    public void settingSchedule() {
-        BranchEntity branch = branchRepository.findByDay(LocalDate.now())
+    public void settingSchedule(LocalDate baseDate) {
+        BranchEntity branch = branchRepository.findByDay(baseDate)
                 .orElseThrow(BranchNotFoundException::new);
 
         List<AfterSchoolEntity> afterSchools = afterSchoolRepository.findAllByBranch(branch);
 
         for(AfterSchoolEntity afterSchool : afterSchools) {
             // 출장이면 넘어가기
-            if(afterSchoolBusinessTripRepository.existsByAfterSchoolAndDay(afterSchool, calculateAfterSchoolDay(afterSchool)))
+            if(afterSchoolBusinessTripRepository.existsByAfterSchoolAndDay(afterSchool, calculateAfterSchoolDay(afterSchool, baseDate)))
                 continue;
-            List<StudentScheduleEntity> studentSchedules = findStudentScheduleByAfterSchool(afterSchool);
+            List<StudentScheduleEntity> studentSchedules = findStudentScheduleByAfterSchool(afterSchool, baseDate);
             settingAfterSchoolSchedule(studentSchedules, afterSchool);
         }
     }
 
-    private List<StudentScheduleEntity> findStudentScheduleByAfterSchool(AfterSchoolEntity afterSchool) {
+    private List<StudentScheduleEntity> findStudentScheduleByAfterSchool(AfterSchoolEntity afterSchool, LocalDate baseDate) {
         return studentScheduleRepository.findAllByAfterSchoolAndDayAndPeriod(
-                afterSchool, calculateAfterSchoolDay(afterSchool), afterSchool.getPeriod()
+                afterSchool, calculateAfterSchoolDay(afterSchool, baseDate), afterSchool.getPeriod()
         );
     }
 
-    private LocalDate calculateAfterSchoolDay(AfterSchoolEntity afterSchool) {
-        LocalDate today = LocalDate.now();
-        return today.with(afterSchool.getWeekDay().toDayOfWeek()).plusWeeks(1);
+    private LocalDate calculateAfterSchoolDay(AfterSchoolEntity afterSchool, LocalDate baseDate) {
+        return baseDate.with(afterSchool.getWeekDay().toDayOfWeek());
     }
 
     private void settingAfterSchoolSchedule(

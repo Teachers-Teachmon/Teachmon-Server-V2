@@ -32,8 +32,8 @@ public class AfterSchoolReinforcementScheduleSettingStrategy implements StudentS
     }
 
     @Override
-    public void settingSchedule() {
-        List<AfterSchoolReinforcementEntity> afterSchoolReinforcements = findWeeklyAfterSchoolReinforcements();
+    public void settingSchedule(LocalDate baseDate) {
+        List<AfterSchoolReinforcementEntity> afterSchoolReinforcements = findWeeklyAfterSchoolReinforcements(baseDate);
 
         for(AfterSchoolReinforcementEntity reinforcement : afterSchoolReinforcements) {
             AfterSchoolEntity afterSchool = reinforcement.getAfterSchool();
@@ -42,11 +42,9 @@ public class AfterSchoolReinforcementScheduleSettingStrategy implements StudentS
         }
     }
 
-    private List<AfterSchoolReinforcementEntity> findWeeklyAfterSchoolReinforcements() {
-        LocalDate today = LocalDate.now();
-
-        LocalDate startDay = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate endDay = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+    private List<AfterSchoolReinforcementEntity> findWeeklyAfterSchoolReinforcements(LocalDate baseDate) {
+        LocalDate startDay = baseDate.with(DayOfWeek.MONDAY);
+        LocalDate endDay = baseDate.with(DayOfWeek.SUNDAY);
 
         return afterSchoolReinforcementRepository.findAllByChangeDayBetween(startDay, endDay);
     }

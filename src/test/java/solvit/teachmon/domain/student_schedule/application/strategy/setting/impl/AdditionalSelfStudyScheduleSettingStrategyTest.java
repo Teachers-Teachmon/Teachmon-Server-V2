@@ -71,8 +71,9 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
     void shouldSettingAdditionalSelfStudySchedule() {
         // Given: 다음 주에 추가 자습이 있을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate nextSunday = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(DayOfWeek.MONDAY);
+        LocalDate nextSunday = nextWeek.with(DayOfWeek.SUNDAY);
 
         AdditionalSelfStudyEntity additionalSelfStudy = createMockAdditionalSelfStudy(1L, 1, nextMonday, SchoolPeriod.SEVEN_PERIOD);
         StudentEntity student = createMockStudent(1L, 1, 1);
@@ -91,7 +92,7 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
                 .willReturn(false);
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 추가 자습 스케줄이 생성되어야 한다
         verify(additionalSelfStudyScheduleRepository, times(1)).save(any(AdditionalSelfStudyScheduleEntity.class));
@@ -102,8 +103,9 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
     void shouldCreateScheduleWithCorrectType() {
         // Given: 다음 주에 추가 자습이 있을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate nextSunday = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(DayOfWeek.MONDAY);
+        LocalDate nextSunday = nextWeek.with(DayOfWeek.SUNDAY);
 
         AdditionalSelfStudyEntity additionalSelfStudy = createMockAdditionalSelfStudy(1L, 1, nextMonday, SchoolPeriod.SEVEN_PERIOD);
         StudentEntity student = createMockStudent(1L, 1, 1);
@@ -122,7 +124,7 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
                 .willReturn(false);
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 저장된 Schedule의 타입을 검증한다
         ArgumentCaptor<ScheduleEntity> scheduleCaptor = ArgumentCaptor.forClass(ScheduleEntity.class);
@@ -143,8 +145,9 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
     void shouldSettingAdditionalSelfStudyScheduleForMultipleStudents() {
         // Given: 다음 주에 추가 자습이 있고, 여러 학생이 있을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate nextSunday = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(DayOfWeek.MONDAY);
+        LocalDate nextSunday = nextWeek.with(DayOfWeek.SUNDAY);
 
         AdditionalSelfStudyEntity additionalSelfStudy = createMockAdditionalSelfStudy(1L, 1, nextMonday, SchoolPeriod.SEVEN_PERIOD);
 
@@ -168,7 +171,7 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
                 .willReturn(false);
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 2개의 추가 자습 스케줄이 생성되어야 한다
         verify(additionalSelfStudyScheduleRepository, times(2)).save(any(AdditionalSelfStudyScheduleEntity.class));

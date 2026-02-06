@@ -65,8 +65,9 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
     void shouldSettingAfterSchoolReinforcementAsRegularAfterSchoolSchedule() {
         // Given: 다음 주에 방과후 보강이 있을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate nextSunday = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(DayOfWeek.MONDAY);
+        LocalDate nextSunday = nextWeek.with(DayOfWeek.SUNDAY);
 
         AfterSchoolEntity afterSchool = createMockAfterSchool(1L, "수학 방과후");
         PlaceEntity place = createMockPlace(1L, "수학실");
@@ -85,7 +86,7 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
                 .willReturn(0);
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 일반 방과후 스케줄이 생성되어야 한다 (보강용 별도 엔티티가 아님)
         verify(afterSchoolScheduleRepository, times(1)).save(any(AfterSchoolScheduleEntity.class));
@@ -96,8 +97,9 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
     void shouldSettingAfterSchoolReinforcementScheduleForMultipleStudents() {
         // Given: 다음 주에 방과후 보강이 있고, 여러 학생이 있을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate nextSunday = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(DayOfWeek.MONDAY);
+        LocalDate nextSunday = nextWeek.with(DayOfWeek.SUNDAY);
 
         AfterSchoolEntity afterSchool = createMockAfterSchool(1L, "수학 방과후");
         PlaceEntity place = createMockPlace(1L, "수학실");
@@ -120,7 +122,7 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
                 .willReturn(0);
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 3개의 방과후 스케줄이 생성되어야 한다
         verify(afterSchoolScheduleRepository, times(3)).save(any(AfterSchoolScheduleEntity.class));
@@ -131,9 +133,10 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
     void shouldHandleMultipleReinforcementsIndependently() {
         // Given: 2개의 방과후 보강이 있을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate nextTuesday = today.with(DayOfWeek.TUESDAY).plusWeeks(1);
-        LocalDate nextSunday = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(DayOfWeek.MONDAY);
+        LocalDate nextTuesday = nextWeek.with(DayOfWeek.TUESDAY);
+        LocalDate nextSunday = nextWeek.with(DayOfWeek.SUNDAY);
 
         AfterSchoolEntity afterSchool1 = createMockAfterSchool(1L, "수학 방과후");
         AfterSchoolEntity afterSchool2 = createMockAfterSchool(2L, "과학 방과후");
@@ -163,7 +166,7 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
                 .willReturn(0);
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 2개의 방과후 스케줄이 생성되어야 한다
         verify(afterSchoolScheduleRepository, times(2)).save(any(AfterSchoolScheduleEntity.class));
@@ -174,14 +177,15 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
     void shouldNotCreateSchedulesWhenNoReinforcements() {
         // Given: 다음 주에 방과후 보강이 없을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate nextSunday = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(DayOfWeek.MONDAY);
+        LocalDate nextSunday = nextWeek.with(DayOfWeek.SUNDAY);
 
         given(afterSchoolReinforcementRepository.findAllByChangeDayBetween(nextMonday, nextSunday))
                 .willReturn(List.of());
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 아무것도 생성되지 않아야 한다
         verify(afterSchoolScheduleRepository, never()).save(any());
@@ -192,9 +196,10 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
     void shouldFindStudentSchedulesBasedOnChangeDayAndPeriod() {
         // Given: 보강이 원래 화요일 7교시 방과후를 수요일 8-9교시로 변경했을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate nextWednesday = today.with(DayOfWeek.WEDNESDAY).plusWeeks(1);
-        LocalDate nextSunday = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(DayOfWeek.MONDAY);
+        LocalDate nextWednesday = nextWeek.with(DayOfWeek.WEDNESDAY);
+        LocalDate nextSunday = nextWeek.with(DayOfWeek.SUNDAY);
 
         AfterSchoolEntity afterSchool = createMockAfterSchool(1L, "영어 방과후");
         PlaceEntity place = createMockPlace(1L, "영어실");
@@ -218,7 +223,7 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
                 .willReturn(0);
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 변경된 날짜/교시로 학생 스케줄을 조회해야 한다
         verify(studentScheduleRepository).findAllByAfterSchoolAndDayAndPeriod(

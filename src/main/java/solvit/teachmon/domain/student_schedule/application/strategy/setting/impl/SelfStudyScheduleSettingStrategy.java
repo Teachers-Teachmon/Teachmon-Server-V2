@@ -42,8 +42,8 @@ public class SelfStudyScheduleSettingStrategy implements StudentScheduleSettingS
     }
 
     @Override
-    public void settingSchedule() {
-        BranchEntity branch = branchRepository.findByDay(LocalDate.now())
+    public void settingSchedule(LocalDate baseDate) {
+        BranchEntity branch = branchRepository.findByDay(baseDate)
                 .orElseThrow(BranchNotFoundException::new);
 
         // 해당 분기의 모든 자습 가져오기
@@ -51,22 +51,21 @@ public class SelfStudyScheduleSettingStrategy implements StudentScheduleSettingS
 
         for(SelfStudyEntity selfStudy : selfStudies) {
             // 각 자습별 학년들의 student schedule 가져오기
-            List<StudentScheduleEntity> studentSchedules = findStudentScheduleBySelfStudy(selfStudy);
+            List<StudentScheduleEntity> studentSchedules = findStudentScheduleBySelfStudy(selfStudy, baseDate);
 
             // 각 student schedule 별로 self study 설정해주기
             settingSelfStudySchedule(studentSchedules, selfStudy);
         }
     }
 
-    private List<StudentScheduleEntity> findStudentScheduleBySelfStudy(SelfStudyEntity selfStudy) {
+    private List<StudentScheduleEntity> findStudentScheduleBySelfStudy(SelfStudyEntity selfStudy, LocalDate baseDate) {
         return studentScheduleRepository.findAllByGradeAndDayAndPeriod(
-                selfStudy.getGrade(), calculateSelfStudyDay(selfStudy), selfStudy.getPeriod()
+                selfStudy.getGrade(), calculateSelfStudyDay(selfStudy, baseDate), selfStudy.getPeriod()
         );
     }
 
-    private LocalDate calculateSelfStudyDay(SelfStudyEntity selfStudy) {
-        LocalDate today = LocalDate.now();
-        return today.with(selfStudy.getWeekDay().toDayOfWeek()).plusWeeks(1);
+    private LocalDate calculateSelfStudyDay(SelfStudyEntity selfStudy, LocalDate baseDate) {
+        return baseDate.with(selfStudy.getWeekDay().toDayOfWeek());
     }
 
     private void settingSelfStudySchedule(List<StudentScheduleEntity> studentSchedules, SelfStudyEntity selfStudy) {

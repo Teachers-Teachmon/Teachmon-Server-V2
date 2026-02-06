@@ -62,11 +62,12 @@ class StudentScheduleSettingServiceTest {
                 .willReturn(List.of(student1, student2));
 
         // When: 새로운 학생 스케줄을 생성하면
-        studentScheduleSettingService.createNewStudentSchedule();
+        LocalDate nextWeek = today.plusWeeks(1);
+        studentScheduleSettingService.createNewStudentSchedule(nextWeek);
 
         // Then: 과거 스케줄을 삭제하고, 새로운 스케줄을 저장해야 한다
-        LocalDate nextMonday = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate nextSunday = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(DayOfWeek.MONDAY);
+        LocalDate nextSunday = nextWeek.with(DayOfWeek.SUNDAY);
 
         verify(studentScheduleRepository).deleteAllByDayBetween(nextMonday, nextSunday);
 
@@ -91,7 +92,8 @@ class StudentScheduleSettingServiceTest {
                 .willReturn(List.of(student));
 
         // When: 새로운 학생 스케줄을 생성하면
-        studentScheduleSettingService.createNewStudentSchedule();
+        LocalDate nextWeek = today.plusWeeks(1);
+        studentScheduleSettingService.createNewStudentSchedule(nextWeek);
 
         // Then: 저장된 스케줄의 날짜를 검증한다
         ArgumentCaptor<List<StudentScheduleEntity>> captor = ArgumentCaptor.forClass(List.class);
@@ -99,10 +101,10 @@ class StudentScheduleSettingServiceTest {
 
         List<StudentScheduleEntity> savedSchedules = captor.getValue();
 
-        LocalDate nextMonday = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate nextTuesday = today.with(DayOfWeek.TUESDAY).plusWeeks(1);
-        LocalDate nextWednesday = today.with(DayOfWeek.WEDNESDAY).plusWeeks(1);
-        LocalDate nextThursday = today.with(DayOfWeek.THURSDAY).plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(DayOfWeek.MONDAY);
+        LocalDate nextTuesday = nextWeek.with(DayOfWeek.TUESDAY);
+        LocalDate nextWednesday = nextWeek.with(DayOfWeek.WEDNESDAY);
+        LocalDate nextThursday = nextWeek.with(DayOfWeek.THURSDAY);
 
         assertThat(savedSchedules)
                 .extracting(StudentScheduleEntity::getDay)
@@ -121,7 +123,8 @@ class StudentScheduleSettingServiceTest {
                 .willReturn(List.of(student));
 
         // When: 새로운 학생 스케줄을 생성하면
-        studentScheduleSettingService.createNewStudentSchedule();
+        LocalDate nextWeek = today.plusWeeks(1);
+        studentScheduleSettingService.createNewStudentSchedule(nextWeek);
 
         // Then: 저장된 스케줄의 교시를 검증한다
         ArgumentCaptor<List<StudentScheduleEntity>> captor = ArgumentCaptor.forClass(List.class);
@@ -149,7 +152,8 @@ class StudentScheduleSettingServiceTest {
                 .willReturn(List.of());
 
         // When: 새로운 학생 스케줄을 생성하면
-        studentScheduleSettingService.createNewStudentSchedule();
+        LocalDate nextWeek = today.plusWeeks(1);
+        studentScheduleSettingService.createNewStudentSchedule(nextWeek);
 
         // Then: 빈 리스트가 저장되어야 한다
         ArgumentCaptor<List<StudentScheduleEntity>> captor = ArgumentCaptor.forClass(List.class);
@@ -163,26 +167,30 @@ class StudentScheduleSettingServiceTest {
     @DisplayName("모든 타입의 스케줄을 설정할 수 있다")
     void shouldSettingAllTypeSchedule() {
         // Given: 여러 개의 설정 전략이 있을 때
+        LocalDate today = LocalDate.now();
         given(studentScheduleSettingStrategyComposite.getAllStrategies())
                 .willReturn(List.of(mockStrategy1, mockStrategy2));
 
         // When: 모든 타입의 스케줄을 설정하면
-        studentScheduleSettingService.settingAllTypeSchedule();
+        LocalDate nextWeek = today.plusWeeks(1);
+        studentScheduleSettingService.settingAllTypeSchedule(nextWeek);
 
         // Then: 모든 전략의 settingSchedule이 호출되어야 한다
-        verify(mockStrategy1, times(1)).settingSchedule();
-        verify(mockStrategy2, times(1)).settingSchedule();
+        verify(mockStrategy1, times(1)).settingSchedule(nextWeek);
+        verify(mockStrategy2, times(1)).settingSchedule(nextWeek);
     }
 
     @Test
     @DisplayName("전략이 없으면 아무것도 설정하지 않는다")
     void shouldDoNothingWhenNoStrategies() {
         // Given: 설정 전략이 없을 때
+        LocalDate today = LocalDate.now();
         given(studentScheduleSettingStrategyComposite.getAllStrategies())
                 .willReturn(List.of());
 
         // When: 모든 타입의 스케줄을 설정하면
-        studentScheduleSettingService.settingAllTypeSchedule();
+        LocalDate nextWeek = today.plusWeeks(1);
+        studentScheduleSettingService.settingAllTypeSchedule(nextWeek);
 
         // Then: 아무런 전략도 호출되지 않아야 한다
         verifyNoInteractions(mockStrategy1, mockStrategy2);

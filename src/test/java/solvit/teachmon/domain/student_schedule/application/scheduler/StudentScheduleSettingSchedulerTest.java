@@ -3,12 +3,16 @@ package solvit.teachmon.domain.student_schedule.application.scheduler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleSettingService;
 
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,8 +32,12 @@ class StudentScheduleSettingSchedulerTest {
         scheduler.settingStudentSchedule();
 
         // Then: 학생 스케줄을 생성하고, 모든 타입의 스케줄을 설정해야 한다
-        verify(studentScheduleSettingService, times(1)).createNewStudentSchedule();
-        verify(studentScheduleSettingService, times(1)).settingAllTypeSchedule();
+        ArgumentCaptor<LocalDate> captor = ArgumentCaptor.forClass(LocalDate.class);
+        verify(studentScheduleSettingService, times(1)).createNewStudentSchedule(captor.capture());
+        verify(studentScheduleSettingService, times(1)).settingAllTypeSchedule(captor.capture());
+
+        // 동일한 날짜를 사용해야 한다
+        assertThat(captor.getAllValues().get(0)).isEqualTo(captor.getAllValues().get(1));
     }
 
     @Test
@@ -39,9 +47,10 @@ class StudentScheduleSettingSchedulerTest {
         scheduler.settingStudentSchedule();
 
         // Then: 학생 스케줄 생성이 먼저 실행되고, 그 다음 타입별 스케줄이 설정되어야 한다
+        ArgumentCaptor<LocalDate> captor = ArgumentCaptor.forClass(LocalDate.class);
         InOrder inOrder = inOrder(studentScheduleSettingService);
-        inOrder.verify(studentScheduleSettingService).createNewStudentSchedule();
-        inOrder.verify(studentScheduleSettingService).settingAllTypeSchedule();
+        inOrder.verify(studentScheduleSettingService).createNewStudentSchedule(captor.capture());
+        inOrder.verify(studentScheduleSettingService).settingAllTypeSchedule(captor.capture());
     }
 
     @Test

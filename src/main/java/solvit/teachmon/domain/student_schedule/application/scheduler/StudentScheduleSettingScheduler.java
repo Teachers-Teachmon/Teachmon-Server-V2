@@ -5,6 +5,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleSettingService;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+
 @Component
 @RequiredArgsConstructor
 public class StudentScheduleSettingScheduler {
@@ -15,7 +18,8 @@ public class StudentScheduleSettingScheduler {
             zone = "Asia/Seoul"
     )
     public void settingStudentSchedule() {
-        studentScheduleSettingService.createNewStudentSchedule();
-        studentScheduleSettingService.settingAllTypeSchedule();
+        LocalDate baseDate = LocalDate.now().with(DayOfWeek.MONDAY).plusWeeks(1);
+        studentScheduleSettingService.createNewStudentSchedule(baseDate);
+        studentScheduleSettingService.settingAllTypeSchedule(baseDate);
     }
 }

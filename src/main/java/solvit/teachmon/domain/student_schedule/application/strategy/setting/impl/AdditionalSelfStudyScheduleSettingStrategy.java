@@ -39,8 +39,8 @@ public class AdditionalSelfStudyScheduleSettingStrategy implements StudentSchedu
     }
 
     @Override
-    public void settingSchedule() {
-        List<AdditionalSelfStudyEntity> additionalSelfStudies = findWeeklyAdditionalSelfStudies();
+    public void settingSchedule(LocalDate baseDate) {
+        List<AdditionalSelfStudyEntity> additionalSelfStudies = findWeeklyAdditionalSelfStudies(baseDate);
 
         for(AdditionalSelfStudyEntity additionalSelfStudy : additionalSelfStudies) {
             List<StudentScheduleEntity> studentSchedules = findStudentScheduleByAdditionalSelfStudy(additionalSelfStudy);
@@ -48,11 +48,9 @@ public class AdditionalSelfStudyScheduleSettingStrategy implements StudentSchedu
         }
     }
 
-    private List<AdditionalSelfStudyEntity> findWeeklyAdditionalSelfStudies() {
-        LocalDate today = LocalDate.now();
-
-        LocalDate startDay = today.with(DayOfWeek.MONDAY).plusWeeks(1);
-        LocalDate endDay = today.with(DayOfWeek.SUNDAY).plusWeeks(1);
+    private List<AdditionalSelfStudyEntity> findWeeklyAdditionalSelfStudies(LocalDate baseDate) {
+        LocalDate startDay = baseDate.with(DayOfWeek.MONDAY);
+        LocalDate endDay = baseDate.with(DayOfWeek.SUNDAY);
 
         return additionalSelfStudyRepository.findAllByDayBetween(startDay, endDay);
     }

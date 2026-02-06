@@ -75,7 +75,8 @@ class LeaveSeatScheduleSettingStrategyTest {
     void shouldSettingLeaveSeatSchedule() {
         // Given: 고정 이석이 있을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(WeekDay.MON.toDayOfWeek()).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(WeekDay.MON.toDayOfWeek());
 
         TeacherEntity teacher = createMockTeacher(1L);
         PlaceEntity place = createMockPlace(1L, "도서관");
@@ -97,7 +98,7 @@ class LeaveSeatScheduleSettingStrategyTest {
                 .willReturn(List.of(student1, student2));
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 이석 스케줄이 생성되어야 한다
         verify(leaveSeatScheduleRepository, times(2)).save(any(LeaveSeatScheduleEntity.class));
@@ -108,7 +109,8 @@ class LeaveSeatScheduleSettingStrategyTest {
     void shouldCreateOnlyOneLeaveSeatPerFixedLeaveSeat() {
         // Given: 고정 이석에 2명의 학생이 있을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(WeekDay.MON.toDayOfWeek()).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(WeekDay.MON.toDayOfWeek());
 
         TeacherEntity teacher = createMockTeacher(1L);
         PlaceEntity place = createMockPlace(1L, "도서관");
@@ -130,7 +132,7 @@ class LeaveSeatScheduleSettingStrategyTest {
                 .willReturn(List.of(student1, student2));
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: LeaveSeat 엔티티 저장 횟수를 검증한다
         ArgumentCaptor<LeaveSeatEntity> leaveSeatCaptor = ArgumentCaptor.forClass(LeaveSeatEntity.class);
@@ -154,7 +156,8 @@ class LeaveSeatScheduleSettingStrategyTest {
     void shouldShareSameLeaveSeatAcrossMultipleLeaveSeatSchedules() {
         // Given: 고정 이석에 3명의 학생이 있을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(WeekDay.MON.toDayOfWeek()).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(WeekDay.MON.toDayOfWeek());
 
         TeacherEntity teacher = createMockTeacher(1L);
         PlaceEntity place = createMockPlace(1L, "도서관");
@@ -178,7 +181,7 @@ class LeaveSeatScheduleSettingStrategyTest {
                 .willReturn(List.of(student1, student2, student3));
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 저장된 LeaveSeatSchedule들을 검증한다
         ArgumentCaptor<LeaveSeatScheduleEntity> scheduleCaptor = ArgumentCaptor.forClass(LeaveSeatScheduleEntity.class);
@@ -205,8 +208,9 @@ class LeaveSeatScheduleSettingStrategyTest {
     void shouldHandleMultipleFixedLeaveSeatsIndependently() {
         // Given: 2개의 고정 이석이 있을 때
         LocalDate today = LocalDate.now();
-        LocalDate nextMonday = today.with(WeekDay.MON.toDayOfWeek()).plusWeeks(1);
-        LocalDate nextTuesday = today.with(WeekDay.TUE.toDayOfWeek()).plusWeeks(1);
+        LocalDate nextWeek = today.plusWeeks(1);
+        LocalDate nextMonday = nextWeek.with(WeekDay.MON.toDayOfWeek());
+        LocalDate nextTuesday = nextWeek.with(WeekDay.TUE.toDayOfWeek());
 
         TeacherEntity teacher = createMockTeacher(1L);
         PlaceEntity place1 = createMockPlace(1L, "도서관");
@@ -233,7 +237,7 @@ class LeaveSeatScheduleSettingStrategyTest {
                 .willReturn(List.of());
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule();
+        strategy.settingSchedule(nextWeek);
 
         // Then: 2개의 이석 스케줄이 생성되어야 한다
         verify(leaveSeatScheduleRepository, times(2)).save(any(LeaveSeatScheduleEntity.class));
