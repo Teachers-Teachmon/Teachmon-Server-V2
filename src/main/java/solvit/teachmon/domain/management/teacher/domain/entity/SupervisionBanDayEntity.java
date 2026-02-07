@@ -23,13 +23,19 @@ public class SupervisionBanDayEntity extends BaseEntity {
     @Column(name = "week_day", nullable = false)
     private WeekDay weekDay;
 
+    @Column(name = "is_afterschool", nullable = false)
+    private boolean isAfterschool;
+
     @Builder
-    public SupervisionBanDayEntity(TeacherEntity teacher, WeekDay weekDay) {
+    public SupervisionBanDayEntity(TeacherEntity teacher, WeekDay weekDay, Boolean isAfterschool) {
         validateTeacher(teacher);
         validateWeekDay(weekDay);
+        validateIsAfterschool(isAfterschool);
 
         this.teacher = teacher;
         this.weekDay = weekDay;
+        this.isAfterschool = isAfterschool;
+
     }
 
     private void validateTeacher(TeacherEntity teacher) {
@@ -41,6 +47,12 @@ public class SupervisionBanDayEntity extends BaseEntity {
     private void validateWeekDay(WeekDay weekDay) {
         if (weekDay == null) {
             throw new InvalidSupervisionBanDayInfoException("weekDay(요일)는 필수입니다.");
+        }
+    }
+
+    private void validateIsAfterschool(Boolean isAfterschool) {
+        if (isAfterschool == null) {
+            throw new InvalidSupervisionBanDayInfoException("is_afterSchool(방과후 여부)는 필수입니다.");
         }
     }
 }
