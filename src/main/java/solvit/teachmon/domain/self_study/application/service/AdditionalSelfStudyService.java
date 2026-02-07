@@ -9,6 +9,7 @@ import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.self_study.application.mapper.AdditionalSelfStudyMapper;
 import solvit.teachmon.domain.self_study.domain.entity.AdditionalSelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.AdditionalSelfStudyRepository;
+import solvit.teachmon.domain.self_study.exception.AdditionalSelfStudyNotFoundException;
 import solvit.teachmon.domain.self_study.presentation.dto.request.AdditionalSelfStudySetRequest;
 import solvit.teachmon.domain.self_study.presentation.dto.response.AdditionalSelfStudyGetResponse;
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
@@ -45,7 +46,7 @@ public class AdditionalSelfStudyService {
 
         // 요청한 날짜와 추가 자습 날짜가 같은 주에 있는지 확인
         if (isInCurrentWeek(request.day())) {
-            // Apply schedules immediately for the current week
+            // 같은 주에 있다면 스케줄에 반영
             applyAdditionalSelfStudySchedules(additionalSelfStudyEntities);
         }
     }
@@ -58,11 +59,11 @@ public class AdditionalSelfStudyService {
     @Transactional
     public void deleteAdditionalSelfStudy(Long additionalId) {
         AdditionalSelfStudyEntity additionalSelfStudy = additionalSelfStudyRepository.findById(additionalId)
-                .orElseThrow(() -> new IllegalArgumentException("Additional self-study not found"));
+                .orElseThrow(AdditionalSelfStudyNotFoundException::new);
 
-        // Check if the date is in the current week
+        // 요청한 날짜와 추가 자습 날짜가 같은 주에 있는지 확인
         if (isInCurrentWeek(additionalSelfStudy.getDay())) {
-            // Remove schedules immediately for the current week
+            // 같은 주에 있다면 삭제
             removeAdditionalSelfStudySchedules(additionalSelfStudy);
         }
 
