@@ -18,15 +18,15 @@ import solvit.teachmon.global.entity.BaseEntity;
 @Table(name = "after_school_student")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AfterSchoolStudentEntity extends BaseEntity {
-    
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "after_school_id")
     private AfterSchoolEntity afterSchool;
-    
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "student_id")
     private StudentEntity student;
-    
+
     @Builder
     public AfterSchoolStudentEntity(AfterSchoolEntity afterSchool, StudentEntity student) {
         validateAfterSchool(afterSchool);

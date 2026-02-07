@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
@@ -45,5 +46,9 @@ public enum SchoolPeriod {
 
     public static SchoolPeriod fromCurrentTime() {
         return fromTime(LocalTime.now());
+    }
+
+    public static List<SchoolPeriod> getAfterActivityPeriod() {
+        return List.of(SEVEN_PERIOD, EIGHT_AND_NINE_PERIOD, TEN_AND_ELEVEN_PERIOD);
     }
 }

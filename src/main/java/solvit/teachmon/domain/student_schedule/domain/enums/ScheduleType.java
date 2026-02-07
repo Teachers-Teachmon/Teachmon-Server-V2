@@ -8,7 +8,8 @@ public enum ScheduleType {
     LEAVE_SEAT,
     ADDITIONAL_SELF_STUDY,
     EXIT,
-    AWAY;
+    AWAY,
+    AFTER_SCHOOL_REINFORCEMENT;
 
     public boolean isContains(List<ScheduleType> types) {
         return types != null && types.contains(this);

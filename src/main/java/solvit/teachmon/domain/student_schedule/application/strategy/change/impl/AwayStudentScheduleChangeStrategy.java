@@ -1,8 +1,8 @@
-package solvit.teachmon.domain.student_schedule.application.strategy.impl;
+package solvit.teachmon.domain.student_schedule.application.strategy.change.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import solvit.teachmon.domain.student_schedule.application.strategy.StudentScheduleChangeStrategy;
+import solvit.teachmon.domain.student_schedule.application.strategy.change.StudentScheduleChangeStrategy;
 import solvit.teachmon.domain.student_schedule.domain.entity.AwayEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
