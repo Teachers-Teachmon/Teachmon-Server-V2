@@ -16,6 +16,7 @@ import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundExceptio
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolBusinessTripRequestDto;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
+import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
 import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 
@@ -35,6 +36,8 @@ class AfterSchoolServiceBusinessTripTest {
     private AfterSchoolStudentDomainService afterSchoolStudentDomainService;
     @Mock
     private AfterSchoolScheduleService afterSchoolScheduleService;
+    @Mock
+    private SupervisionBanDayRepository supervisionBanDayRepository;
     @Mock
     private AfterSchoolRepository afterSchoolRepository;
     @Mock
@@ -58,6 +61,7 @@ class AfterSchoolServiceBusinessTripTest {
     void setUp() {
         afterSchoolService = new AfterSchoolService(
                 afterSchoolStudentDomainService,
+                supervisionBanDayRepository,
                 afterSchoolRepository,
                 afterSchoolBusinessTripRepository,
                 afterSchoolReinforcementRepository,

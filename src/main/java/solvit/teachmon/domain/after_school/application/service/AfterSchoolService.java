@@ -12,6 +12,8 @@ import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolReposito
 import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDomainService;
 import solvit.teachmon.domain.after_school.domain.vo.StudentAssignmentResultVo;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundException;
+import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
+import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
 import solvit.teachmon.domain.place.exception.PlaceNotFoundException;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolBusinessTripRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolCreateRequestDto;
@@ -43,6 +45,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class AfterSchoolService {
     private final AfterSchoolStudentDomainService afterSchoolStudentDomainService;
+    private final SupervisionBanDayRepository supervisionBanDayRepository;
     private final AfterSchoolRepository afterSchoolRepository;
     private final AfterSchoolBusinessTripRepository afterSchoolBusinessTripRepository;
     private final AfterSchoolReinforcementRepository afterSchoolReinforcementRepository;
@@ -73,14 +76,25 @@ public class AfterSchoolService {
         StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(afterSchool, students);
         afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
 
+        SupervisionBanDayEntity supervisionBanDayEntity = SupervisionBanDayEntity.builder()
+                .teacher(teacher)
+                .weekDay(requestDto.weekDay())
+                .isAfterschool(true)
+                .build();
+
+        supervisionBanDayRepository.save(supervisionBanDayEntity);
+
+        afterSchoolStudentDomainService.assignStudents(afterSchool, students);
+        
         afterSchoolRepository.save(afterSchool);
     }
 
     @Transactional
     public void updateAfterSchool(AfterSchoolUpdateRequestDto requestDto) {
         AfterSchoolEntity afterSchool = getAfterSchoolById(requestDto.afterSchoolId());
+        supervisionBanDayRepository.deleteAfterSchoolBanDay(afterSchool.getTeacher().getId(), afterSchool.getWeekDay());
 
-        TeacherEntity teacher = resolveTeacher(requestDto.teacherId(),  afterSchool);
+        TeacherEntity teacher = resolveTeacher(requestDto.teacherId(), afterSchool);
         PlaceEntity place = resolvePlace(requestDto.placeId(), afterSchool);
         WeekDay weekDay = resolveWeekDay(requestDto.weekDay(), afterSchool);
         SchoolPeriod schoolPeriod = resolveSchoolPeriod(requestDto.period(), afterSchool);
@@ -98,6 +112,14 @@ public class AfterSchoolService {
                 grade
         );
 
+        SupervisionBanDayEntity supervisionBanDayEntity = SupervisionBanDayEntity.builder()
+                .teacher(teacher)
+                .weekDay(requestDto.weekDay())
+                .isAfterschool(true)
+                .build();
+
+        supervisionBanDayRepository.save(supervisionBanDayEntity);
+
         updateStudentsIfPresent(requestDto.studentsId(), afterSchool);
     }
 
@@ -106,6 +128,8 @@ public class AfterSchoolService {
         AfterSchoolEntity afterSchool = afterSchoolRepository.findById(afterSchoolId)
                 .orElseThrow(() -> new AfterSchoolNotFoundException(afterSchoolId));
 
+        supervisionBanDayRepository.deleteAfterSchoolBanDay(afterSchool.getTeacher().getId(), afterSchool.getWeekDay());
+        
         afterSchoolRepository.delete(afterSchool);
     }
 
@@ -113,6 +137,7 @@ public class AfterSchoolService {
     public void quitAfterSchool(Long afterSchoolId) {
         AfterSchoolEntity afterSchool = afterSchoolRepository.findById(afterSchoolId)
                 .orElseThrow(() -> new AfterSchoolNotFoundException(afterSchoolId));
+        supervisionBanDayRepository.deleteAfterSchoolBanDay(afterSchool.getTeacher().getId(), afterSchool.getWeekDay());
         afterSchool.endAfterSchool();
     }
 

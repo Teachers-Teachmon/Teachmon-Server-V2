@@ -17,6 +17,7 @@ import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolReinforce
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolReinforcementRequestDto;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
+import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.place.exception.PlaceNotFoundException;
@@ -39,6 +40,8 @@ class AfterSchoolServiceReinforcementTest {
     private AfterSchoolStudentDomainService afterSchoolStudentDomainService;
     @Mock
     private AfterSchoolScheduleService afterSchoolScheduleService;
+    @Mock
+    private SupervisionBanDayRepository supervisionBanDayRepository;
     @Mock
     private AfterSchoolRepository afterSchoolRepository;
     @Mock
@@ -63,6 +66,7 @@ class AfterSchoolServiceReinforcementTest {
     void setUp() {
         afterSchoolService = new AfterSchoolService(
                 afterSchoolStudentDomainService,
+                supervisionBanDayRepository,
                 afterSchoolRepository,
                 afterSchoolBusinessTripRepository,
                 afterSchoolReinforcementRepository,
