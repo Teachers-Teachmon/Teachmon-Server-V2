@@ -37,6 +37,6 @@ public class PlaceEntity extends BaseEntity {
     private List<AfterSchoolEntity> afterSchools = new ArrayList<>();
 
     public static Integer calculateNextClassNumber(Integer classNumber) {
-        return (classNumber + 1) % 5;
+        return (classNumber % 4) + 1;
     }
 }
