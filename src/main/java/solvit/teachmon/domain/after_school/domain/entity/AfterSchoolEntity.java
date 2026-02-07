@@ -73,7 +73,7 @@ public class AfterSchoolEntity extends BaseEntity {
     private List<AfterSchoolStudentEntity> afterSchoolStudents = new ArrayList<>();
 
     @Builder
-    public AfterSchoolEntity(TeacherEntity teacher, BranchEntity branch, PlaceEntity place, 
+    public AfterSchoolEntity(TeacherEntity teacher, BranchEntity branch, PlaceEntity place,
                             WeekDay weekDay, SchoolPeriod period, Integer year, String name, Integer grade) {
         validateTeacher(teacher);
         validateBranch(branch);
@@ -96,7 +96,7 @@ public class AfterSchoolEntity extends BaseEntity {
         this.isEnd = false;
     }
 
-    public void updateAfterSchool(TeacherEntity teacher, PlaceEntity place, WeekDay weekDay, 
+    public void updateAfterSchool(TeacherEntity teacher, PlaceEntity place, WeekDay weekDay,
                                  SchoolPeriod period, Integer year, String name, Integer grade) {
         validateTeacher(teacher);
         validatePlace(place);

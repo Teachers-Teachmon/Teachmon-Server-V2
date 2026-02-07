@@ -10,13 +10,16 @@ import java.util.List;
 
 @Repository
 public interface StudentRepository extends JpaRepository<StudentEntity, Long> {
-    
+
     @Query("SELECT s FROM StudentEntity s WHERE s.number IN :numbers")
     List<StudentEntity> findAllByNumberIn(@Param("numbers") List<Integer> numbers);
-    
+
     @Query("SELECT s FROM StudentEntity s WHERE s.year = :year AND s.number IN :numbers")
     List<StudentEntity> findAllByYearAndNumberIn(@Param("year") Integer year, @Param("numbers") List<Integer> numbers);
-    
+
     @Query("SELECT COUNT(s) > 0 FROM StudentEntity s WHERE s.number = :number AND s.name = :name")
     boolean existsByNumberAndName(@Param("number") Integer number, @Param("name") String name);
+
+    @Query("SELECT s FROM StudentEntity s WHERE s.year = :year")
+    List<StudentEntity> findByYear(Integer year);
 }

@@ -41,10 +41,10 @@ public class LeaveSeatEntity extends BaseEntity {
     private String cause;
 
     @OneToMany(mappedBy = "leaveSeat", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<LeaveSeatScheduleEntity> leaveSeatSchedules;
+    private List<LeaveSeatScheduleEntity> leaveSeatSchedules = new java.util.ArrayList<>();
 
-    @OneToMany(mappedBy = "leaveSeat", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<LeaveSeatStudentEntity> leaveSeatStudents;
+    @OneToMany(mappedBy = "leaveSeat", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LeaveSeatStudentEntity> leaveSeatStudents = new java.util.ArrayList<>();
 
     @Builder
     public LeaveSeatEntity(TeacherEntity teacher, PlaceEntity place, LocalDate day, SchoolPeriod period, String cause) {
@@ -73,6 +73,20 @@ public class LeaveSeatEntity extends BaseEntity {
         this.day = day;
         this.period = period;
         this.cause = cause;
+    }
+
+    public static LeaveSeatEntity from(FixedLeaveSeatEntity fl, LocalDate day) {
+        return LeaveSeatEntity.builder()
+                .teacher(fl.getTeacher())
+                .place(fl.getPlace())
+                .day(day)
+                .period(fl.getPeriod())
+                .cause(fl.getCause())
+                .build();
+    }
+
+    public void addLeaveSeatStudent(LeaveSeatStudentEntity leaveSeatStudent) {
+        this.leaveSeatStudents.add(leaveSeatStudent);
     }
 
     private void validateTeacher(TeacherEntity teacher) {

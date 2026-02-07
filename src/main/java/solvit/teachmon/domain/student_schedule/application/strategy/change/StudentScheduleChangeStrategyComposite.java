@@ -1,4 +1,4 @@
-package solvit.teachmon.domain.student_schedule.application.strategy;
+package solvit.teachmon.domain.student_schedule.application.strategy.change;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.http.HttpStatus;

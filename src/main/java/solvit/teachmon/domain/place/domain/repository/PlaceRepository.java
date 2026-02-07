@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 
 @Repository
-public interface PlaceRepository extends JpaRepository<PlaceEntity, Long> {
+public interface PlaceRepository extends JpaRepository<PlaceEntity, Long>, PlaceQueryDslRepository {
 }
