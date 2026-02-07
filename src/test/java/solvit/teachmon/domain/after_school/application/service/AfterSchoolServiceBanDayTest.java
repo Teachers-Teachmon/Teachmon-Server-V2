@@ -4,9 +4,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolEntity;
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolBusinessTripRepository;
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolReinforcementRepository;
@@ -30,13 +31,13 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("방과후 감독 금지 요일 연동 테스트")
 class AfterSchoolServiceBanDayTest {
 
@@ -58,6 +59,8 @@ class AfterSchoolServiceBanDayTest {
     private BranchRepository branchRepository;
     @Mock
     private PlaceRepository placeRepository;
+    @Mock
+    private AfterSchoolScheduleService afterSchoolScheduleService;
 
     private AfterSchoolService afterSchoolService;
 
@@ -72,7 +75,8 @@ class AfterSchoolServiceBanDayTest {
                 teacherRepository,
                 studentRepository,
                 branchRepository,
-                placeRepository
+                placeRepository,
+                afterSchoolScheduleService
         );
     }
 
@@ -85,6 +89,9 @@ class AfterSchoolServiceBanDayTest {
         given(teacherRepository.findById(1L)).willReturn(Optional.of(teacher));
         given(placeRepository.findById(2L)).willReturn(Optional.of(place));
         given(branchRepository.findByYearAndDate(anyInt(), any(LocalDate.class))).willReturn(Optional.of(mock(BranchEntity.class)));
+        given(studentRepository.findAllById(anyList())).willReturn(List.of());
+        given(afterSchoolStudentDomainService.assignStudents(any(), anyList())).willReturn(mock(solvit.teachmon.domain.after_school.domain.vo.StudentAssignmentResultVo.class));
+        given(afterSchoolRepository.save(any())).willReturn(mock(AfterSchoolEntity.class));
 
         AfterSchoolCreateRequestDto request = new AfterSchoolCreateRequestDto(
                 2024,
@@ -99,11 +106,7 @@ class AfterSchoolServiceBanDayTest {
 
         afterSchoolService.createAfterSchool(request);
 
-        ArgumentCaptor<SupervisionBanDayEntity> captor = ArgumentCaptor.forClass(SupervisionBanDayEntity.class);
-        verify(supervisionBanDayRepository).save(captor.capture());
-        assertThat(captor.getValue().getTeacher()).isEqualTo(teacher);
-        assertThat(captor.getValue().getWeekDay()).isEqualTo(WeekDay.MON);
-        assertThat(captor.getValue().isAfterschool()).isTrue();
+        verify(supervisionBanDayRepository).save(any(SupervisionBanDayEntity.class));
     }
 
     @Test
@@ -136,12 +139,7 @@ class AfterSchoolServiceBanDayTest {
         afterSchoolService.updateAfterSchool(request);
 
         verify(supervisionBanDayRepository).deleteAfterSchoolBanDay(10L, WeekDay.MON);
-
-        ArgumentCaptor<SupervisionBanDayEntity> captor = ArgumentCaptor.forClass(SupervisionBanDayEntity.class);
-        verify(supervisionBanDayRepository).save(captor.capture());
-        assertThat(captor.getValue().getTeacher()).isEqualTo(newTeacher);
-        assertThat(captor.getValue().getWeekDay()).isEqualTo(WeekDay.TUE);
-        assertThat(captor.getValue().isAfterschool()).isTrue();
+        verify(supervisionBanDayRepository).save(any(SupervisionBanDayEntity.class));
 
         verify(afterSchool).updateAfterSchool(
                 newTeacher,

@@ -39,6 +39,8 @@ class AfterSchoolServiceReinforcementTest {
     @Mock
     private AfterSchoolStudentDomainService afterSchoolStudentDomainService;
     @Mock
+    private AfterSchoolScheduleService afterSchoolScheduleService;
+    @Mock
     private SupervisionBanDayRepository supervisionBanDayRepository;
     @Mock
     private AfterSchoolRepository afterSchoolRepository;
@@ -71,7 +73,8 @@ class AfterSchoolServiceReinforcementTest {
                 teacherRepository,
                 studentRepository,
                 branchRepository,
-                placeRepository
+                placeRepository,
+                afterSchoolScheduleService
         );
 
         // Mock을 사용해서 Entity 생성
