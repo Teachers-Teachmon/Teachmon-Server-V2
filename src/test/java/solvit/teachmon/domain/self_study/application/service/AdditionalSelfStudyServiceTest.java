@@ -14,6 +14,7 @@ import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.self_study.application.mapper.AdditionalSelfStudyMapper;
 import solvit.teachmon.domain.self_study.domain.entity.AdditionalSelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.AdditionalSelfStudyRepository;
+import solvit.teachmon.domain.self_study.exception.AdditionalSelfStudyNotFoundException;
 import solvit.teachmon.domain.self_study.presentation.dto.request.AdditionalSelfStudySetRequest;
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
@@ -197,7 +198,7 @@ class AdditionalSelfStudyServiceTest {
 
         // When & Then: 삭제를 시도하면 예외가 발생해야 한다
         assertThatThrownBy(() -> additionalSelfStudyService.deleteAdditionalSelfStudy(999L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(AdditionalSelfStudyNotFoundException.class)
                 .hasMessage("Additional self-study not found");
 
         verify(additionalSelfStudyRepository, never()).deleteById(any());
