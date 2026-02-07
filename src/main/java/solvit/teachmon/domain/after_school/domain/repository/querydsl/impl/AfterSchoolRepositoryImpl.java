@@ -13,7 +13,9 @@ import solvit.teachmon.domain.after_school.domain.repository.querydsl.AfterSchoo
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolSearchRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolMyResponseDto;
+import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolSearchResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolTodayResponseDto;
+import solvit.teachmon.domain.after_school.presentation.dto.response.QAfterSchoolSearchResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.StudentInfo;
 import solvit.teachmon.domain.branch.domain.entity.QBranchEntity;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
@@ -240,5 +242,31 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
                 ),
                 students
         );
+    }
+
+    @Override
+    public List<AfterSchoolSearchResponseDto> searchAfterSchoolsByKeyword(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return List.of();
+        }
+
+        BooleanBuilder builder = new BooleanBuilder();
+        
+        // 방과후 이름으로 검색
+        builder.or(afterSchool.name.containsIgnoreCase(keyword));
+        
+        // 담당 선생님 이름으로 검색
+        builder.or(teacher.name.containsIgnoreCase(keyword));
+        
+        return queryFactory.select(
+                new QAfterSchoolSearchResponseDto(
+                        afterSchool.id,
+                        afterSchool.name
+                )
+        )
+        .from(afterSchool)
+        .join(afterSchool.teacher, teacher)
+        .where(builder)
+        .fetch();
     }
 }
