@@ -199,7 +199,7 @@ class AdditionalSelfStudyServiceTest {
         // When & Then: 삭제를 시도하면 예외가 발생해야 한다
         assertThatThrownBy(() -> additionalSelfStudyService.deleteAdditionalSelfStudy(999L))
                 .isInstanceOf(AdditionalSelfStudyNotFoundException.class)
-                .hasMessage("Additional self-study not found");
+                .hasMessage("추가 자습을 찾을 수 없습니다.");
 
         verify(additionalSelfStudyRepository, never()).deleteById(any());
     }
