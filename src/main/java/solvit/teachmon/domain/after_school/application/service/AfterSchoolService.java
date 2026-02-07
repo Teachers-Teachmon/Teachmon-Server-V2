@@ -10,6 +10,7 @@ import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolBusiness
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolReinforcementRepository;
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolRepository;
 import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDomainService;
+import solvit.teachmon.domain.after_school.domain.vo.StudentAssignmentResultVo;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundException;
 import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
 import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
@@ -52,6 +53,7 @@ public class AfterSchoolService {
     private final StudentRepository studentRepository;
     private final BranchRepository branchRepository;
     private final PlaceRepository placeRepository;
+    private final AfterSchoolScheduleService afterSchoolScheduleService;
 
     @Transactional
     public void createAfterSchool(AfterSchoolCreateRequestDto requestDto) {
@@ -59,7 +61,7 @@ public class AfterSchoolService {
         PlaceEntity place = getPlaceById(requestDto.placeId());
         BranchEntity branch = getCurrentBranch();
         List<StudentEntity> students = fetchStudentsByIds(requestDto.studentsId());
-        
+
         AfterSchoolEntity afterSchool = AfterSchoolEntity.builder()
                 .teacher(teacher)
                 .branch(branch)
@@ -71,6 +73,11 @@ public class AfterSchoolService {
                 .year(requestDto.year())
                 .build();
 
+        afterSchoolRepository.save(afterSchool);
+        
+        StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(afterSchool, students);
+        afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
+
         SupervisionBanDayEntity supervisionBanDayEntity = SupervisionBanDayEntity.builder()
                 .teacher(teacher)
                 .weekDay(requestDto.weekDay())
@@ -78,10 +85,6 @@ public class AfterSchoolService {
                 .build();
 
         supervisionBanDayRepository.save(supervisionBanDayEntity);
-
-        afterSchoolStudentDomainService.assignStudents(afterSchool, students);
-        
-        afterSchoolRepository.save(afterSchool);
     }
 
     @Transactional
@@ -122,6 +125,7 @@ public class AfterSchoolService {
     public void deleteAfterSchool(Long afterSchoolId) {
         AfterSchoolEntity afterSchool = afterSchoolRepository.findById(afterSchoolId)
                 .orElseThrow(() -> new AfterSchoolNotFoundException(afterSchoolId));
+
         supervisionBanDayRepository.deleteAfterSchoolBanDay(afterSchool.getTeacher().getId(), afterSchool.getWeekDay());
         
         afterSchoolRepository.delete(afterSchool);
@@ -204,10 +208,11 @@ public class AfterSchoolService {
 
     private void updateStudentsIfPresent(List<Long> studentIds, AfterSchoolEntity afterSchool) {
         if (studentIds == null) return;
-        afterSchoolStudentDomainService.assignStudents(
+        StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(
                 afterSchool,
                 fetchStudentsByIds(studentIds)
         );
+        afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
     }
 
     @Transactional

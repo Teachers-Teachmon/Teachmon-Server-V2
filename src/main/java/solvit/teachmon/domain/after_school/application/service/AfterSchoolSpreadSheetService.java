@@ -11,6 +11,7 @@ import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolStudentEntit
 import solvit.teachmon.domain.after_school.domain.enums.AfterSchoolSpreadSheetsColumn;
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolRepository;
 import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDomainService;
+import solvit.teachmon.domain.after_school.domain.vo.StudentAssignmentResultVo;
 import solvit.teachmon.domain.after_school.exception.EmptySpreadSheetException;
 import solvit.teachmon.domain.after_school.exception.EmptySpreadSheetHeaderCellException;
 import solvit.teachmon.domain.after_school.exception.PeriodInvalidException;
@@ -59,14 +60,15 @@ public class AfterSchoolSpreadSheetService {
     private final StudentRepository studentRepository;
     private final BranchRepository branchRepository;
     private final PlaceRepository placeRepository;
+    private final AfterSchoolScheduleService afterSchoolScheduleService;
     private final AfterSchoolStudentDomainService afterSchoolStudentDomainService;
 
     @Transactional
     public void flushToSpreadSheet(String spreadSheetId) throws IOException {
         List<AfterSchoolEntity> activeAfterSchools = afterSchoolRepository.findActiveAfterSchoolsWithRelations();
-        
+
         List<List<Object>> values = new ArrayList<>();
-        
+
         values.add(Arrays.asList(
                 AfterSchoolSpreadSheetsColumn.YEAR.getHeaderName(),
                 AfterSchoolSpreadSheetsColumn.BRANCH.getHeaderName(),
@@ -78,7 +80,7 @@ public class AfterSchoolSpreadSheetService {
                 AfterSchoolSpreadSheetsColumn.NAME.getHeaderName(),
                 AfterSchoolSpreadSheetsColumn.STUDENTS.getHeaderName()
         ));
-        
+
         for (AfterSchoolEntity afterSchool : activeAfterSchools) {
             String weekDayKorean = WeekDay.convertWeekDayToKorean(afterSchool.getWeekDay());
             String periodKorean = SchoolPeriod.convertPeriodToKorean(afterSchool.getPeriod());
@@ -86,7 +88,7 @@ public class AfterSchoolSpreadSheetService {
             String studentsData = afterSchool.getAfterSchoolStudents().stream()
                     .map(ass -> ass.getStudent().getNumber() + " " + ass.getStudent().getName())
                     .collect(Collectors.joining(" "));
-            
+
             values.add(Arrays.asList(
                     afterSchool.getYear(),
                     afterSchool.getBranch().getBranch(),
@@ -99,46 +101,52 @@ public class AfterSchoolSpreadSheetService {
                     studentsData
             ));
         }
-        
+
         ValueRange data = new ValueRange().setValues(values);
-        
+
         sheets.spreadsheets().values()
                 .update(spreadSheetId, googleSpreadSheetProperties.getPage(), data)
                 .setValueInputOption("RAW")
                 .execute();
     }
 
-    // TODO: 이거 Schedule 관련해서 약간 더 추가 필요해보임 새로운 것들은 Schedule 추가하고, 수정한 것들은 Schedule 수정
     @Transactional
     public void uploadSpreadSheet(String spreadSheetId) throws IOException {
         List<List<Object>> data = loadSheetRows(spreadSheetId);
-        
+
         List<AfterSchoolEntity> allAfterSchools = afterSchoolRepository.findAllWithRelations();
         allAfterSchools.forEach(AfterSchoolEntity::endAfterSchool);
 
         supervisionBanDayRepository.deleteAllByIsAfterschool();
         
         ReferenceDataCache cache = preloadReferenceData();
-        
+
         long rowNumber = 0;
-        
+
+        List<StudentAssignmentResultVo> studentAssignmentResults = new ArrayList<>();
+
         for (List<Object> row : data) {
             validator.validate(row, rowNumber, cache);
-            
+
             List<StudentInfo> studentInfos = parseStudentInfos(row, rowNumber);
-            
+
             String compositeKey = generateCompositeKey(row);
-            
+
             Optional<AfterSchoolEntity> existingAfterSchool = findByCompositeKey(compositeKey, allAfterSchools);
-            
-            if (existingAfterSchool.isPresent()) {
-                handleExistingAfterSchool(existingAfterSchool.get(), studentInfos, cache);
-            } else {
-                createNewAfterSchool(row, studentInfos, cache, rowNumber);
+
+            if(existingAfterSchool.isPresent()) {
+                handleExistingAfterSchool(existingAfterSchool.get(), studentInfos, cache)
+                        .ifPresent(studentAssignmentResults::add);
             }
-            
+            else {
+                StudentAssignmentResultVo assignmentResultVo = createNewAfterSchool(row, studentInfos, cache, rowNumber);
+                studentAssignmentResults.add(assignmentResultVo);
+            }
+
             rowNumber++;
         }
+
+        afterSchoolScheduleService.save(studentAssignmentResults);
     }
 
     private List<List<Object>> loadSheetRows(String spreadsheetId) throws IOException {
@@ -180,31 +188,31 @@ public class AfterSchoolSpreadSheetService {
             }
         }
     }
-    
+
     private ReferenceDataCache preloadReferenceData() {
         List<TeacherEntity> allTeachers = teacherRepository.findAll();
         Map<String, TeacherEntity> teacherEntityMap = allTeachers.stream()
             .collect(Collectors.toMap(TeacherEntity::getMail, Function.identity()));
-            
+
         List<PlaceEntity> allPlaces = placeRepository.findAll();
         Map<String, PlaceEntity> placeEntityMap = allPlaces.stream()
             .collect(Collectors.toMap(PlaceEntity::getName, Function.identity()));
-            
+
         Map<Integer, StudentEntity> studentEntityMap = studentRepository.findAll().stream()
             .collect(Collectors.toMap(StudentEntity::getNumber, Function.identity()));
-            
+
         return new ReferenceDataCache(teacherEntityMap, placeEntityMap, studentEntityMap);
     }
-    
+
     private record StudentInfo(Long number, String name) {}
-    
+
     private List<StudentInfo> parseStudentInfos(List<Object> row, long rowNum) {
         Object studentObj = row.get(AfterSchoolSpreadSheetsColumn.STUDENTS.getIndex());
         String studentData = studentObj.toString().trim();
         String[] tokens = studentData.split("\\s+");
-        
+
         List<StudentInfo> studentInfos = new ArrayList<>();
-        
+
         try {
             for (int i = 0; i < tokens.length; i += 2) {
                 long studentNumber = Long.parseLong(tokens[i]);
@@ -215,26 +223,26 @@ public class AfterSchoolSpreadSheetService {
         catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             throw new StudentDataFormatException(rowNum, studentData);
         }
-        
+
         return studentInfos;
     }
-    
+
     private String generateCompositeKey(List<Object> row) {
         StringBuilder keyBuilder = new StringBuilder();
-        
+
         for (int i = 0; i < 8; i++) {
             if (i > 0) {
                 keyBuilder.append("|");
             }
             keyBuilder.append(row.get(i).toString().trim());
         }
-        
+
         return keyBuilder.toString();
     }
-    
+
     private Optional<AfterSchoolEntity> findByCompositeKey(String compositeKey, List<AfterSchoolEntity> allAfterSchools) {
         String[] parts = compositeKey.split("\\|");
-        
+
         Integer year = Integer.valueOf(parts[0]);
         Integer branchNumber = Integer.valueOf(parts[1]);
         WeekDay weekDay = WeekDay.fromKorean(parts[2]);
@@ -243,10 +251,10 @@ public class AfterSchoolSpreadSheetService {
         String teacherData = parts[5];
         String placeName = parts[6];
         String name = parts[7];
-        
+
         TeacherDataParser.TeacherInfo teacherInfo = TeacherDataParser.parse(teacherData, -1);
         return allAfterSchools.stream()
-            .filter(as -> 
+            .filter(as ->
                 Objects.equals(year, as.getYear()) &&
                 Objects.equals(branchNumber, as.getBranch().getBranch()) &&
                 weekDay == as.getWeekDay() &&
@@ -259,30 +267,31 @@ public class AfterSchoolSpreadSheetService {
             .findFirst();
     }
 
-    private void handleExistingAfterSchool(AfterSchoolEntity existingAfterSchool, List<StudentInfo> studentInfos, ReferenceDataCache cache) {
+    private Optional<StudentAssignmentResultVo> handleExistingAfterSchool(AfterSchoolEntity existingAfterSchool, List<StudentInfo> studentInfos, ReferenceDataCache cache) {
         existingAfterSchool.resumeAfterSchool();
-        
+
         Set<Integer> currentStudentNumbers = existingAfterSchool.getAfterSchoolStudents().stream()
             .map(AfterSchoolStudentEntity::getStudent)
             .map(StudentEntity::getNumber)
             .collect(Collectors.toSet());
-            
+
         Set<Integer> newStudentNumbers = studentInfos.stream()
             .map(info -> info.number().intValue())
             .collect(Collectors.toSet());
-        
+
         if (!currentStudentNumbers.equals(newStudentNumbers)) {
             afterSchoolStudentDomainService.deleteAllByAfterSchool(existingAfterSchool);
-            
+
             List<StudentEntity> students = studentInfos.stream()
                 .map(info -> cache.getStudent(info.number().intValue()))
                 .filter(Objects::nonNull)
                 .toList();
-            afterSchoolStudentDomainService.assignStudents(existingAfterSchool, students);
+            return Optional.of(afterSchoolStudentDomainService.assignStudents(existingAfterSchool, students));
         }
+        return Optional.empty();
     }
-    
-    private void createNewAfterSchool(List<Object> row, List<StudentInfo> studentInfos, ReferenceDataCache cache, long rowNumber) {
+
+    private StudentAssignmentResultVo createNewAfterSchool(List<Object> row, List<StudentInfo> studentInfos, ReferenceDataCache cache, long rowNumber) {
         Integer year = Integer.valueOf(row.get(AfterSchoolSpreadSheetsColumn.YEAR.getIndex()).toString().trim());
         Integer branchNumber = Integer.valueOf(row.get(AfterSchoolSpreadSheetsColumn.BRANCH.getIndex()).toString().trim());
         String weekDayStr = row.get(AfterSchoolSpreadSheetsColumn.WEEKDAY.getIndex()).toString().trim();
@@ -291,9 +300,9 @@ public class AfterSchoolSpreadSheetService {
         String teacherData = row.get(AfterSchoolSpreadSheetsColumn.TEACHER.getIndex()).toString().trim();
         String placeName = row.get(AfterSchoolSpreadSheetsColumn.PLACE.getIndex()).toString().trim();
         String name = row.get(AfterSchoolSpreadSheetsColumn.NAME.getIndex()).toString().trim();
-        
+
         TeacherDataParser.TeacherInfo teacherInfo = TeacherDataParser.parse(teacherData, rowNumber);
-        
+
         BranchEntity branch = branchRepository.findByYearAndBranch(year, branchNumber)
             .orElseThrow(BranchNotFoundException::new);
         TeacherEntity teacher = cache.getTeacher(teacherInfo.email());
@@ -304,10 +313,10 @@ public class AfterSchoolSpreadSheetService {
         if (place == null) {
             throw new PlaceNotExistException(-1, placeName);
         }
-        
+
         WeekDay weekDay = convertToWeekDay(weekDayStr, rowNumber);
         SchoolPeriod period = convertToSchoolPeriod(periodStr, rowNumber);
-        
+
         AfterSchoolEntity afterSchool = AfterSchoolEntity.builder()
             .teacher(teacher)
             .branch(branch)
@@ -318,7 +327,7 @@ public class AfterSchoolSpreadSheetService {
             .grade(grade)
             .year(year)
             .build();
-            
+
         afterSchoolRepository.save(afterSchool);
 
         SupervisionBanDayEntity supervisionBanDayEntity = SupervisionBanDayEntity.builder()
@@ -333,7 +342,7 @@ public class AfterSchoolSpreadSheetService {
             .map(info -> cache.getStudent(info.number().intValue()))
             .filter(Objects::nonNull)
             .toList();
-        afterSchoolStudentDomainService.assignStudents(afterSchool, students);
+        return afterSchoolStudentDomainService.assignStudents(afterSchool, students);
     }
     
     private WeekDay convertToWeekDay(String weekDayStr, long rowNumber) {

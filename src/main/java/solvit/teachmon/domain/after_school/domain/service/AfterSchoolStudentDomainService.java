@@ -4,10 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolEntity;
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolStudentEntity;
-import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolStudentRepository;
+import solvit.teachmon.domain.after_school.domain.vo.StudentAssignmentResultVo;
 import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolInfoException;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,16 +16,24 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 public class AfterSchoolStudentDomainService {
-    private final AfterSchoolStudentRepository afterSchoolStudentRepository;
 
-    public void assignStudents(AfterSchoolEntity afterSchool, List<StudentEntity> students) {
-        validateStudents(afterSchool, students);
+    public StudentAssignmentResultVo assignStudents(AfterSchoolEntity afterSchool, List<StudentEntity> students) {
+        if (students == null) {
+            students = List.of();
+        }
+
+        List<StudentEntity> newStudentIds = validateStudents(afterSchool, students);
+        List<StudentEntity> currentStudentIds = afterSchool.getAfterSchoolStudents().stream()
+                .map(AfterSchoolStudentEntity::getStudent)
+                .toList();
 
         afterSchool.getAfterSchoolStudents().clear();
 
-        if (students == null || students.isEmpty()) {
-            return;
-        }
+        List<StudentEntity> addedStudents = new ArrayList<>(newStudentIds);
+        addedStudents.removeAll(currentStudentIds);
+
+        List<StudentEntity> removedIds = new ArrayList<>(currentStudentIds);
+        removedIds.removeAll(newStudentIds);
 
         for (StudentEntity student : students) {
             afterSchool.getAfterSchoolStudents().add(
@@ -34,21 +43,27 @@ public class AfterSchoolStudentDomainService {
                             .build()
             );
         }
+
+        return StudentAssignmentResultVo.builder()
+                .afterSchool(afterSchool)
+                .addedStudents(addedStudents)
+                .removedStudents(removedIds)
+                .build();
     }
 
     public void deleteAllByAfterSchool(AfterSchoolEntity afterSchool) {
         afterSchool.getAfterSchoolStudents().clear();
     }
 
-    private void validateStudents(AfterSchoolEntity afterSchool, List<StudentEntity> students) {
+    private List<StudentEntity> validateStudents(AfterSchoolEntity afterSchool, List<StudentEntity> students) {
         if (students == null || students.isEmpty()) {
-            return;
+            return List.of();
         }
 
-        Set<Long> studentIds = new HashSet<>((int) (students.size() / 0.75f) + 1);
+        Set<StudentEntity> studentSet = new HashSet<>((int) (students.size() / 0.75f) + 1);
 
         for (StudentEntity student : students) {
-            if (!studentIds.add(student.getId())) {
+            if (!studentSet.add(student)) {
                 throw new InvalidAfterSchoolInfoException(
                         String.format("학생 '%s'가 중복 등록되었습니다.", student.getName())
                 );
@@ -65,5 +80,8 @@ public class AfterSchoolStudentDomainService {
                 );
             }
         }
+
+        return studentSet.stream().toList();
     }
+
 }

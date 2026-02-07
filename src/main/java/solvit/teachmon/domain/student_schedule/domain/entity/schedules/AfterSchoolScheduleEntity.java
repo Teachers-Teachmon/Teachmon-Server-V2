@@ -36,17 +36,17 @@ public class AfterSchoolScheduleEntity extends BaseEntity {
     }
 
     private void validateSchedule(ScheduleEntity schedule) {
-        if(schedule == null) {
-            throw new AfterSchoolScheduleValueInvalidException("스케줄은 null 일 수 없습니다.", HttpStatus.BAD_REQUEST);
+        if (schedule == null) {
+            throw new AfterSchoolScheduleValueInvalidException("schedule(스케줄)은 필수입니다.");
         }
-        else if (!schedule.getType().equals(ScheduleType.AFTER_SCHOOL)) {
-            throw new AfterSchoolScheduleValueInvalidException("스케줄 타입은 방과후여야 합니다.", HttpStatus.BAD_REQUEST);
+        if (!ScheduleType.AFTER_SCHOOL.equals(schedule.getType())) {
+            throw new AfterSchoolScheduleValueInvalidException("schedule(스케줄)의 타입은 방과후여야 합니다.");
         }
     }
 
     private void validateAfterSchool(AfterSchoolEntity afterSchool) {
-        if(afterSchool == null) {
-            throw new AfterSchoolScheduleValueInvalidException("방과후는 null 일 수 없습니다.", HttpStatus.BAD_REQUEST);
+        if (afterSchool == null) {
+            throw new AfterSchoolScheduleValueInvalidException("afterSchool(방과후)는 필수입니다.");
         }
     }
 }
