@@ -73,6 +73,8 @@ public class AfterSchoolService {
                 .year(requestDto.year())
                 .build();
 
+        afterSchoolRepository.save(afterSchool);
+        
         StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(afterSchool, students);
         afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
 
@@ -83,10 +85,6 @@ public class AfterSchoolService {
                 .build();
 
         supervisionBanDayRepository.save(supervisionBanDayEntity);
-
-        afterSchoolStudentDomainService.assignStudents(afterSchool, students);
-        
-        afterSchoolRepository.save(afterSchool);
     }
 
     @Transactional
