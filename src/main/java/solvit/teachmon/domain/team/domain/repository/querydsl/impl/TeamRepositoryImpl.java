@@ -18,7 +18,7 @@ public class TeamRepositoryImpl implements TeamQueryDslRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TeamResponseDto> findTeamsBySearchKeyword(String keyword) {
+    public List<TeamResponseDto> searchTeamsByKeyword(String keyword) {
         return queryFactory.select(
                 new QTeamResponseDto(
                         teamEntity.id,

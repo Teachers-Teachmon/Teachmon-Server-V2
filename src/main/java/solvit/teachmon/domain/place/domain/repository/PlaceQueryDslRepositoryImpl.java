@@ -1,5 +1,6 @@
 package solvit.teachmon.domain.place.domain.repository;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -7,10 +8,13 @@ import solvit.teachmon.domain.after_school.domain.entity.QAfterSchoolEntity;
 import solvit.teachmon.domain.leave_seat.domain.entity.QLeaveSeatEntity;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.entity.QPlaceEntity;
+import solvit.teachmon.domain.place.presentation.dto.response.PlaceSearchResponseDto;
+import solvit.teachmon.domain.place.presentation.dto.response.QPlaceSearchResponseDto;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,7 +40,7 @@ public class PlaceQueryDslRepositoryImpl implements PlaceQueryDslRepository{
     }
 
     @Override
-    public Boolean existByDayAndPeriodAndPlace(LocalDate day, SchoolPeriod period, PlaceEntity place) {
+    public Boolean checkPlaceAvailability(LocalDate day, SchoolPeriod period, PlaceEntity place) {
         Boolean afterSchoolExist = existAfterSchoolPlaceByDayAndPeriodAndPlace(day, period, place);
         Boolean leaveSeatExist = existLeaveSeatPlaceByDayAndPeriodAndPlace(day, period, place);
 
@@ -70,6 +74,38 @@ public class PlaceQueryDslRepositoryImpl implements PlaceQueryDslRepository{
                          leaveSeat.place.eq(place)
                  )
                  .fetchFirst() != null;
+    }
+
+    @Override
+    public List<PlaceSearchResponseDto> searchPlacesByKeyword(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return List.of();
+        }
+
+        QPlaceEntity place = QPlaceEntity.placeEntity;
+        BooleanBuilder builder = new BooleanBuilder();
+        
+        // 이름으로 검색
+        builder.or(place.name.containsIgnoreCase(keyword));
+        
+        // 층수로 검색 (숫자인 경우)
+        try {
+            Integer floor = Integer.valueOf(keyword.trim());
+            builder.or(place.floor.eq(floor));
+        } catch (NumberFormatException e) {
+            // 숫자가 아닌 경우 이름 검색만 수행
+        }
+        
+        return queryFactory.select(
+                new QPlaceSearchResponseDto(
+                        place.id,
+                        place.name,
+                        place.floor
+                )
+        )
+        .from(place)
+        .where(builder)
+        .fetch();
     }
 
     private Integer extractClassNumber(String name) {

@@ -4,6 +4,7 @@ import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolEntity;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolSearchRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolMyResponseDto;
+import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolSearchResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolTodayResponseDto;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
@@ -17,4 +18,5 @@ public interface AfterSchoolQueryDslRepository {
     List<AfterSchoolResponseDto> findAfterSchoolsByConditions(AfterSchoolSearchRequestDto searchRequest);
     List<AfterSchoolMyResponseDto> findMyAfterSchoolsByTeacherId(Long teacherId, Integer grade);
     List<AfterSchoolTodayResponseDto> findMyTodayAfterSchoolsByTeacherId(Long teacherId);
+    List<AfterSchoolSearchResponseDto> searchAfterSchoolsByKeyword(String keyword);
 }

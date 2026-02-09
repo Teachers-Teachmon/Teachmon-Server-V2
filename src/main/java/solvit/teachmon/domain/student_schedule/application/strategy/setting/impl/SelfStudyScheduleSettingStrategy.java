@@ -83,7 +83,7 @@ public class SelfStudyScheduleSettingStrategy implements StudentScheduleSettingS
         for(int count = 0; count < 4; count++) {
             PlaceEntity place = placesMap.get(targetPoint);
 
-            if(!placeRepository.existByDayAndPeriodAndPlace(
+            if(!placeRepository.checkPlaceAvailability(
                     studentSchedule.getDay(), studentSchedule.getPeriod(), place
             ))
                 return place;

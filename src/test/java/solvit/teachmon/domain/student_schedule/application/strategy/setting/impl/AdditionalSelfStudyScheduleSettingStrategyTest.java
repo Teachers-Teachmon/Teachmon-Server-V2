@@ -88,7 +88,7 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
                 .willReturn(0);
         given(placeRepository.findAllByGradePrefix(1))
                 .willReturn(Map.of(1, place));
-        given(placeRepository.existByDayAndPeriodAndPlace(nextMonday, SchoolPeriod.SEVEN_PERIOD, place))
+        given(placeRepository.checkPlaceAvailability(nextMonday, SchoolPeriod.SEVEN_PERIOD, place))
                 .willReturn(false);
 
         // When: 스케줄을 설정하면
@@ -120,7 +120,7 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
                 .willReturn(0);
         given(placeRepository.findAllByGradePrefix(1))
                 .willReturn(Map.of(1, place));
-        given(placeRepository.existByDayAndPeriodAndPlace(nextMonday, SchoolPeriod.SEVEN_PERIOD, place))
+        given(placeRepository.checkPlaceAvailability(nextMonday, SchoolPeriod.SEVEN_PERIOD, place))
                 .willReturn(false);
 
         // When: 스케줄을 설정하면
@@ -167,7 +167,7 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
                 .willReturn(0);
         given(placeRepository.findAllByGradePrefix(1))
                 .willReturn(Map.of(1, place1, 2, place2));
-        given(placeRepository.existByDayAndPeriodAndPlace(any(), any(), any()))
+        given(placeRepository.checkPlaceAvailability(any(), any(), any()))
                 .willReturn(false);
 
         // When: 스케줄을 설정하면
