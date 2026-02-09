@@ -58,6 +58,7 @@ public class ManagementTeacherFacadeService {
             banDayEntities.add(SupervisionBanDayEntity.builder()
                     .teacher(teacher)
                     .weekDay(banDay)
+                    .isAfterschool(false)
                     .build());
         }
 
