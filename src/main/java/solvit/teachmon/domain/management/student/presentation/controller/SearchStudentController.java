@@ -21,7 +21,7 @@ public class SearchStudentController {
     private final SearchStudentService searchStudentService;
 
     @GetMapping("/search")
-    public ResponseEntity<List<StudentSearchResponseDto>> searchStudent(@RequestParam @NotNull(message = "검색어는 필수입니다.") String query) {
+    public ResponseEntity<List<StudentSearchResponseDto>> searchStudent(@RequestParam @NotNull(message = "학생 검색에서 query(검색어)는 필수입니다.") String query) {
         return ResponseEntity.ok(searchStudentService.searchStudentByQuery(query));
     }
 }
