@@ -8,5 +8,5 @@ import java.util.Optional;
 
 public interface TeacherQueryDslRepository {
     Optional<TeacherProfileResponseDto> findUserProfileById(Long id);
-    List<TeacherSearchResponseDto> performTeacherSearch(String keyword);
+    List<TeacherSearchResponseDto> queryTeachersByName(String keyword);
 }

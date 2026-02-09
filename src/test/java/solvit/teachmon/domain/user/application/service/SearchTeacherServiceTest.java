@@ -36,16 +36,16 @@ class SearchTeacherServiceTest {
         List<TeacherSearchResponseDto> expectedResults = List.of(
                 new TeacherSearchResponseDto(234235326L, "이혜정")
         );
-        given(teacherRepository.performTeacherSearch(query)).willReturn(expectedResults);
+        given(teacherRepository.queryTeachersByName(query)).willReturn(expectedResults);
 
         // When: 쿼리로 선생님을 검색하면
         List<TeacherSearchResponseDto> results = searchTeacherService.searchTeacherByQuery(query);
 
         // Then: 검색 결과가 반환된다
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).id()).isEqualTo(234235326L);
-        assertThat(results.get(0).name()).isEqualTo("이혜정");
-        verify(teacherRepository).performTeacherSearch(query);
+        assertThat(results.getFirst().id()).isEqualTo(234235326L);
+        assertThat(results.getFirst().name()).isEqualTo("이혜정");
+        verify(teacherRepository).queryTeachersByName(query);
     }
 
     @Test
@@ -57,7 +57,7 @@ class SearchTeacherServiceTest {
                 new TeacherSearchResponseDto(234235326L, "이혜정"),
                 new TeacherSearchResponseDto(543543553L, "윤혜정")
         );
-        given(teacherRepository.performTeacherSearch(query)).willReturn(expectedResults);
+        given(teacherRepository.queryTeachersByName(query)).willReturn(expectedResults);
 
         // When: 부분 이름으로 선생님을 검색하면
         List<TeacherSearchResponseDto> results = searchTeacherService.searchTeacherByQuery(query);
@@ -66,7 +66,7 @@ class SearchTeacherServiceTest {
         assertThat(results).hasSize(2);
         assertThat(results.get(0).name()).isEqualTo("이혜정");
         assertThat(results.get(1).name()).isEqualTo("윤혜정");
-        verify(teacherRepository).performTeacherSearch(query);
+        verify(teacherRepository).queryTeachersByName(query);
     }
 
     @Test
@@ -75,14 +75,14 @@ class SearchTeacherServiceTest {
         // Given: 매칭되는 선생님이 없는 검색 쿼리가 주어졌을 때
         String query = "없는선생님";
         List<TeacherSearchResponseDto> expectedResults = List.of();
-        given(teacherRepository.performTeacherSearch(query)).willReturn(expectedResults);
+        given(teacherRepository.queryTeachersByName(query)).willReturn(expectedResults);
 
         // When: 쿼리로 선생님을 검색하면
         List<TeacherSearchResponseDto> results = searchTeacherService.searchTeacherByQuery(query);
 
         // Then: 빈 결과가 반환된다
         assertThat(results).isEmpty();
-        verify(teacherRepository).performTeacherSearch(query);
+        verify(teacherRepository).queryTeachersByName(query);
     }
 
     @Test
@@ -91,14 +91,14 @@ class SearchTeacherServiceTest {
         // Given: 빈 쿼리가 주어졌을 때
         String query = "";
         List<TeacherSearchResponseDto> expectedResults = List.of();
-        given(teacherRepository.performTeacherSearch(query)).willReturn(expectedResults);
+        given(teacherRepository.queryTeachersByName(query)).willReturn(expectedResults);
 
         // When: 빈 쿼리로 선생님을 검색하면
         List<TeacherSearchResponseDto> results = searchTeacherService.searchTeacherByQuery(query);
 
         // Then: 빈 결과가 반환된다
         assertThat(results).isEmpty();
-        verify(teacherRepository).performTeacherSearch(query);
+        verify(teacherRepository).queryTeachersByName(query);
     }
 
     @Test
@@ -107,14 +107,14 @@ class SearchTeacherServiceTest {
         // Given: null 쿼리가 주어졌을 때
         String query = null;
         List<TeacherSearchResponseDto> expectedResults = List.of();
-        given(teacherRepository.performTeacherSearch(query)).willReturn(expectedResults);
+        given(teacherRepository.queryTeachersByName(query)).willReturn(expectedResults);
 
         // When: null 쿼리로 선생님을 검색하면
         List<TeacherSearchResponseDto> results = searchTeacherService.searchTeacherByQuery(query);
 
         // Then: 빈 결과가 반환된다
         assertThat(results).isEmpty();
-        verify(teacherRepository).performTeacherSearch(query);
+        verify(teacherRepository).queryTeachersByName(query);
     }
 
     @Test
@@ -125,15 +125,15 @@ class SearchTeacherServiceTest {
         List<TeacherSearchResponseDto> expectedResults = List.of(
                 new TeacherSearchResponseDto(234235326L, "이혜정")
         );
-        given(teacherRepository.performTeacherSearch(query)).willReturn(expectedResults);
+        given(teacherRepository.queryTeachersByName(query)).willReturn(expectedResults);
 
         // When: 대소문자가 다른 쿼리로 선생님을 검색하면
         List<TeacherSearchResponseDto> results = searchTeacherService.searchTeacherByQuery(query);
 
         // Then: 검색 결과가 정상적으로 반환된다
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).name()).isEqualTo("이혜정");
-        verify(teacherRepository).performTeacherSearch(query);
+        assertThat(results.getFirst().name()).isEqualTo("이혜정");
+        verify(teacherRepository).queryTeachersByName(query);
     }
 
     @Test
@@ -142,13 +142,13 @@ class SearchTeacherServiceTest {
         // Given: 특수 문자가 포함된 검색 쿼리가 주어졌을 때
         String query = "김.선생";
         List<TeacherSearchResponseDto> expectedResults = List.of();
-        given(teacherRepository.performTeacherSearch(query)).willReturn(expectedResults);
+        given(teacherRepository.queryTeachersByName(query)).willReturn(expectedResults);
 
         // When: 특수 문자가 포함된 쿼리로 선생님을 검색하면
         List<TeacherSearchResponseDto> results = searchTeacherService.searchTeacherByQuery(query);
 
         // Then: 결과가 정상적으로 처리된다
         assertThat(results).isEmpty();
-        verify(teacherRepository).performTeacherSearch(query);
+        verify(teacherRepository).queryTeachersByName(query);
     }
 }

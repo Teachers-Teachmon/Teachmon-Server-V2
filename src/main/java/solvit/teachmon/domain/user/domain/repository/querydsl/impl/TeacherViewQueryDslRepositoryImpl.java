@@ -35,7 +35,7 @@ public class TeacherViewQueryDslRepositoryImpl implements TeacherQueryDslReposit
     }
 
     @Override
-    public List<TeacherSearchResponseDto> performTeacherSearch(String keyword) {
+    public List<TeacherSearchResponseDto> queryTeachersByName(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return List.of();
         }

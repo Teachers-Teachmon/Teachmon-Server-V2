@@ -13,6 +13,6 @@ public class SearchTeacherService {
     private final TeacherRepository teacherRepository;
 
     public List<TeacherSearchResponseDto> searchTeacherByQuery(String query) {
-        return teacherRepository.performTeacherSearch(query);
+        return teacherRepository.queryTeachersByName(query);
     }
 }

@@ -32,7 +32,7 @@ class TeacherRepositoryImplTest {
     @DisplayName("null 검색어를 처리할 수 있다")
     void shouldHandleNullQuery() {
         // When: null 검색어로 검색하면
-        List<TeacherSearchResponseDto> results = teacherRepositoryImpl.performTeacherSearch(null);
+        List<TeacherSearchResponseDto> results = teacherRepositoryImpl.queryTeachersByName(null);
 
         // Then: 빈 결과가 반환된다 (예외가 발생하지 않음)
         assertThat(results).isEmpty();
@@ -42,7 +42,7 @@ class TeacherRepositoryImplTest {
     @DisplayName("빈 검색어를 처리할 수 있다")
     void shouldHandleEmptyQuery() {
         // When: 빈 검색어로 검색하면
-        List<TeacherSearchResponseDto> results = teacherRepositoryImpl.performTeacherSearch("");
+        List<TeacherSearchResponseDto> results = teacherRepositoryImpl.queryTeachersByName("");
 
         // Then: 빈 결과가 반환된다
         assertThat(results).isEmpty();
@@ -52,7 +52,7 @@ class TeacherRepositoryImplTest {
     @DisplayName("공백만 있는 검색어를 처리할 수 있다")
     void shouldHandleWhitespaceQuery() {
         // When: 공백만 있는 검색어로 검색하면
-        List<TeacherSearchResponseDto> results = teacherRepositoryImpl.performTeacherSearch("   ");
+        List<TeacherSearchResponseDto> results = teacherRepositoryImpl.queryTeachersByName("   ");
 
         // Then: 빈 결과가 반환된다
         assertThat(results).isEmpty();
