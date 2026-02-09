@@ -5,5 +5,5 @@ import solvit.teachmon.domain.team.presentation.dto.response.TeamResponseDto;
 import java.util.List;
 
 public interface TeamQueryDslRepository {
-    List<TeamResponseDto> findTeamsBySearchKeyword(String keyword);
+    List<TeamResponseDto> searchTeamsByKeyword(String keyword);
 }

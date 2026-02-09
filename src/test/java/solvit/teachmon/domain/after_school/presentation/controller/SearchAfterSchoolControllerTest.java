@@ -1,6 +1,5 @@
 package solvit.teachmon.domain.after_school.presentation.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,13 +7,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import solvit.teachmon.domain.after_school.application.service.SearchAfterSchoolService;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolSearchResponseDto;
-
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.mockito.BDDMockito.*;
@@ -33,11 +29,8 @@ class SearchAfterSchoolControllerTest {
     @InjectMocks
     private SearchAfterSchoolController searchAfterSchoolController;
 
-    private ObjectMapper objectMapper;
-
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
         mockMvc = MockMvcBuilders.standaloneSetup(searchAfterSchoolController).build();
     }
 
