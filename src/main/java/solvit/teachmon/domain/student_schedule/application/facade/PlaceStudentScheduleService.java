@@ -50,12 +50,22 @@ public class PlaceStudentScheduleService {
     public List<FloorStateResponse> getAllFloorsPlaceCount(LocalDate day, SchoolPeriod period) {
         // 해당 시간의 장소를 사용하고 있는 스케줄 조회
         Map<ScheduleType, List<ScheduleEntity>> placeFillScheduleMap = studentScheduleRepository.findAllByDayAndPeriodAndTypeIn(day, period, placeScheduleType);
+        // 방어: repository가 null을 반환하는 경우 빈 맵으로 대체
+        if (placeFillScheduleMap == null) placeFillScheduleMap = Map.of();
 
         // 각 스케줄 타입별로 층별 장소 사용 인원 조회
-        Map<Integer, Long> selfStudyCountMap = selfStudyScheduleRepository.getSelfStudyPlaceCount(placeFillScheduleMap.get(ScheduleType.SELF_STUDY));
-        Map<Integer, Long> additionalSelfStudyCountMap = additionalSelfStudyScheduleRepository.getAdditionalSelfStudyPlaceCount(placeFillScheduleMap.get(ScheduleType.ADDITIONAL_SELF_STUDY));
-        Map<Integer, Long> leaveSeatCountMap = leaveSeatScheduleRepository.getLeaveSeatPlaceCount(placeFillScheduleMap.get(ScheduleType.LEAVE_SEAT));
-        Map<Integer, Long> afterSchoolCountMap = afterSchoolScheduleRepository.getAfterSchoolPlaceCount(placeFillScheduleMap.get(ScheduleType.AFTER_SCHOOL));
+        Map<Integer, Long> selfStudyCountMap = selfStudyScheduleRepository.getSelfStudyPlaceCount(
+                placeFillScheduleMap.getOrDefault(ScheduleType.SELF_STUDY, List.of())
+        );
+        Map<Integer, Long> additionalSelfStudyCountMap = additionalSelfStudyScheduleRepository.getAdditionalSelfStudyPlaceCount(
+                placeFillScheduleMap.getOrDefault(ScheduleType.ADDITIONAL_SELF_STUDY, List.of())
+        );
+        Map<Integer, Long> leaveSeatCountMap = leaveSeatScheduleRepository.getLeaveSeatPlaceCount(
+                placeFillScheduleMap.getOrDefault(ScheduleType.LEAVE_SEAT, List.of())
+        );
+        Map<Integer, Long> afterSchoolCountMap = afterSchoolScheduleRepository.getAfterSchoolPlaceCount(
+                placeFillScheduleMap.getOrDefault(ScheduleType.AFTER_SCHOOL, List.of())
+        );
 
         // 각 층별로 장소 사용 인원 합산
         Map<Integer, Long> result = Stream.of(
@@ -78,13 +88,15 @@ public class PlaceStudentScheduleService {
     public List<PlaceStateResponse> getPlaceStatesByFloor(Integer floor, LocalDate day, SchoolPeriod period) {
         // 해당 시간의 장소를 사용하고 있는 스케줄 조회
         Map<ScheduleType, List<ScheduleEntity>> placeFillScheduleMap = studentScheduleRepository.findAllByDayAndPeriodAndTypeIn(day, period, placeScheduleType);
+        // 방어: repository가 null을 반환하는 경우 빈 맵으로 대체
+        if (placeFillScheduleMap == null) placeFillScheduleMap = Map.of();
 
         // 각 스케줄별 장소 추출
         List<PlaceScheduleDto> placeSchedules = Stream.of(
-                selfStudyScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.get(ScheduleType.SELF_STUDY), floor),
-                additionalSelfStudyScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.get(ScheduleType.ADDITIONAL_SELF_STUDY), floor),
-                leaveSeatScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.get(ScheduleType.LEAVE_SEAT), floor),
-                afterSchoolScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.get(ScheduleType.AFTER_SCHOOL), floor)
+                selfStudyScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.getOrDefault(ScheduleType.SELF_STUDY, List.of()), floor),
+                additionalSelfStudyScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.getOrDefault(ScheduleType.ADDITIONAL_SELF_STUDY, List.of()), floor),
+                leaveSeatScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.getOrDefault(ScheduleType.LEAVE_SEAT, List.of()), floor),
+                afterSchoolScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.getOrDefault(ScheduleType.AFTER_SCHOOL, List.of()), floor)
         ).flatMap(List::stream)
                 .toList();
 
