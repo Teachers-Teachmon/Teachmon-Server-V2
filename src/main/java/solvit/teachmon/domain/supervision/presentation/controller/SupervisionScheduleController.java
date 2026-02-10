@@ -3,6 +3,7 @@ package solvit.teachmon.domain.supervision.presentation.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -69,14 +70,14 @@ public class SupervisionScheduleController {
     @GetMapping("/me")
     public ResponseEntity<List<LocalDate>> getMySupervisionDays(
             @RequestParam Integer month,
-            TeachmonUserDetails userDetails) {
+            @AuthenticationPrincipal TeachmonUserDetails userDetails) {
         validateMonth(month);
         List<LocalDate> supervisionDays = supervisionScheduleService.getMySupervisionDays(userDetails.getId(), month);
         return ResponseEntity.ok(supervisionDays);
     }
 
     @GetMapping("/today")
-    public ResponseEntity<SupervisionTodayResponseDto> getMyTodaySupervisionType(TeachmonUserDetails userDetails) {
+    public ResponseEntity<SupervisionTodayResponseDto> getMyTodaySupervisionType(@AuthenticationPrincipal TeachmonUserDetails userDetails) {
         SupervisionTodayResponseDto response = supervisionScheduleService.getMyTodaySupervisionType(userDetails.getId());
         return ResponseEntity.ok(response);
     }
