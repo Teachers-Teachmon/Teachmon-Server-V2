@@ -1,7 +1,6 @@
 package solvit.teachmon.domain.student_schedule.domain.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -58,7 +57,9 @@ public interface StudentScheduleRepository extends JpaRepository<StudentSchedule
             @Param("period") SchoolPeriod period
     );
 
-    @Modifying
-    @Query("DELETE FROM StudentScheduleEntity s WHERE s.day BETWEEN :startDay AND :endDay")
-    void deleteAllByDayBetween(LocalDate startDay, LocalDate endDay);
+    @Query("SELECT s FROM StudentScheduleEntity s WHERE s.day BETWEEN :startDay AND :endDay")
+    List<StudentScheduleEntity> findAllByDayBetween(
+            @Param("startDay") LocalDate startDay,
+            @Param("endDay") LocalDate endDay
+    );
 }

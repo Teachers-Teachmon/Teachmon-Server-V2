@@ -64,7 +64,8 @@ public class StudentScheduleSettingService {
         LocalDate startDay = baseDate.with(DayOfWeek.MONDAY);
         LocalDate endDay = baseDate.with(DayOfWeek.SUNDAY);
 
-        studentScheduleRepository.deleteAllByDayBetween(startDay, endDay);
+        List<StudentScheduleEntity> oldSchedules = studentScheduleRepository.findAllByDayBetween(startDay, endDay);
+        studentScheduleRepository.deleteAll(oldSchedules);
     }
 
     private List<StudentEntity> getNowStudents(LocalDate baseDate) {
