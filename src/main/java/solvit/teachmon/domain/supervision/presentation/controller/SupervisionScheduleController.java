@@ -21,11 +21,11 @@ import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionS
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionTodayResponseDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionRankResponseDto;
 import solvit.teachmon.domain.supervision.exception.InvalidDateRangeException;
-import solvit.teachmon.global.exception.TeachmonException;
-import org.springframework.http.HttpStatus;
+import solvit.teachmon.domain.supervision.exception.InvalidSupervisionScheduleException;
 import solvit.teachmon.global.security.user.TeachmonUserDetails;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -120,17 +120,19 @@ public class SupervisionScheduleController {
 
     private void validateMonth(Integer month) {
         if (month != null && (month < 1 || month > 12)) {
-            throw new TeachmonException("월은 1부터 12까지의 값이어야 합니다.", HttpStatus.BAD_REQUEST);
+            throw new InvalidSupervisionScheduleException("월은 1부터 12까지의 값이어야 합니다.");
         }
     }
 
     private void validateUpdateRequest(SupervisionScheduleUpdateRequestDto requestDto) {
         if (requestDto.selfStudySupervisionTeacherId().equals(requestDto.leaveSeatSupervisionTeacherId())) {
-            throw new TeachmonException("자습 감독과 이석 감독은 서로 다른 교사여야 합니다.", HttpStatus.BAD_REQUEST);
+            throw new InvalidSupervisionScheduleException("자습 감독과 이석 감독은 서로 다른 교사여야 합니다.");
         }
 
-        if (requestDto.day().isBefore(LocalDate.now())) {
-            throw new TeachmonException("과거 날짜에는 감독 일정을 배정할 수 없습니다.", HttpStatus.BAD_REQUEST);
+        LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        
+        if (requestDto.day().isBefore(now)) {
+            throw new InvalidSupervisionScheduleException("과거 날짜에는 감독 일정을 배정할 수 없습니다.");
         }
     }
 }
