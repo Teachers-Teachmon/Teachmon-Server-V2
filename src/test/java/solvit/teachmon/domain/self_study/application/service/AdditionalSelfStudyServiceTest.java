@@ -144,9 +144,9 @@ class AdditionalSelfStudyServiceTest {
     }
 
     @Test
-    @DisplayName("현재 주의 추가 자습을 삭제하면 즉시 스케줄이 제거된다")
+    @DisplayName("추가 자습을 삭제하면 엔티티가 제거된다")
     void shouldRemoveSchedulesImmediatelyWhenDeletingForCurrentWeek() {
-        // Given: 현재 주의 추가 자습이 있을 때
+        // Given: 추가 자습이 있을 때
         LocalDate currentWeekDate = LocalDate.now().with(DayOfWeek.WEDNESDAY);
         AdditionalSelfStudyEntity additionalSelfStudy = createMockAdditionalSelfStudy(
                 1L, currentWeekDate, SchoolPeriod.SEVEN_PERIOD, 1
@@ -154,23 +154,13 @@ class AdditionalSelfStudyServiceTest {
         given(additionalSelfStudyRepository.findById(1L))
                 .willReturn(Optional.of(additionalSelfStudy));
 
-        StudentScheduleEntity studentSchedule1 = createMockStudentSchedule(
-                1L, currentWeekDate, SchoolPeriod.SEVEN_PERIOD, 1, 1
-        );
-        StudentScheduleEntity studentSchedule2 = createMockStudentSchedule(
-                2L, currentWeekDate, SchoolPeriod.SEVEN_PERIOD, 1, 2
-        );
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD))
-                .willReturn(List.of(studentSchedule1, studentSchedule2));
-
         // When: 추가 자습을 삭제하면
         additionalSelfStudyService.deleteAdditionalSelfStudy(1L);
 
-        // Then: 스케줄이 즉시 제거되고, 추가 자습이 삭제되어야 한다
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD);
-        verify(scheduleRepository).deleteByStudentScheduleIdAndType(1L, ScheduleType.ADDITIONAL_SELF_STUDY);
-        verify(scheduleRepository).deleteByStudentScheduleIdAndType(2L, ScheduleType.ADDITIONAL_SELF_STUDY);
-        verify(additionalSelfStudyRepository).deleteById(1L);
+        // Then: 추가 자습 엔티티가 삭제되어야 한다
+        verify(additionalSelfStudyRepository).delete(additionalSelfStudy);
+        verify(studentScheduleRepository, never()).findAllByGradeAndDayAndPeriod(any(), any(), any());
+        verify(scheduleRepository, never()).deleteByStudentScheduleIdAndType(any(), any());
     }
 
     @Test
@@ -187,10 +177,10 @@ class AdditionalSelfStudyServiceTest {
         // When: 추가 자습을 삭제하면
         additionalSelfStudyService.deleteAdditionalSelfStudy(1L);
 
-        // Then: 스케줄은 즉시 제거되지 않고, 추가 자습만 삭제되어야 한다
+        // Then: 스케줄은 즉시 제거되지 않고, 추가 자습 엔티티만 삭제되어야 한다
+        verify(additionalSelfStudyRepository).delete(additionalSelfStudy);
         verify(studentScheduleRepository, never()).findAllByGradeAndDayAndPeriod(any(), any(), any());
         verify(scheduleRepository, never()).deleteByStudentScheduleIdAndType(any(), any());
-        verify(additionalSelfStudyRepository).deleteById(1L);
     }
 
     @Test
