@@ -28,8 +28,8 @@ public class StudentScheduleSettingService {
     public void createNewStudentSchedule(LocalDate baseDate) {
         List<StudentEntity> students = getNowStudents(baseDate);
 
-        // 과거 스케줄 삭제
-        deleteOldStudentSchedules(baseDate);
+        // baseDate 이후(포함) 스케줄 삭제 (과거 데이터는 보존)
+        deleteFutureStudentSchedules(baseDate);
 
         // 새로운 학생 스케줄 생성
         List<StudentScheduleEntity> studentSchedules = new ArrayList<>();
@@ -46,6 +46,11 @@ public class StudentScheduleSettingService {
         for(WeekDay weekDay : WeekDay.values()) {
             LocalDate day = baseDate.with(weekDay.toDayOfWeek());
 
+            // baseDate 이후(포함) 날짜만 생성
+            if (day.isBefore(baseDate)) {
+                continue;
+            }
+
             for(SchoolPeriod period : SchoolPeriod.getAfterActivityPeriod()) {
                 studentSchedules.add(
                         StudentScheduleEntity.builder()
@@ -60,11 +65,10 @@ public class StudentScheduleSettingService {
         return studentSchedules;
     }
 
-    private void deleteOldStudentSchedules(LocalDate baseDate) {
-        LocalDate startDay = baseDate.with(DayOfWeek.MONDAY);
+    private void deleteFutureStudentSchedules(LocalDate baseDate) {
         LocalDate endDay = baseDate.with(DayOfWeek.SUNDAY);
 
-        List<StudentScheduleEntity> oldSchedules = studentScheduleRepository.findAllByDayBetween(startDay, endDay);
+        List<StudentScheduleEntity> oldSchedules = studentScheduleRepository.findAllByDayBetween(baseDate, endDay);
         studentScheduleRepository.deleteAll(oldSchedules);
     }
 

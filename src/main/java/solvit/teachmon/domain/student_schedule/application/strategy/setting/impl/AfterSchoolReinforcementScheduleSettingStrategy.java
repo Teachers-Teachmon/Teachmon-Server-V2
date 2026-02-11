@@ -36,10 +36,16 @@ public class AfterSchoolReinforcementScheduleSettingStrategy implements StudentS
         List<AfterSchoolReinforcementEntity> afterSchoolReinforcements = findWeeklyAfterSchoolReinforcements(baseDate);
 
         for(AfterSchoolReinforcementEntity reinforcement : afterSchoolReinforcements) {
+            if(isBeforeAfterSchoolReinforcement(reinforcement, baseDate))
+                continue;
             AfterSchoolEntity afterSchool = reinforcement.getAfterSchool();
             List<StudentScheduleEntity> studentSchedules = findStudentScheduleByReinforcement(reinforcement);
             settingAfterSchoolReinforcementSchedule(studentSchedules, afterSchool);
         }
+    }
+
+    private Boolean isBeforeAfterSchoolReinforcement(AfterSchoolReinforcementEntity reinforcement, LocalDate baseDate) {
+        return reinforcement.getChangeDay().isBefore(baseDate);
     }
 
     private List<AfterSchoolReinforcementEntity> findWeeklyAfterSchoolReinforcements(LocalDate baseDate) {

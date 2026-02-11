@@ -50,12 +50,20 @@ public class SelfStudyScheduleSettingStrategy implements StudentScheduleSettingS
         List<SelfStudyEntity> selfStudies = selfStudyRepository.findAllByBranch(branch);
 
         for(SelfStudyEntity selfStudy : selfStudies) {
+            // 이전 날짜면 넘어가기
+            if(isBeforeSelfStudy(selfStudy, baseDate))
+                continue;
             // 각 자습별 학년들의 student schedule 가져오기
             List<StudentScheduleEntity> studentSchedules = findStudentScheduleBySelfStudy(selfStudy, baseDate);
 
             // 각 student schedule 별로 self study 설정해주기
             settingSelfStudySchedule(studentSchedules, selfStudy);
         }
+    }
+
+    private Boolean isBeforeSelfStudy(SelfStudyEntity selfStudy, LocalDate baseDate) {
+        LocalDate selfStudyDay = calculateSelfStudyDay(selfStudy, baseDate);
+        return selfStudyDay.isBefore(baseDate);
     }
 
     private List<StudentScheduleEntity> findStudentScheduleBySelfStudy(SelfStudyEntity selfStudy, LocalDate baseDate) {

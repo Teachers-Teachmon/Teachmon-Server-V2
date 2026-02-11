@@ -43,9 +43,15 @@ public class AdditionalSelfStudyScheduleSettingStrategy implements StudentSchedu
         List<AdditionalSelfStudyEntity> additionalSelfStudies = findWeeklyAdditionalSelfStudies(baseDate);
 
         for(AdditionalSelfStudyEntity additionalSelfStudy : additionalSelfStudies) {
+            if(isBeforeAdditionalSelfStudy(additionalSelfStudy, baseDate))
+                continue;
             List<StudentScheduleEntity> studentSchedules = findStudentScheduleByAdditionalSelfStudy(additionalSelfStudy);
             settingAdditionalSelfStudySchedule(studentSchedules, additionalSelfStudy);
         }
+    }
+
+    private Boolean isBeforeAdditionalSelfStudy(AdditionalSelfStudyEntity additionalSelfStudy, LocalDate baseDate) {
+        return additionalSelfStudy.getDay().isBefore(baseDate);
     }
 
     private List<AdditionalSelfStudyEntity> findWeeklyAdditionalSelfStudies(LocalDate baseDate) {

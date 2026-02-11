@@ -41,9 +41,16 @@ public class LeaveSeatScheduleSettingStrategy implements StudentScheduleSettingS
         List<FixedLeaveSeatEntity> fixedLeaveSeats = fixedLeaveSeatRepository.findAll();
 
         for(FixedLeaveSeatEntity fixedLeaveSeat : fixedLeaveSeats) {
+            if(isBeforeLeaveSeat(fixedLeaveSeat, baseDate))
+                continue;
             List<StudentScheduleEntity> studentSchedules = findStudentScheduleByFixedLeaveSeat(fixedLeaveSeat, baseDate);
             settingLeaveSeatSchedule(studentSchedules, fixedLeaveSeat, baseDate);
         }
+    }
+
+    private Boolean isBeforeLeaveSeat(FixedLeaveSeatEntity fixedLeaveSeat, LocalDate baseDate) {
+        LocalDate fixedLeaveSeatDay = calculateFixedLeaveSeatDay(fixedLeaveSeat, baseDate);
+        return fixedLeaveSeatDay.isBefore(baseDate);
     }
 
     private List<StudentScheduleEntity> findStudentScheduleByFixedLeaveSeat(FixedLeaveSeatEntity fixedLeaveSeat, LocalDate baseDate) {
