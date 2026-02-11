@@ -103,7 +103,8 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                 )
                 .where(
                         queryEq(query),
-                        dayEq(day)
+                        dayEq(day),
+                        scheduleTypeIsNotNull()
                 )
                 .transform(
                         groupBy(student).as(
@@ -117,6 +118,11 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                         )
                 );
 
+    }
+
+    private BooleanExpression scheduleTypeIsNotNull() {
+        QScheduleEntity schedule = QScheduleEntity.scheduleEntity;
+        return schedule.type.isNotNull();
     }
 
     @Override

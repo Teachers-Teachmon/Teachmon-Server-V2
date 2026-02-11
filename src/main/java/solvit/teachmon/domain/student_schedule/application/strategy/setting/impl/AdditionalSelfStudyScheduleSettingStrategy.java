@@ -7,6 +7,7 @@ import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.self_study.domain.entity.AdditionalSelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.AdditionalSelfStudyRepository;
+import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleGenerator;
 import solvit.teachmon.domain.student_schedule.application.strategy.setting.StudentScheduleSettingStrategy;
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
@@ -14,7 +15,6 @@ import solvit.teachmon.domain.student_schedule.domain.entity.schedules.Additiona
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 import solvit.teachmon.domain.student_schedule.domain.exception.NoAvailablePlaceException;
 import solvit.teachmon.domain.student_schedule.domain.repository.ScheduleRepository;
-import solvit.teachmon.domain.student_schedule.domain.repository.StudentScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.schedules.AdditionalSelfStudyScheduleRepository;
 
 import java.time.DayOfWeek;
@@ -28,10 +28,10 @@ import static solvit.teachmon.domain.place.domain.entity.PlaceEntity.calculateNe
 @RequiredArgsConstructor
 public class AdditionalSelfStudyScheduleSettingStrategy implements StudentScheduleSettingStrategy {
     private final AdditionalSelfStudyRepository additionalSelfStudyRepository;
-    private final StudentScheduleRepository studentScheduleRepository;
     private final ScheduleRepository scheduleRepository;
     private final AdditionalSelfStudyScheduleRepository additionalSelfStudyScheduleRepository;
     private final PlaceRepository placeRepository;
+    private final StudentScheduleGenerator studentScheduleGenerator;
 
     @Override
     public ScheduleType getScheduleType() {
@@ -43,9 +43,19 @@ public class AdditionalSelfStudyScheduleSettingStrategy implements StudentSchedu
         List<AdditionalSelfStudyEntity> additionalSelfStudies = findWeeklyAdditionalSelfStudies(baseDate);
 
         for(AdditionalSelfStudyEntity additionalSelfStudy : additionalSelfStudies) {
-            List<StudentScheduleEntity> studentSchedules = findStudentScheduleByAdditionalSelfStudy(additionalSelfStudy);
+            if(isBeforeAdditionalSelfStudy(additionalSelfStudy, baseDate))
+                continue;
+            List<StudentScheduleEntity> studentSchedules = studentScheduleGenerator.findOrCreateStudentSchedules(
+                    additionalSelfStudy.getGrade(),
+                    additionalSelfStudy.getDay(),
+                    additionalSelfStudy.getPeriod()
+            );
             settingAdditionalSelfStudySchedule(studentSchedules, additionalSelfStudy);
         }
+    }
+
+    private Boolean isBeforeAdditionalSelfStudy(AdditionalSelfStudyEntity additionalSelfStudy, LocalDate baseDate) {
+        return additionalSelfStudy.getDay().isBefore(baseDate);
     }
 
     private List<AdditionalSelfStudyEntity> findWeeklyAdditionalSelfStudies(LocalDate baseDate) {
@@ -55,11 +65,6 @@ public class AdditionalSelfStudyScheduleSettingStrategy implements StudentSchedu
         return additionalSelfStudyRepository.findAllByDayBetween(startDay, endDay);
     }
 
-    private List<StudentScheduleEntity> findStudentScheduleByAdditionalSelfStudy(AdditionalSelfStudyEntity additionalSelfStudy) {
-        return studentScheduleRepository.findAllByGradeAndDayAndPeriod(
-                additionalSelfStudy.getGrade(), additionalSelfStudy.getDay(), additionalSelfStudy.getPeriod()
-        );
-    }
 
     private void settingAdditionalSelfStudySchedule(
             List<StudentScheduleEntity> studentSchedules,
@@ -78,6 +83,12 @@ public class AdditionalSelfStudyScheduleSettingStrategy implements StudentSchedu
         Integer targetPoint = student.getClassNumber();
         for(int count = 0; count < 4; count++) {
             PlaceEntity place = placesMap.get(targetPoint);
+
+            // 해당 반 교실이 존재하지 않으면 다음 반으로 넘어감
+            if(place == null) {
+                targetPoint = calculateNextClassNumber(targetPoint);
+                continue;
+            }
 
             if(!placeRepository.checkPlaceAvailability(
                     studentSchedule.getDay(), studentSchedule.getPeriod(), place

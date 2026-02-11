@@ -20,6 +20,7 @@ import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AdditionalSelfStudyScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
+import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleGenerator;
 import solvit.teachmon.domain.student_schedule.domain.repository.ScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.StudentScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.schedules.AdditionalSelfStudyScheduleRepository;
@@ -59,6 +60,9 @@ class AdditionalSelfStudyServiceTest {
     @Mock
     private PlaceRepository placeRepository;
 
+    @Mock
+    private StudentScheduleGenerator studentScheduleGenerator;
+
     @InjectMocks
     private AdditionalSelfStudyService additionalSelfStudyService;
 
@@ -85,7 +89,7 @@ class AdditionalSelfStudyServiceTest {
         StudentScheduleEntity studentSchedule2 = createMockStudentSchedule(
                 2L, currentWeekDate, SchoolPeriod.SEVEN_PERIOD, 1, 2
         );
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule1, studentSchedule2));
 
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(anyLong()))
@@ -107,7 +111,7 @@ class AdditionalSelfStudyServiceTest {
 
         // Then: 추가 자습이 저장되고, 스케줄이 즉시 생성되어야 한다
         verify(additionalSelfStudyRepository).saveAll(List.of(additionalSelfStudy));
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD);
+        verify(studentScheduleGenerator).findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD);
         verify(scheduleRepository, times(2)).save(any(ScheduleEntity.class));
         verify(additionalSelfStudyScheduleRepository, times(2)).save(any(AdditionalSelfStudyScheduleEntity.class));
     }
@@ -140,9 +144,9 @@ class AdditionalSelfStudyServiceTest {
     }
 
     @Test
-    @DisplayName("현재 주의 추가 자습을 삭제하면 즉시 스케줄이 제거된다")
+    @DisplayName("추가 자습을 삭제하면 엔티티가 제거된다")
     void shouldRemoveSchedulesImmediatelyWhenDeletingForCurrentWeek() {
-        // Given: 현재 주의 추가 자습이 있을 때
+        // Given: 추가 자습이 있을 때
         LocalDate currentWeekDate = LocalDate.now().with(DayOfWeek.WEDNESDAY);
         AdditionalSelfStudyEntity additionalSelfStudy = createMockAdditionalSelfStudy(
                 1L, currentWeekDate, SchoolPeriod.SEVEN_PERIOD, 1
@@ -150,23 +154,13 @@ class AdditionalSelfStudyServiceTest {
         given(additionalSelfStudyRepository.findById(1L))
                 .willReturn(Optional.of(additionalSelfStudy));
 
-        StudentScheduleEntity studentSchedule1 = createMockStudentSchedule(
-                1L, currentWeekDate, SchoolPeriod.SEVEN_PERIOD, 1, 1
-        );
-        StudentScheduleEntity studentSchedule2 = createMockStudentSchedule(
-                2L, currentWeekDate, SchoolPeriod.SEVEN_PERIOD, 1, 2
-        );
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD))
-                .willReturn(List.of(studentSchedule1, studentSchedule2));
-
         // When: 추가 자습을 삭제하면
         additionalSelfStudyService.deleteAdditionalSelfStudy(1L);
 
-        // Then: 스케줄이 즉시 제거되고, 추가 자습이 삭제되어야 한다
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD);
-        verify(scheduleRepository).deleteByStudentScheduleIdAndType(1L, ScheduleType.ADDITIONAL_SELF_STUDY);
-        verify(scheduleRepository).deleteByStudentScheduleIdAndType(2L, ScheduleType.ADDITIONAL_SELF_STUDY);
-        verify(additionalSelfStudyRepository).deleteById(1L);
+        // Then: 추가 자습 엔티티가 삭제되어야 한다
+        verify(additionalSelfStudyRepository).delete(additionalSelfStudy);
+        verify(studentScheduleRepository, never()).findAllByGradeAndDayAndPeriod(any(), any(), any());
+        verify(scheduleRepository, never()).deleteByStudentScheduleIdAndType(any(), any());
     }
 
     @Test
@@ -183,10 +177,10 @@ class AdditionalSelfStudyServiceTest {
         // When: 추가 자습을 삭제하면
         additionalSelfStudyService.deleteAdditionalSelfStudy(1L);
 
-        // Then: 스케줄은 즉시 제거되지 않고, 추가 자습만 삭제되어야 한다
+        // Then: 스케줄은 즉시 제거되지 않고, 추가 자습 엔티티만 삭제되어야 한다
+        verify(additionalSelfStudyRepository).delete(additionalSelfStudy);
         verify(studentScheduleRepository, never()).findAllByGradeAndDayAndPeriod(any(), any(), any());
         verify(scheduleRepository, never()).deleteByStudentScheduleIdAndType(any(), any());
-        verify(additionalSelfStudyRepository).deleteById(1L);
     }
 
     @Test
@@ -231,9 +225,9 @@ class AdditionalSelfStudyServiceTest {
                 2L, currentWeekDate, SchoolPeriod.EIGHT_AND_NINE_PERIOD, 1, 1
         );
 
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule1));
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.EIGHT_AND_NINE_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.EIGHT_AND_NINE_PERIOD))
                 .willReturn(List.of(studentSchedule2));
 
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(anyLong()))
@@ -255,8 +249,8 @@ class AdditionalSelfStudyServiceTest {
 
         // Then: 모든 교시에 대해 스케줄이 생성되어야 한다
         verify(additionalSelfStudyRepository).saveAll(List.of(additionalSelfStudy1, additionalSelfStudy2));
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD);
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.EIGHT_AND_NINE_PERIOD);
+        verify(studentScheduleGenerator).findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD);
+        verify(studentScheduleGenerator).findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.EIGHT_AND_NINE_PERIOD);
         verify(scheduleRepository, times(2)).save(any(ScheduleEntity.class));
         verify(additionalSelfStudyScheduleRepository, times(2)).save(any(AdditionalSelfStudyScheduleEntity.class));
     }
@@ -281,7 +275,7 @@ class AdditionalSelfStudyServiceTest {
         StudentScheduleEntity studentSchedule = createMockStudentSchedule(
                 1L, currentMonday, SchoolPeriod.SEVEN_PERIOD, 1, 1
         );
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentMonday, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, currentMonday, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule));
 
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(anyLong()))
@@ -302,7 +296,7 @@ class AdditionalSelfStudyServiceTest {
         additionalSelfStudyService.setAdditionalSelfStudy(request);
 
         // Then: 스케줄이 즉시 생성되어야 한다
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentMonday, SchoolPeriod.SEVEN_PERIOD);
+        verify(studentScheduleGenerator).findOrCreateStudentSchedules(1, currentMonday, SchoolPeriod.SEVEN_PERIOD);
         verify(scheduleRepository).save(any(ScheduleEntity.class));
     }
 
@@ -326,7 +320,7 @@ class AdditionalSelfStudyServiceTest {
         StudentScheduleEntity studentSchedule = createMockStudentSchedule(
                 1L, currentSunday, SchoolPeriod.SEVEN_PERIOD, 1, 1
         );
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentSunday, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, currentSunday, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule));
 
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(anyLong()))
@@ -347,7 +341,7 @@ class AdditionalSelfStudyServiceTest {
         additionalSelfStudyService.setAdditionalSelfStudy(request);
 
         // Then: 스케줄이 즉시 생성되어야 한다
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentSunday, SchoolPeriod.SEVEN_PERIOD);
+        verify(studentScheduleGenerator).findOrCreateStudentSchedules(1, currentSunday, SchoolPeriod.SEVEN_PERIOD);
         verify(scheduleRepository).save(any(ScheduleEntity.class));
     }
 

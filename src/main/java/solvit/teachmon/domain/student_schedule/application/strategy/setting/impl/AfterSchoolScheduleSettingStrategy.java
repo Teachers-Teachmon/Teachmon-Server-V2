@@ -46,9 +46,17 @@ public class AfterSchoolScheduleSettingStrategy implements StudentScheduleSettin
             // 출장이면 넘어가기
             if(afterSchoolBusinessTripRepository.existsByAfterSchoolAndDay(afterSchool, calculateAfterSchoolDay(afterSchool, baseDate)))
                 continue;
+            // 이전 날짜면 넘어가기
+            else if(isBeforeAfterSchool(afterSchool, baseDate))
+                continue;
             List<StudentScheduleEntity> studentSchedules = findStudentScheduleByAfterSchool(afterSchool, baseDate);
             settingAfterSchoolSchedule(studentSchedules, afterSchool);
         }
+    }
+
+    private Boolean isBeforeAfterSchool(AfterSchoolEntity afterSchool, LocalDate baseDate) {
+        LocalDate afterSchoolDay = calculateAfterSchoolDay(afterSchool, baseDate);
+        return afterSchoolDay.isBefore(baseDate);
     }
 
     private List<StudentScheduleEntity> findStudentScheduleByAfterSchool(AfterSchoolEntity afterSchool, LocalDate baseDate) {
