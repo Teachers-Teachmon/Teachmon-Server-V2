@@ -85,7 +85,7 @@ public class SupervisionScheduleController {
     @GetMapping("/rank")
     public ResponseEntity<List<SupervisionRankResponseDto>> getSupervisionRankings(
             @RequestParam(required = false) String query,
-            @RequestParam(required = false, defaultValue = "asc") String order) {
+            @RequestParam(required = false, defaultValue = "desc") String order) {
         List<SupervisionRankResponseDto> rankings = supervisionScheduleService.getSupervisionRankings(query, order);
         return ResponseEntity.ok(rankings);
     }
