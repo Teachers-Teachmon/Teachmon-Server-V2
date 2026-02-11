@@ -27,7 +27,8 @@ public class SelfStudyFacadeService {
         BranchEntity branchEntity = branchRepository.findByYearAndBranch(year, branch)
                 .orElseThrow(BranchNotFoundException::new);
 
-        selfStudyRepository.deleteAllByBranchAndGrade(branchEntity, grade);
+        List<SelfStudyEntity> oldSelfStudies = selfStudyRepository.findAllByBranchAndGrade(branchEntity, grade);
+        selfStudyRepository.deleteAll(oldSelfStudies);
 
         List<SelfStudyEntity> selfStudyEntities = selfStudyMapper.toEntities(request, branchEntity, grade);
 
