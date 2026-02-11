@@ -20,7 +20,6 @@ import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEnti
 import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AdditionalSelfStudyScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 import solvit.teachmon.domain.student_schedule.domain.repository.ScheduleRepository;
-import solvit.teachmon.domain.student_schedule.domain.repository.StudentScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.schedules.AdditionalSelfStudyScheduleRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
