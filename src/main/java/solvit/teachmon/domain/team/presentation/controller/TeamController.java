@@ -26,6 +26,11 @@ public class TeamController {
         return ResponseEntity.ok(teamService.searchTeamByQuery(query));
     }
 
+    @GetMapping("/search/all")
+    public ResponseEntity<List<TeamResponseDto>> getAllTeams() {
+        return ResponseEntity.ok(teamService.findAllTeams());
+    }
+
     @PostMapping
     public ResponseEntity<String> createTeam(@RequestBody @Valid TeamCreateRequestDto requestDto) {
         teamService.createTeam(requestDto);
