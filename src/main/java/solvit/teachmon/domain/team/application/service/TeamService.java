@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 import solvit.teachmon.domain.management.student.exception.StudentNotFoundException;
+import solvit.teachmon.domain.team.application.mapper.TeamMapper;
 import solvit.teachmon.domain.team.domain.entity.TeamEntity;
 import solvit.teachmon.domain.team.domain.repository.TeamRepository;
 import solvit.teachmon.domain.team.exception.TeamNotFoundException;
@@ -21,10 +22,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TeamService {
     private final TeamRepository teamRepository;
+    private final TeamMapper teamMapper;
     private final StudentRepository studentRepository;
 
+    @Transactional(readOnly = true)
     public List<TeamResponseDto> searchTeamByQuery(String query) {
         return teamRepository.searchTeamsByKeyword(query);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TeamResponseDto> findAllTeams() {
+        List<TeamEntity> teamEntities = teamRepository.findAll();
+        return teamEntities.stream()
+                .map(teamMapper::toResponseDto)
+                .toList();
     }
 
     @Transactional
