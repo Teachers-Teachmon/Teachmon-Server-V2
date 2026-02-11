@@ -20,6 +20,7 @@ import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AdditionalSelfStudyScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
+import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleGenerator;
 import solvit.teachmon.domain.student_schedule.domain.repository.ScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.StudentScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.schedules.AdditionalSelfStudyScheduleRepository;
@@ -59,6 +60,9 @@ class AdditionalSelfStudyServiceTest {
     @Mock
     private PlaceRepository placeRepository;
 
+    @Mock
+    private StudentScheduleGenerator studentScheduleGenerator;
+
     @InjectMocks
     private AdditionalSelfStudyService additionalSelfStudyService;
 
@@ -85,7 +89,7 @@ class AdditionalSelfStudyServiceTest {
         StudentScheduleEntity studentSchedule2 = createMockStudentSchedule(
                 2L, currentWeekDate, SchoolPeriod.SEVEN_PERIOD, 1, 2
         );
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule1, studentSchedule2));
 
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(anyLong()))
@@ -107,7 +111,7 @@ class AdditionalSelfStudyServiceTest {
 
         // Then: 추가 자습이 저장되고, 스케줄이 즉시 생성되어야 한다
         verify(additionalSelfStudyRepository).saveAll(List.of(additionalSelfStudy));
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD);
+        verify(studentScheduleGenerator).findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD);
         verify(scheduleRepository, times(2)).save(any(ScheduleEntity.class));
         verify(additionalSelfStudyScheduleRepository, times(2)).save(any(AdditionalSelfStudyScheduleEntity.class));
     }
@@ -231,9 +235,9 @@ class AdditionalSelfStudyServiceTest {
                 2L, currentWeekDate, SchoolPeriod.EIGHT_AND_NINE_PERIOD, 1, 1
         );
 
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule1));
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.EIGHT_AND_NINE_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.EIGHT_AND_NINE_PERIOD))
                 .willReturn(List.of(studentSchedule2));
 
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(anyLong()))
@@ -255,8 +259,8 @@ class AdditionalSelfStudyServiceTest {
 
         // Then: 모든 교시에 대해 스케줄이 생성되어야 한다
         verify(additionalSelfStudyRepository).saveAll(List.of(additionalSelfStudy1, additionalSelfStudy2));
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD);
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentWeekDate, SchoolPeriod.EIGHT_AND_NINE_PERIOD);
+        verify(studentScheduleGenerator).findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.SEVEN_PERIOD);
+        verify(studentScheduleGenerator).findOrCreateStudentSchedules(1, currentWeekDate, SchoolPeriod.EIGHT_AND_NINE_PERIOD);
         verify(scheduleRepository, times(2)).save(any(ScheduleEntity.class));
         verify(additionalSelfStudyScheduleRepository, times(2)).save(any(AdditionalSelfStudyScheduleEntity.class));
     }
@@ -281,7 +285,7 @@ class AdditionalSelfStudyServiceTest {
         StudentScheduleEntity studentSchedule = createMockStudentSchedule(
                 1L, currentMonday, SchoolPeriod.SEVEN_PERIOD, 1, 1
         );
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentMonday, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, currentMonday, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule));
 
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(anyLong()))
@@ -302,7 +306,7 @@ class AdditionalSelfStudyServiceTest {
         additionalSelfStudyService.setAdditionalSelfStudy(request);
 
         // Then: 스케줄이 즉시 생성되어야 한다
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentMonday, SchoolPeriod.SEVEN_PERIOD);
+        verify(studentScheduleGenerator).findOrCreateStudentSchedules(1, currentMonday, SchoolPeriod.SEVEN_PERIOD);
         verify(scheduleRepository).save(any(ScheduleEntity.class));
     }
 
@@ -326,7 +330,7 @@ class AdditionalSelfStudyServiceTest {
         StudentScheduleEntity studentSchedule = createMockStudentSchedule(
                 1L, currentSunday, SchoolPeriod.SEVEN_PERIOD, 1, 1
         );
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, currentSunday, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, currentSunday, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule));
 
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(anyLong()))
@@ -347,7 +351,7 @@ class AdditionalSelfStudyServiceTest {
         additionalSelfStudyService.setAdditionalSelfStudy(request);
 
         // Then: 스케줄이 즉시 생성되어야 한다
-        verify(studentScheduleRepository).findAllByGradeAndDayAndPeriod(1, currentSunday, SchoolPeriod.SEVEN_PERIOD);
+        verify(studentScheduleGenerator).findOrCreateStudentSchedules(1, currentSunday, SchoolPeriod.SEVEN_PERIOD);
         verify(scheduleRepository).save(any(ScheduleEntity.class));
     }
 

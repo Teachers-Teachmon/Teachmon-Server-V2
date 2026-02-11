@@ -85,8 +85,8 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(1L))
                 .willReturn(0);
 
-        // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        // When: 스케줄을 설정하면 (nextMonday를 baseDate로 사용하여 isBefore 체크 통과)
+        strategy.settingSchedule(nextMonday);
 
         // Then: 일반 방과후 스케줄이 생성되어야 한다 (보강용 별도 엔티티가 아님)
         verify(afterSchoolScheduleRepository, times(1)).save(any(AfterSchoolScheduleEntity.class));
@@ -121,8 +121,8 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(any()))
                 .willReturn(0);
 
-        // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        // When: 스케줄을 설정하면 (nextMonday를 baseDate로 사용하여 isBefore 체크 통과)
+        strategy.settingSchedule(nextMonday);
 
         // Then: 3개의 방과후 스케줄이 생성되어야 한다
         verify(afterSchoolScheduleRepository, times(3)).save(any(AfterSchoolScheduleEntity.class));
@@ -165,8 +165,8 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(any()))
                 .willReturn(0);
 
-        // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        // When: 스케줄을 설정하면 (nextMonday를 baseDate로 사용하여 isBefore 체크 통과)
+        strategy.settingSchedule(nextMonday);
 
         // Then: 2개의 방과후 스케줄이 생성되어야 한다
         verify(afterSchoolScheduleRepository, times(2)).save(any(AfterSchoolScheduleEntity.class));

@@ -97,8 +97,8 @@ class LeaveSeatScheduleSettingStrategyTest {
         given(fixedLeaveSeatStudentRepository.findAllByFixedLeaveSeat(fixedLeaveSeat))
                 .willReturn(List.of(student1, student2));
 
-        // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        // When: 스케줄을 설정하면 (nextMonday를 baseDate로 사용하여 isBefore 체크 통과)
+        strategy.settingSchedule(nextMonday);
 
         // Then: 이석 스케줄이 생성되어야 한다
         verify(leaveSeatScheduleRepository, times(2)).save(any(LeaveSeatScheduleEntity.class));
@@ -131,8 +131,8 @@ class LeaveSeatScheduleSettingStrategyTest {
         given(fixedLeaveSeatStudentRepository.findAllByFixedLeaveSeat(fixedLeaveSeat))
                 .willReturn(List.of(student1, student2));
 
-        // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        // When: 스케줄을 설정하면 (nextMonday를 baseDate로 사용하여 isBefore 체크 통과)
+        strategy.settingSchedule(nextMonday);
 
         // Then: LeaveSeat 엔티티 저장 횟수를 검증한다
         ArgumentCaptor<LeaveSeatEntity> leaveSeatCaptor = ArgumentCaptor.forClass(LeaveSeatEntity.class);
@@ -180,8 +180,8 @@ class LeaveSeatScheduleSettingStrategyTest {
         given(fixedLeaveSeatStudentRepository.findAllByFixedLeaveSeat(fixedLeaveSeat))
                 .willReturn(List.of(student1, student2, student3));
 
-        // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        // When: 스케줄을 설정하면 (nextMonday를 baseDate로 사용하여 isBefore 체크 통과)
+        strategy.settingSchedule(nextMonday);
 
         // Then: 저장된 LeaveSeatSchedule들을 검증한다
         ArgumentCaptor<LeaveSeatScheduleEntity> scheduleCaptor = ArgumentCaptor.forClass(LeaveSeatScheduleEntity.class);
@@ -236,8 +236,8 @@ class LeaveSeatScheduleSettingStrategyTest {
         given(fixedLeaveSeatStudentRepository.findAllByFixedLeaveSeat(any()))
                 .willReturn(List.of());
 
-        // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        // When: 스케줄을 설정하면 (nextMonday를 baseDate로 사용하여 isBefore 체크 통과)
+        strategy.settingSchedule(nextMonday);
 
         // Then: 2개의 이석 스케줄이 생성되어야 한다
         verify(leaveSeatScheduleRepository, times(2)).save(any(LeaveSeatScheduleEntity.class));

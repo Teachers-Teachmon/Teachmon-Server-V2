@@ -14,6 +14,7 @@ import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.self_study.domain.entity.AdditionalSelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.AdditionalSelfStudyRepository;
+import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleGenerator;
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AdditionalSelfStudyScheduleEntity;
@@ -42,7 +43,7 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
     private AdditionalSelfStudyRepository additionalSelfStudyRepository;
 
     @Mock
-    private StudentScheduleRepository studentScheduleRepository;
+    private StudentScheduleGenerator studentScheduleGenerator;
 
     @Mock
     private ScheduleRepository scheduleRepository;
@@ -82,7 +83,7 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
 
         given(additionalSelfStudyRepository.findAllByDayBetween(nextMonday, nextSunday))
                 .willReturn(List.of(additionalSelfStudy));
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, nextMonday, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, nextMonday, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule));
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(1L))
                 .willReturn(0);
@@ -91,8 +92,8 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
         given(placeRepository.checkPlaceAvailability(nextMonday, SchoolPeriod.SEVEN_PERIOD, place))
                 .willReturn(false);
 
-        // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        // When: 스케줄을 설정하면 (nextMonday를 baseDate로 사용하여 isBefore 체크 통과)
+        strategy.settingSchedule(nextMonday);
 
         // Then: 추가 자습 스케줄이 생성되어야 한다
         verify(additionalSelfStudyScheduleRepository, times(1)).save(any(AdditionalSelfStudyScheduleEntity.class));
@@ -114,7 +115,7 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
 
         given(additionalSelfStudyRepository.findAllByDayBetween(nextMonday, nextSunday))
                 .willReturn(List.of(additionalSelfStudy));
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, nextMonday, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, nextMonday, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule));
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(1L))
                 .willReturn(0);
@@ -123,8 +124,8 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
         given(placeRepository.checkPlaceAvailability(nextMonday, SchoolPeriod.SEVEN_PERIOD, place))
                 .willReturn(false);
 
-        // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        // When: 스케줄을 설정하면 (nextMonday를 baseDate로 사용하여 isBefore 체크 통과)
+        strategy.settingSchedule(nextMonday);
 
         // Then: 저장된 Schedule의 타입을 검증한다
         ArgumentCaptor<ScheduleEntity> scheduleCaptor = ArgumentCaptor.forClass(ScheduleEntity.class);
@@ -161,7 +162,7 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
 
         given(additionalSelfStudyRepository.findAllByDayBetween(nextMonday, nextSunday))
                 .willReturn(List.of(additionalSelfStudy));
-        given(studentScheduleRepository.findAllByGradeAndDayAndPeriod(1, nextMonday, SchoolPeriod.SEVEN_PERIOD))
+        given(studentScheduleGenerator.findOrCreateStudentSchedules(1, nextMonday, SchoolPeriod.SEVEN_PERIOD))
                 .willReturn(List.of(studentSchedule1, studentSchedule2));
         given(scheduleRepository.findLastStackOrderByStudentScheduleId(any()))
                 .willReturn(0);
@@ -170,8 +171,8 @@ class AdditionalSelfStudyScheduleSettingStrategyTest {
         given(placeRepository.checkPlaceAvailability(any(), any(), any()))
                 .willReturn(false);
 
-        // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        // When: 스케줄을 설정하면 (nextMonday를 baseDate로 사용하여 isBefore 체크 통과)
+        strategy.settingSchedule(nextMonday);
 
         // Then: 2개의 추가 자습 스케줄이 생성되어야 한다
         verify(additionalSelfStudyScheduleRepository, times(2)).save(any(AdditionalSelfStudyScheduleEntity.class));

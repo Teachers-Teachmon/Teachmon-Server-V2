@@ -12,6 +12,7 @@ import solvit.teachmon.domain.self_study.domain.repository.AdditionalSelfStudyRe
 import solvit.teachmon.domain.self_study.exception.AdditionalSelfStudyNotFoundException;
 import solvit.teachmon.domain.self_study.presentation.dto.request.AdditionalSelfStudySetRequest;
 import solvit.teachmon.domain.self_study.presentation.dto.response.AdditionalSelfStudyGetResponse;
+import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleGenerator;
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AdditionalSelfStudyScheduleEntity;
@@ -37,6 +38,7 @@ public class AdditionalSelfStudyService {
     private final ScheduleRepository scheduleRepository;
     private final AdditionalSelfStudyScheduleRepository additionalSelfStudyScheduleRepository;
     private final PlaceRepository placeRepository;
+    private final StudentScheduleGenerator studentScheduleGenerator;
 
     @Transactional
     public void setAdditionalSelfStudy(AdditionalSelfStudySetRequest request) {
@@ -61,13 +63,7 @@ public class AdditionalSelfStudyService {
         AdditionalSelfStudyEntity additionalSelfStudy = additionalSelfStudyRepository.findById(additionalId)
                 .orElseThrow(AdditionalSelfStudyNotFoundException::new);
 
-        // 요청한 날짜와 추가 자습 날짜가 같은 주에 있는지 확인
-        if (isInCurrentWeek(additionalSelfStudy.getDay())) {
-            // 같은 주에 있다면 삭제
-            removeAdditionalSelfStudySchedules(additionalSelfStudy);
-        }
-
-        additionalSelfStudyRepository.deleteById(additionalId);
+        additionalSelfStudyRepository.delete(additionalSelfStudy);
     }
 
     private boolean isInCurrentWeek(LocalDate date) {
@@ -80,7 +76,7 @@ public class AdditionalSelfStudyService {
 
     private void applyAdditionalSelfStudySchedules(List<AdditionalSelfStudyEntity> additionalSelfStudies) {
         for (AdditionalSelfStudyEntity additionalSelfStudy : additionalSelfStudies) {
-            List<StudentScheduleEntity> studentSchedules = studentScheduleRepository.findAllByGradeAndDayAndPeriod(
+            List<StudentScheduleEntity> studentSchedules = studentScheduleGenerator.findOrCreateStudentSchedules(
                     additionalSelfStudy.getGrade(),
                     additionalSelfStudy.getDay(),
                     additionalSelfStudy.getPeriod()
@@ -91,21 +87,6 @@ public class AdditionalSelfStudyService {
                 PlaceEntity place = findAdditionalSelfStudyPlace(studentSchedule);
                 createAdditionalSelfStudySchedule(newSchedule, additionalSelfStudy, place);
             }
-        }
-    }
-
-    private void removeAdditionalSelfStudySchedules(AdditionalSelfStudyEntity additionalSelfStudy) {
-        List<StudentScheduleEntity> studentSchedules = studentScheduleRepository.findAllByGradeAndDayAndPeriod(
-                additionalSelfStudy.getGrade(),
-                additionalSelfStudy.getDay(),
-                additionalSelfStudy.getPeriod()
-        );
-
-        for (StudentScheduleEntity studentSchedule : studentSchedules) {
-            scheduleRepository.deleteByStudentScheduleIdAndType(
-                    studentSchedule.getId(),
-                    ScheduleType.ADDITIONAL_SELF_STUDY
-            );
         }
     }
 
@@ -127,6 +108,12 @@ public class AdditionalSelfStudyService {
         Integer targetPoint = student.getClassNumber();
         for (int count = 0; count < 4; count++) {
             PlaceEntity place = placesMap.get(targetPoint);
+
+            // 해당 반 교실이 존재하지 않으면 다음 반으로 넘어감
+            if (place == null) {
+                targetPoint = calculateNextClassNumber(targetPoint);
+                continue;
+            }
 
             if (!placeRepository.existByDayAndPeriodAndPlace(
                     studentSchedule.getDay(), studentSchedule.getPeriod(), place
