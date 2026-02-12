@@ -307,7 +307,7 @@ class SupervisionExchangeServiceTest {
     }
 
     @Test
-    @DisplayName("수신자의 교체 요청 목록을 성공적으로 조회한다")
+    @DisplayName("받은 요청과 보낸 요청을 모두 조회할 수 있다")
     void shouldGetSupervisionExchangesSuccessfully() {
         // Given
         TeacherEntity senderTeacher = createMockTeacher(1L, "송혜정");
@@ -336,30 +336,30 @@ class SupervisionExchangeServiceTest {
                 .build();
         
         List<SupervisionExchangeEntity> exchanges = List.of(exchangeEntity);
-        given(supervisionExchangeRepository.findByRecipientId(2L)).willReturn(exchanges);
+        given(supervisionExchangeRepository.findByRecipientIdOrSenderId(2L, 2L)).willReturn(exchanges);
         given(supervisionExchangeResponseMapper.toResponseDto(exchangeEntity)).willReturn(responseDto);
 
         // When
         List<SupervisionExchangeResponseDto> result = supervisionExchangeService.getSupervisionExchanges(2L);
 
-        // Then
+        // Then: 받은 요청과 보낸 요청 모두 조회된다
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).reason()).isEqualTo("개인 사유");
-        assertThat(result.get(0).status()).isEqualTo(SupervisionExchangeType.PENDING);
-        verify(supervisionExchangeRepository).findByRecipientId(2L);
+        assertThat(result.getFirst().reason()).isEqualTo("개인 사유");
+        assertThat(result.getFirst().status()).isEqualTo(SupervisionExchangeType.PENDING);
+        verify(supervisionExchangeRepository).findByRecipientIdOrSenderId(2L, 2L);
     }
 
     @Test
-    @DisplayName("수신자에 대한 빈 교체 요청 목록을 조회한다")
+    @DisplayName("교체 요청이 없을 때 빈 목록을 반환한다")
     void shouldReturnEmptyListWhenNoExchangeExists() {
         // Given
-        given(supervisionExchangeRepository.findByRecipientId(2L)).willReturn(List.of());
+        given(supervisionExchangeRepository.findByRecipientIdOrSenderId(2L, 2L)).willReturn(List.of());
 
         // When
         List<SupervisionExchangeResponseDto> result = supervisionExchangeService.getSupervisionExchanges(2L);
 
         // Then
         assertThat(result).isEmpty();
-        verify(supervisionExchangeRepository).findByRecipientId(2L);
+        verify(supervisionExchangeRepository).findByRecipientIdOrSenderId(2L, 2L);
     }
 }

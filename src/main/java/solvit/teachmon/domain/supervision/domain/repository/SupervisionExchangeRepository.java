@@ -6,5 +6,5 @@ import solvit.teachmon.domain.supervision.domain.entity.SupervisionExchangeEntit
 import java.util.List;
 
 public interface SupervisionExchangeRepository extends JpaRepository<SupervisionExchangeEntity, Long> {
-    List<SupervisionExchangeEntity> findByRecipientId(Long recipientId);
+    List<SupervisionExchangeEntity> findByRecipientIdOrSenderId(Long recipientId, Long senderId);
 }
