@@ -47,3 +47,12 @@ google-spreadsheet:
   credentials-scope: ${GOOGLE_SPREADSHEET_CREDENTIALS_SCOPE}
   page: ${GOOGLE_SPREADSHEET_PAGE}
   credential-path: file:/root/spread-sheet-account.json
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
