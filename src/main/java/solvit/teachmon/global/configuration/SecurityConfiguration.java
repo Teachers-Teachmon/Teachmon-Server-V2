@@ -42,7 +42,8 @@ public class SecurityConfiguration {
             "/auth/code",
             "/oauth2/callback/**",
             "/oauth2/login/**",
-            "/api/healthcheck"
+            "/actuator/**",
+            "/test/error"
     };
 
     @Bean

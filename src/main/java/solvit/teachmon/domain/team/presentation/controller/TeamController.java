@@ -1,6 +1,7 @@
 package solvit.teachmon.domain.team.presentation.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class TeamController {
     private final TeamService teamService;
 
     @GetMapping("/search")
-    public ResponseEntity<List<TeamResponseDto>> searchTeam(@RequestParam @NotNull(message = "검색어는 필수입니다.") String query) {
+    public ResponseEntity<List<TeamResponseDto>> searchTeam(@RequestParam @NotNull(message = "검색어는 필수입니다.") @NotBlank(message = "검색어는 비어있을 수 없습니다.") String query) {
         return ResponseEntity.ok(teamService.searchTeamByQuery(query));
     }
 

@@ -50,3 +50,6 @@ google-spreadsheet:
   application-name: ${GOOGLE_SPREADSHEET_APPLICATION_NAME}
   credentials-scope: ${GOOGLE_SPREADSHEET_CREDENTIALS_SCOPE}
   page: ${GOOGLE_SPREADSHEET_PAGE}
+
+discord:
+  webhook: ${DISCORD_WEBHOOK}
