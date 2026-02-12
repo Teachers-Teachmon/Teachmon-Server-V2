@@ -14,7 +14,6 @@ import solvit.teachmon.domain.student_schedule.application.service.StudentSchedu
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
 
