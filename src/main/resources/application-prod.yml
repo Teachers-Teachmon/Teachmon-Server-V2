@@ -48,6 +48,10 @@ google-spreadsheet:
   page: ${GOOGLE_SPREADSHEET_PAGE}
   credential-path: file:/root/spread-sheet-account.json
 
+server:
+  address: 0.0.0.0
+  port: 8080
+
 management:
   endpoints:
     web:
