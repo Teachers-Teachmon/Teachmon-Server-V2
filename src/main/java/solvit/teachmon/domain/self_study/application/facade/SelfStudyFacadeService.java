@@ -10,9 +10,11 @@ import solvit.teachmon.domain.self_study.application.mapper.SelfStudyMapper;
 import solvit.teachmon.domain.self_study.domain.entity.SelfStudyEntity;
 import solvit.teachmon.domain.self_study.domain.repository.SelfStudyRepository;
 import solvit.teachmon.domain.self_study.presentation.dto.common.WeekDaySelfStudyDto;
+import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleSettingService;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -21,6 +23,7 @@ public class SelfStudyFacadeService {
     private final SelfStudyRepository selfStudyRepository;
     private final BranchRepository branchRepository;
     private final SelfStudyMapper selfStudyMapper;
+    private final StudentScheduleSettingService studentScheduleSettingService;
 
     @Transactional
     public void setSelfStudy(Integer year, Integer branch, Integer grade, List<WeekDaySelfStudyDto> request) {
@@ -33,6 +36,10 @@ public class SelfStudyFacadeService {
         List<SelfStudyEntity> selfStudyEntities = selfStudyMapper.toEntities(request, branchEntity, grade);
 
         selfStudyRepository.saveAll(selfStudyEntities);
+
+        LocalDate today = LocalDate.now();
+        studentScheduleSettingService.createNewStudentSchedule(today);
+        studentScheduleSettingService.settingAllTypeSchedule(today);
     }
 
     public List<WeekDaySelfStudyDto> getSelfStudy(Integer year, Integer branch, Integer grade) {

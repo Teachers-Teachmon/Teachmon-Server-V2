@@ -24,4 +24,9 @@ public interface ExitRepository extends JpaRepository<ExitEntity, Long> {
             "WHERE e.day = :day " +
             "ORDER BY e.period ASC")
     List<ExitEntity> findAllByDay(@Param("day") LocalDate day);
+
+    @Query("SELECT e FROM ExitEntity e " +
+            "JOIN FETCH e.student " +
+            "WHERE e.day >= :baseDate")
+    List<ExitEntity> findAllFromDate(@Param("baseDate") LocalDate baseDate);
 }

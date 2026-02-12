@@ -12,6 +12,7 @@ import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StudentScheduleRepository extends JpaRepository<StudentScheduleEntity, Long>, StudentScheduleQueryDslRepository {
@@ -61,5 +62,12 @@ public interface StudentScheduleRepository extends JpaRepository<StudentSchedule
     List<StudentScheduleEntity> findAllByDayBetween(
             @Param("startDay") LocalDate startDay,
             @Param("endDay") LocalDate endDay
+    );
+
+    @Query("SELECT s FROM StudentScheduleEntity s WHERE s.student = :student AND s.day = :day AND s.period = :period")
+    Optional<StudentScheduleEntity> findByStudentAndDayAndPeriod(
+            @Param("student") StudentEntity student,
+            @Param("day") LocalDate day,
+            @Param("period") SchoolPeriod period
     );
 }
