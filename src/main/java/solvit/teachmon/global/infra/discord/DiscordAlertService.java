@@ -14,53 +14,68 @@ import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.global.exception.ErrorResponse;
 import solvit.teachmon.global.properties.DiscordProperties;
 import solvit.teachmon.global.security.user.TeachmonUserDetails;
-import tools.jackson.databind.ObjectMapper;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class DiscordAlertService {
     private final RestClient restClient;
-    private final ObjectMapper objectMapper;
     private final DiscordProperties discordProperties;
 
     public void alertError(HttpServletRequest request, ErrorResponse errorResponse) {
-        Map<String, Object> errorMessage = prepareErrorMessage(request, errorResponse);
-        String preparedErrorMessage = objectMapper.writeValueAsString(errorMessage);
-        DiscordAlertMessageDto discordAlertMessageDto = DiscordAlertMessageDto.builder()
-                .content(preparedErrorMessage)
-                .build();
+        Map<String, Object> payload = prepareDiscordPayload(request, errorResponse);
+
         restClient.post()
                 .uri(discordProperties.getWebhook())
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(discordAlertMessageDto)
+                .body(payload)
                 .retrieve()
                 .toBodilessEntity();
     }
 
-    private Map<String, Object> prepareErrorMessage(HttpServletRequest request, ErrorResponse errorResponse) {
+
+    private Map<String, Object> prepareDiscordPayload(HttpServletRequest request, ErrorResponse errorResponse) {
         RequesterInfo requester = resolveRequester();
+
+        Map<String, Object> embed = new LinkedHashMap<>();
+        embed.put("title", "🚨 서버 에러 발생");
+        embed.put("color", 16711680);
+
+        embed.put("fields", Arrays.asList(
+                field("발생시각", LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString(), false),
+                field("요청자", requester.toMap().toString(), false),
+                field("요청 URI", request.getRequestURI(), false),
+                field("HTTP 메서드", request.getMethod(), true),
+                field("응답 상태코드", String.valueOf(errorResponse.getStatus()), true),
+                field("쿼리스트링", Optional.ofNullable(request.getQueryString()).orElse("존재하지 않음"), false),
+                field("요청 파라미터", extractRequestParams(request), false),
+                field("요청 본문", limit(extractRequestBody(request)), false),
+                field("응답 본문", limit(errorResponse.getMessage()), false)
+        ));
+
         Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("발생시각", LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString());
-        payload.put("요청자", requester.toMap());
-        payload.put("요청 URI", request.getRequestURI());
-        payload.put("HTTP 메서드", request.getMethod());
-        payload.put("쿼리스트링", request.getQueryString());
-        payload.put("요청 파라미터", extractRequestParams(request));
-        payload.put("요청 본문", extractRequestBody(request));
-        payload.put("응답 상태코드", errorResponse.getStatus());
-        payload.put("응답 본문", errorResponse.getMessage());
+        payload.put("embeds", List.of(embed));
+
         return payload;
+    }
+
+    private Map<String, Object> field(String name, String value, boolean inline) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("name", name);
+        map.put("value", value == null || value.isBlank() ? "없음" : value);
+        map.put("inline", inline);
+        return map;
+    }
+
+    private String limit(String value) {
+        if (value == null) return "없음";
+        return value.length() > 1000 ? value.substring(0, 1000) + "...(생략)" : value;
     }
 
     private RequesterInfo resolveRequester() {
