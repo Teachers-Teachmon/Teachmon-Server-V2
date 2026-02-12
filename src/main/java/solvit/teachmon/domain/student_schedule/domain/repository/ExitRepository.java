@@ -4,10 +4,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.ExitEntity;
+import solvit.teachmon.global.enums.SchoolPeriod;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ExitRepository extends JpaRepository<ExitEntity, Long> {
@@ -29,4 +32,8 @@ public interface ExitRepository extends JpaRepository<ExitEntity, Long> {
             "JOIN FETCH e.student " +
             "WHERE e.day >= :baseDate")
     List<ExitEntity> findAllFromDate(@Param("baseDate") LocalDate baseDate);
+
+    @Query("SELECT e FROM ExitEntity e " +
+            "WHERE e.day = :day AND e.period = :period AND e.student = :student")
+    Optional<ExitEntity> findByDayAndPeriodAndStudent(LocalDate day, SchoolPeriod period, StudentEntity student);
 }
