@@ -95,7 +95,7 @@ public class SupervisionExchangeService {
 
     @Transactional(readOnly = true)
     public List<SupervisionExchangeResponseDto> getSupervisionExchanges(Long currentUserId) {
-        List<SupervisionExchangeEntity> exchanges = supervisionExchangeRepository.findByRecipientId(currentUserId);
+        List<SupervisionExchangeEntity> exchanges = supervisionExchangeRepository.findByRecipientIdOrSenderId(currentUserId, currentUserId);
         
         return exchanges.stream()
                 .map(mapper::toResponseDto)
