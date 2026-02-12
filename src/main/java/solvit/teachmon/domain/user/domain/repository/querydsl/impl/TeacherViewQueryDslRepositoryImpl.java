@@ -24,6 +24,7 @@ public class TeacherViewQueryDslRepositoryImpl implements TeacherQueryDslReposit
         return Optional.ofNullable(
                 queryFactory.select(
                         new QTeacherProfileResponseDto(
+                                QTeacherEntity.teacherEntity.id,
                                 QTeacherEntity.teacherEntity.name,
                                 QTeacherEntity.teacherEntity.profile
                         )
