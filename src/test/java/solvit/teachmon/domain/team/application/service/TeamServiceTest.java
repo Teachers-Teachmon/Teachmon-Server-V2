@@ -17,6 +17,7 @@ import solvit.teachmon.domain.team.presentation.dto.request.TeamDeleteRequestDto
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateStudentDto;
 import solvit.teachmon.domain.team.presentation.dto.response.TeamResponseDto;
+import solvit.teachmon.domain.team.presentation.dto.response.TeamWithMembersResponseDto;
 import solvit.teachmon.domain.team.application.mapper.TeamMapper;
 
 import java.util.List;
@@ -251,30 +252,30 @@ class TeamServiceTest {
     }
 
     @Test
-    @DisplayName("모든 팀을 조회할 수 있다")
-    void shouldFindAllTeamsSuccessfully() {
+    @DisplayName("모든 팀을 멤버와 함께 조회할 수 있다")
+    void shouldFindAllTeamsWithMembersSuccessfully() {
         // Given: 팀 엔티티들이 주어졌을 때
         TeamEntity team1 = TeamEntity.builder().name("개발팀").build();
         TeamEntity team2 = TeamEntity.builder().name("디자인팀").build();
         List<TeamEntity> teamEntities = List.of(team1, team2);
 
-        TeamResponseDto responseDto1 = new TeamResponseDto(1L, "개발팀");
-        TeamResponseDto responseDto2 = new TeamResponseDto(2L, "디자인팀");
+        TeamWithMembersResponseDto responseDto1 = new TeamWithMembersResponseDto(1L, "개발팀", List.of());
+        TeamWithMembersResponseDto responseDto2 = new TeamWithMembersResponseDto(2L, "디자인팀", List.of());
 
         given(teamRepository.findAll()).willReturn(teamEntities);
-        given(teamMapper.toResponseDto(team1)).willReturn(responseDto1);
-        given(teamMapper.toResponseDto(team2)).willReturn(responseDto2);
+        given(teamMapper.toWithMembersResponseDto(team1)).willReturn(responseDto1);
+        given(teamMapper.toWithMembersResponseDto(team2)).willReturn(responseDto2);
 
         // When: 모든 팀을 조회하면
-        List<TeamResponseDto> results = teamService.findAllTeams();
+        List<TeamWithMembersResponseDto> results = teamService.findAllTeams();
 
-        // Then: 모든 팀이 반환된다
+        // Then: 모든 팀이 멤버와 함께 반환된다
         assertThat(results).hasSize(2);
         assertThat(results.get(0).name()).isEqualTo("개발팀");
         assertThat(results.get(1).name()).isEqualTo("디자인팀");
         verify(teamRepository).findAll();
-        verify(teamMapper).toResponseDto(team1);
-        verify(teamMapper).toResponseDto(team2);
+        verify(teamMapper).toWithMembersResponseDto(team1);
+        verify(teamMapper).toWithMembersResponseDto(team2);
     }
 
     @Test
@@ -285,7 +286,7 @@ class TeamServiceTest {
         given(teamRepository.findAll()).willReturn(emptyList);
 
         // When: 모든 팀을 조회하면
-        List<TeamResponseDto> results = teamService.findAllTeams();
+        List<TeamWithMembersResponseDto> results = teamService.findAllTeams();
 
         // Then: 빈 리스트가 반환된다
         assertThat(results).isEmpty();

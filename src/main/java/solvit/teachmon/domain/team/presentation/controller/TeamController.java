@@ -11,6 +11,7 @@ import solvit.teachmon.domain.team.presentation.dto.request.TeamCreateRequestDto
 import solvit.teachmon.domain.team.presentation.dto.request.TeamDeleteRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.response.TeamResponseDto;
+import solvit.teachmon.domain.team.presentation.dto.response.TeamWithMembersResponseDto;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class TeamController {
     }
 
     @GetMapping("/search/all")
-    public ResponseEntity<List<TeamResponseDto>> getAllTeams() {
+    public ResponseEntity<List<TeamWithMembersResponseDto>> getAllTeams() {
         return ResponseEntity.ok(teamService.findAllTeams());
     }
 
