@@ -111,7 +111,7 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                                 list(
                                         new CaseBuilder()
                                                 .when(schedule.isNull())
-                                                .then((PeriodScheduleDto) null)
+                                                .then(Expressions.nullExpression(PeriodScheduleDto.class))
                                                 .otherwise(
                                                         new QPeriodScheduleDto(
                                                                 studentSchedule.id,
