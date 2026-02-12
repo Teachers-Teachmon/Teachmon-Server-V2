@@ -5,10 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AdditionalSelfStudyScheduleEntity;
-import solvit.teachmon.domain.student_schedule.domain.entity.schedules.AfterSchoolScheduleEntity;
-import solvit.teachmon.domain.student_schedule.domain.entity.schedules.LeaveSeatScheduleEntity;
-import solvit.teachmon.domain.student_schedule.domain.entity.schedules.SelfStudyScheduleEntity;
+import solvit.teachmon.domain.student_schedule.domain.entity.schedules.*;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 import solvit.teachmon.global.entity.BaseEntity;
 
@@ -62,6 +59,20 @@ public class ScheduleEntity extends BaseEntity {
             orphanRemoval = true
     )
     private SelfStudyScheduleEntity selfStudySchedule;
+
+    @OneToOne(
+            mappedBy = "schedule",
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true
+    )
+    private ExitScheduleEntity exitSchedule;
+
+    @OneToOne(
+            mappedBy = "schedule",
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true
+    )
+    private AwayScheduleEntity awaySchedule;
 
     @Builder
     private ScheduleEntity(StudentScheduleEntity studentSchedule, Integer stackOrder, ScheduleType type) {
