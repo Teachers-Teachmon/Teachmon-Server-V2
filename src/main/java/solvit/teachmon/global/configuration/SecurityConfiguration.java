@@ -42,7 +42,8 @@ public class SecurityConfiguration {
             "/auth/code",
             "/oauth2/callback/**",
             "/oauth2/login/**",
-            "/actuator/**"
+            "/actuator/**",
+            "/test/error"
     };
 
     @Bean

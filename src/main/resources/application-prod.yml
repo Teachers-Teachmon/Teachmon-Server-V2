@@ -60,3 +60,6 @@ management:
   endpoint:
     health:
       show-details: always
+
+discord:
+  webhook: ${DISCORD_WEBHOOK}
