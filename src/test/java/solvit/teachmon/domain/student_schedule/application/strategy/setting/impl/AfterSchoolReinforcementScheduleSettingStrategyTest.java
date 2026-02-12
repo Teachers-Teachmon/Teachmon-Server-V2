@@ -223,7 +223,7 @@ class AfterSchoolReinforcementScheduleSettingStrategyTest {
                 .willReturn(0);
 
         // When: 스케줄을 설정하면
-        strategy.settingSchedule(nextWeek);
+        strategy.settingSchedule(nextMonday);
 
         // Then: 변경된 날짜/교시로 학생 스케줄을 조회해야 한다
         verify(studentScheduleRepository).findAllByAfterSchoolAndDayAndPeriod(
