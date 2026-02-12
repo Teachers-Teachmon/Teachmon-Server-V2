@@ -1,6 +1,7 @@
 package solvit.teachmon.domain.student_schedule.domain.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
@@ -103,26 +104,25 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                 )
                 .where(
                         queryEq(query),
-                        dayEq(day),
-                        scheduleTypeIsNotNull()
+                        dayEq(day)
                 )
                 .transform(
                         groupBy(student).as(
                                 list(
-                                        new QPeriodScheduleDto(
-                                                studentSchedule.id,
-                                                studentSchedule.period,
-                                                schedule.type
-                                        )
+                                        new CaseBuilder()
+                                                .when(schedule.isNull())
+                                                .then((PeriodScheduleDto) null)
+                                                .otherwise(
+                                                        new QPeriodScheduleDto(
+                                                                studentSchedule.id,
+                                                                studentSchedule.period,
+                                                                schedule.type
+                                                        )
+                                                )
                                 )
                         )
                 );
 
-    }
-
-    private BooleanExpression scheduleTypeIsNotNull() {
-        QScheduleEntity schedule = QScheduleEntity.scheduleEntity;
-        return schedule.type.isNotNull();
     }
 
     @Override
