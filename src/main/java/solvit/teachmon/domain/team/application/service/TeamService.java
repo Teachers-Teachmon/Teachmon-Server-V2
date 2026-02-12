@@ -15,6 +15,7 @@ import solvit.teachmon.domain.team.presentation.dto.request.TeamDeleteRequestDto
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateStudentDto;
 import solvit.teachmon.domain.team.presentation.dto.response.TeamResponseDto;
+import solvit.teachmon.domain.team.presentation.dto.response.TeamWithMembersResponseDto;
 
 import java.util.List;
 
@@ -31,10 +32,10 @@ public class TeamService {
     }
 
     @Transactional(readOnly = true)
-    public List<TeamResponseDto> findAllTeams() {
+    public List<TeamWithMembersResponseDto> findAllTeams() {
         List<TeamEntity> teamEntities = teamRepository.findAll();
         return teamEntities.stream()
-                .map(teamMapper::toResponseDto)
+                .map(teamMapper::toWithMembersResponseDto)
                 .toList();
     }
 
