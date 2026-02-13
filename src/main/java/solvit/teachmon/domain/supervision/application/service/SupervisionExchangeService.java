@@ -95,11 +95,24 @@ public class SupervisionExchangeService {
 
     @Transactional(readOnly = true)
     public List<SupervisionExchangeResponseDto> getSupervisionExchanges(Long currentUserId) {
-        List<SupervisionExchangeEntity> exchanges = supervisionExchangeRepository.findByRecipientIdOrSenderId(currentUserId, currentUserId);
+        List<SupervisionExchangeEntity> exchanges = supervisionExchangeRepository.findByRecipientIdOrSenderIdAndExchangeTypeNotChecked(currentUserId);
         
         return exchanges.stream()
                 .map(mapper::toResponseDto)
                 .toList();
     }
 
+    @Transactional
+    public void checkSupervisionExchange(Long exchangeSupervisionId, Long currentUserId) {
+        // 교체 요청 조회
+        SupervisionExchangeEntity exchangeEntity = supervisionExchangeRepository.findById(exchangeSupervisionId)
+                .orElseThrow(SupervisionExchangeNotFoundException::new);
+
+        // 수신자 권한 확인 - 현재 사용자가 수신자인지 검증
+        if (!exchangeEntity.getRecipient().getId().equals(currentUserId)) {
+            throw new UnauthorizedSupervisionAccessException("해당 교체 요청의 수신자만 확인할 수 있습니다.");
+        }
+
+        exchangeEntity.check();
+    }
 }
