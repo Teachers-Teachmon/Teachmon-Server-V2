@@ -23,6 +23,7 @@ import solvit.teachmon.global.enums.SchoolPeriod;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
@@ -88,7 +89,7 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
         QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
 
         // 최적화: 상관 서브쿼리를 비상관 서브쿼리로 변경
-        return queryFactory
+        Map<StudentEntity, List<PeriodScheduleDto>> result = queryFactory
                 .from(student)
                 .leftJoin(studentSchedule).on(studentSchedule.student.id.eq(student.id))
                 .leftJoin(schedule).on(
@@ -109,20 +110,22 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                 .transform(
                         groupBy(student).as(
                                 list(
-                                        new CaseBuilder()
-                                                .when(schedule.isNull())
-                                                .then((PeriodScheduleDto) null)
-                                                .otherwise(
-                                                        new QPeriodScheduleDto(
-                                                                studentSchedule.id,
-                                                                studentSchedule.period,
-                                                                schedule.type
-                                                        )
-                                                )
+                                        new QPeriodScheduleDto(
+                                                studentSchedule.id,
+                                                studentSchedule.period,
+                                                schedule.type
+                                        )
                                 )
                         )
                 );
 
+        result.replaceAll((s, list) ->
+                list.stream()
+                        .filter(Objects::nonNull)
+                        .toList()
+        );
+
+        return result;
     }
 
     @Override
