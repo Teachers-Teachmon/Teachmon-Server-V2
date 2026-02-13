@@ -121,7 +121,10 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
 
         result.replaceAll((s, list) ->
                 list.stream()
-                        .filter(Objects::nonNull)
+                        .map(psd -> {
+                            if(psd.type() == null) return null;
+                            return psd;
+                        })
                         .toList()
         );
 
