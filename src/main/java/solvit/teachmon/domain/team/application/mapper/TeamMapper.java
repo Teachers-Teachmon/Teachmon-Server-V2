@@ -5,14 +5,12 @@ import org.mapstruct.Mapping;
 import solvit.teachmon.domain.team.domain.entity.TeamEntity;
 import solvit.teachmon.domain.team.domain.entity.TeamParticipationEntity;
 import solvit.teachmon.domain.team.presentation.dto.response.TeamMemberDto;
-import solvit.teachmon.domain.team.presentation.dto.response.TeamResponseDto;
 import solvit.teachmon.domain.team.presentation.dto.response.TeamWithMembersResponseDto;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface TeamMapper {
-    TeamResponseDto toResponseDto(TeamEntity teamEntity);
     
     @Mapping(target = "members", source = "teamParticipationList")
     TeamWithMembersResponseDto toWithMembersResponseDto(TeamEntity teamEntity);

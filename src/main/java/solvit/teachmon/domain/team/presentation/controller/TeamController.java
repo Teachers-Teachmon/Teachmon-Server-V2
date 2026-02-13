@@ -11,7 +11,6 @@ import solvit.teachmon.domain.team.application.service.TeamService;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamCreateRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamDeleteRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateRequestDto;
-import solvit.teachmon.domain.team.presentation.dto.response.TeamResponseDto;
 import solvit.teachmon.domain.team.presentation.dto.response.TeamWithMembersResponseDto;
 
 import java.util.List;
@@ -24,7 +23,7 @@ public class TeamController {
     private final TeamService teamService;
 
     @GetMapping("/search")
-    public ResponseEntity<List<TeamResponseDto>> searchTeam(@RequestParam @NotNull(message = "검색어는 필수입니다.") @NotBlank(message = "검색어는 비어있을 수 없습니다.") String query) {
+    public ResponseEntity<List<TeamWithMembersResponseDto>> searchTeam(@RequestParam @NotNull(message = "검색어는 필수입니다.") @NotBlank(message = "검색어는 비어있을 수 없습니다.") String query) {
         return ResponseEntity.ok(teamService.searchTeamByQuery(query));
     }
 
