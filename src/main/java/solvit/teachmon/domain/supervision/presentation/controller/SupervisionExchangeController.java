@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import solvit.teachmon.domain.supervision.application.service.SupervisionExchangeService;
 import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionExchangeAcceptRequestDto;
+import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionExchangeCheckRequestDto;
 import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionExchangeRejectRequestDto;
 import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionExchangeRequestDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionExchangeResponseDto;
@@ -53,6 +54,15 @@ public class SupervisionExchangeController {
             @Valid @RequestBody SupervisionExchangeRejectRequestDto requestDto,
             @AuthenticationPrincipal TeachmonUserDetails userDetails) {
         supervisionExchangeService.rejectSupervisionExchange(requestDto, userDetails.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/exchange/check")
+    public ResponseEntity<Void> checkSupervisionExchange(
+            @Valid @RequestBody SupervisionExchangeCheckRequestDto requestDto,
+            @AuthenticationPrincipal TeachmonUserDetails userDetails
+    ) {
+        supervisionExchangeService.checkSupervisionExchange(requestDto.exchangeRequestId(), userDetails.getId());
         return ResponseEntity.noContent().build();
     }
 }

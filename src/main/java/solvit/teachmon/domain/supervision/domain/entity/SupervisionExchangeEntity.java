@@ -66,6 +66,8 @@ public class SupervisionExchangeEntity extends BaseEntity {
         this.state = SupervisionExchangeType.REJECTED;
     }
 
+    public void check() {this.state = SupervisionExchangeType.CHECKED;}
+
     private void validateSender(TeacherEntity sender) {
         if (sender == null) {
             throw new InvalidSupervisionExchangeException("교체 요청자는 필수입니다.");

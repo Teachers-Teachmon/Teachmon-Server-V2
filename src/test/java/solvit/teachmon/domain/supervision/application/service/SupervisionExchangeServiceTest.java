@@ -336,7 +336,7 @@ class SupervisionExchangeServiceTest {
                 .build();
         
         List<SupervisionExchangeEntity> exchanges = List.of(exchangeEntity);
-        given(supervisionExchangeRepository.findByRecipientIdOrSenderId(2L, 2L)).willReturn(exchanges);
+        given(supervisionExchangeRepository.findByRecipientIdOrSenderIdAndExchangeTypeNotChecked(2L)).willReturn(exchanges);
         given(supervisionExchangeResponseMapper.toResponseDto(exchangeEntity)).willReturn(responseDto);
 
         // When
@@ -346,20 +346,117 @@ class SupervisionExchangeServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().reason()).isEqualTo("개인 사유");
         assertThat(result.getFirst().status()).isEqualTo(SupervisionExchangeType.PENDING);
-        verify(supervisionExchangeRepository).findByRecipientIdOrSenderId(2L, 2L);
+        verify(supervisionExchangeRepository).findByRecipientIdOrSenderIdAndExchangeTypeNotChecked(2L);
     }
 
     @Test
     @DisplayName("교체 요청이 없을 때 빈 목록을 반환한다")
     void shouldReturnEmptyListWhenNoExchangeExists() {
         // Given
-        given(supervisionExchangeRepository.findByRecipientIdOrSenderId(2L, 2L)).willReturn(List.of());
+        given(supervisionExchangeRepository.findByRecipientIdOrSenderIdAndExchangeTypeNotChecked(2L)).willReturn(List.of());
 
         // When
         List<SupervisionExchangeResponseDto> result = supervisionExchangeService.getSupervisionExchanges(2L);
 
         // Then
         assertThat(result).isEmpty();
-        verify(supervisionExchangeRepository).findByRecipientIdOrSenderId(2L, 2L);
+        verify(supervisionExchangeRepository).findByRecipientIdOrSenderIdAndExchangeTypeNotChecked(2L);
+    }
+
+    @Test
+    @DisplayName("교체 요청을 성공적으로 확인한다")
+    void shouldCheckSupervisionExchangeSuccessfully() {
+        // Given
+        Long exchangeRequestId = 1L;
+        Long currentUserId = 2L;
+
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionExchangeEntity exchangeEntity = createMockExchange(null, recipientTeacher);
+
+        given(supervisionExchangeRepository.findById(1L)).willReturn(Optional.of(exchangeEntity));
+
+        // When
+        supervisionExchangeService.checkSupervisionExchange(exchangeRequestId, currentUserId);
+
+        // Then
+        verify(supervisionExchangeRepository).findById(1L);
+        verify(exchangeEntity).check();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 교체 요청을 확인 시 예외가 발생한다")
+    void shouldThrowExceptionWhenExchangeRequestNotExistsForCheck() {
+        // Given
+        Long exchangeRequestId = 999L;
+        Long currentUserId = 2L;
+
+        given(supervisionExchangeRepository.findById(999L)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> supervisionExchangeService.checkSupervisionExchange(exchangeRequestId, currentUserId))
+                .isInstanceOf(SupervisionExchangeNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("수신자가 아닌 사용자가 교체 요청 확인 시 예외가 발생한다")
+    void shouldThrowExceptionWhenUnauthorizedUserCheck() {
+        // Given
+        Long exchangeRequestId = 1L;
+        Long unauthorizedUserId = 999L;
+
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionExchangeEntity exchangeEntity = createMockExchange(null, recipientTeacher);
+
+        given(supervisionExchangeRepository.findById(1L)).willReturn(Optional.of(exchangeEntity));
+
+        // When & Then
+        assertThatThrownBy(() -> supervisionExchangeService.checkSupervisionExchange(exchangeRequestId, unauthorizedUserId))
+                .isInstanceOf(UnauthorizedSupervisionAccessException.class)
+                .hasMessage("해당 교체 요청의 수신자만 확인할 수 있습니다.");
+    }
+
+    @Test
+    @DisplayName("CHECKED 타입의 교체 요청은 조회되지 않는다")
+    void shouldNotReturnCheckedExchangeRequests() {
+        // Given
+        TeacherEntity senderTeacher = createMockTeacher(1L, "송혜정");
+        TeacherEntity recipientTeacher = createMockTeacher(2L, "김선생");
+        SupervisionExchangeEntity pendingExchange = createMockExchange(senderTeacher, recipientTeacher);
+        
+        // CHECKED 상태는 쿼리에서 제외되므로 반환되지 않음
+        List<SupervisionExchangeEntity> exchanges = List.of(pendingExchange); // PENDING만 포함
+        
+        SupervisionExchangeResponseDto responseDto = SupervisionExchangeResponseDto.builder()
+                .id(1L)
+                .reason("개인 사유")
+                .status(SupervisionExchangeType.PENDING)
+                .requestor(SupervisionExchangeResponseDto.SupervisionInfo.builder()
+                        .teacher(SupervisionExchangeResponseDto.SupervisionInfo.TeacherInfo.builder()
+                                .id(1L)
+                                .name("송혜정")
+                                .build())
+                        .day(LocalDate.of(2025, 3, 2))
+                        .type("self_study")
+                        .build())
+                .responser(SupervisionExchangeResponseDto.SupervisionInfo.builder()
+                        .teacher(SupervisionExchangeResponseDto.SupervisionInfo.TeacherInfo.builder()
+                                .id(2L)
+                                .name("김선생")
+                                .build())
+                        .day(LocalDate.of(2025, 3, 2))
+                        .type("self_study")
+                        .build())
+                .build();
+        
+        given(supervisionExchangeRepository.findByRecipientIdOrSenderIdAndExchangeTypeNotChecked(2L)).willReturn(exchanges);
+        given(supervisionExchangeResponseMapper.toResponseDto(pendingExchange)).willReturn(responseDto);
+
+        // When
+        List<SupervisionExchangeResponseDto> result = supervisionExchangeService.getSupervisionExchanges(2L);
+
+        // Then: CHECKED 타입은 제외되고 PENDING만 반환된다
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().status()).isEqualTo(SupervisionExchangeType.PENDING);
+        verify(supervisionExchangeRepository).findByRecipientIdOrSenderIdAndExchangeTypeNotChecked(2L);
     }
 }
