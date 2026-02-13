@@ -12,7 +12,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleSettingService;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,7 +44,6 @@ class StudentScheduleSettingControllerTest {
     void shouldSettingWeeklyStudentSchedule() throws Exception {
         // Given: 기준 날짜가 주어졌을 때
         LocalDate baseDay = LocalDate.of(2024, 1, 15); // 월요일
-        LocalDate expectedMonday = baseDay.with(DayOfWeek.MONDAY);
 
         // When: POST 요청을 보내면
         mockMvc.perform(post("/student-schedule/setting/weekly")
@@ -59,16 +57,15 @@ class StudentScheduleSettingControllerTest {
         verify(studentScheduleSettingService, times(1)).createNewStudentSchedule(captor.capture());
         verify(studentScheduleSettingService, times(1)).settingAllTypeSchedule(captor.capture());
 
-        // 두 메서드 모두 월요일로 변환된 날짜를 받아야 한다
-        assertThat(captor.getAllValues()).allMatch(date -> date.equals(expectedMonday));
+        // 두 메서드 모두 전달받은 baseDay를 그대로 받아야 한다
+        assertThat(captor.getAllValues()).allMatch(date -> date.equals(baseDay));
     }
 
     @Test
-    @DisplayName("POST /student-schedule/setting/weekly - 월요일이 아닌 날짜도 월요일로 변환되어 처리된다")
-    void shouldConvertToMondayWhenNotMonday() throws Exception {
+    @DisplayName("POST /student-schedule/setting/weekly - 어떤 요일이든 그대로 전달되어 처리된다")
+    void shouldPassDateAsIs() throws Exception {
         // Given: 수요일이 주어졌을 때
         LocalDate wednesday = LocalDate.of(2024, 1, 17); // 수요일
-        LocalDate expectedMonday = LocalDate.of(2024, 1, 15); // 해당 주의 월요일
 
         // When: POST 요청을 보내면
         mockMvc.perform(post("/student-schedule/setting/weekly")
@@ -76,21 +73,20 @@ class StudentScheduleSettingControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        // Then: 월요일로 변환된 날짜로 서비스 메서드가 호출되어야 한다
+        // Then: 전달받은 날짜 그대로 서비스 메서드가 호출되어야 한다
         ArgumentCaptor<LocalDate> captor = ArgumentCaptor.forClass(LocalDate.class);
 
         verify(studentScheduleSettingService, times(1)).createNewStudentSchedule(captor.capture());
         verify(studentScheduleSettingService, times(1)).settingAllTypeSchedule(captor.capture());
 
-        assertThat(captor.getAllValues()).allMatch(date -> date.equals(expectedMonday));
+        assertThat(captor.getAllValues()).allMatch(date -> date.equals(wednesday));
     }
 
     @Test
-    @DisplayName("POST /student-schedule/setting/weekly - 일요일도 그 주의 월요일로 변환되어 처리된다")
-    void shouldConvertSundayToMonday() throws Exception {
+    @DisplayName("POST /student-schedule/setting/weekly - 일요일도 그대로 전달되어 처리된다")
+    void shouldPassSundayAsIs() throws Exception {
         // Given: 일요일이 주어졌을 때
         LocalDate sunday = LocalDate.of(2024, 1, 21); // 일요일
-        LocalDate expectedMonday = LocalDate.of(2024, 1, 15); // 해당 주의 월요일
 
         // When: POST 요청을 보내면
         mockMvc.perform(post("/student-schedule/setting/weekly")
@@ -98,13 +94,13 @@ class StudentScheduleSettingControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        // Then: 월요일로 변환된 날짜로 서비스 메서드가 호출되어야 한다
+        // Then: 전달받은 날짜 그대로 서비스 메서드가 호출되어야 한다
         ArgumentCaptor<LocalDate> captor = ArgumentCaptor.forClass(LocalDate.class);
 
         verify(studentScheduleSettingService, times(1)).createNewStudentSchedule(captor.capture());
         verify(studentScheduleSettingService, times(1)).settingAllTypeSchedule(captor.capture());
 
-        assertThat(captor.getAllValues()).allMatch(date -> date.equals(expectedMonday));
+        assertThat(captor.getAllValues()).allMatch(date -> date.equals(sunday));
     }
 
     @Test
@@ -157,7 +153,6 @@ class StudentScheduleSettingControllerTest {
     void shouldWorkWithDifferentYears() throws Exception {
         // Given: 2025년 날짜가 주어졌을 때
         LocalDate baseDay = LocalDate.of(2025, 3, 19); // 2025년 3월 19일 (수요일)
-        LocalDate expectedMonday = LocalDate.of(2025, 3, 17); // 2025년 3월 17일 (월요일)
 
         // When: POST 요청을 보내면
         mockMvc.perform(post("/student-schedule/setting/weekly")
@@ -165,12 +160,12 @@ class StudentScheduleSettingControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        // Then: 올바른 월요일로 변환되어 서비스 메서드가 호출되어야 한다
+        // Then: 전달받은 날짜 그대로 서비스 메서드가 호출되어야 한다
         ArgumentCaptor<LocalDate> captor = ArgumentCaptor.forClass(LocalDate.class);
 
         verify(studentScheduleSettingService).createNewStudentSchedule(captor.capture());
         verify(studentScheduleSettingService).settingAllTypeSchedule(any(LocalDate.class));
 
-        assertThat(captor.getValue()).isEqualTo(expectedMonday);
+        assertThat(captor.getValue()).isEqualTo(baseDay);
     }
 }

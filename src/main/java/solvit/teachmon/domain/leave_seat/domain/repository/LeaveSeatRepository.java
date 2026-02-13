@@ -31,4 +31,10 @@ public interface LeaveSeatRepository extends JpaRepository<LeaveSeatEntity, Long
 
     @Query("SELECT CASE WHEN COUNT(l) > 0 THEN false ELSE true END FROM LeaveSeatEntity l WHERE l.place.id = :placeId AND l.day = :day AND l.period = :period")
     Boolean isPlaceAvailableForLeaveSeat(@Param("placeId") Long placeId, @Param("day") LocalDate day, @Param("period") SchoolPeriod period);
+
+    @Query("SELECT DISTINCT l FROM LeaveSeatEntity l " +
+           "JOIN FETCH l.leaveSeatStudents ls " +
+           "JOIN FETCH ls.student " +
+           "WHERE l.day >= :baseDate")
+    List<LeaveSeatEntity> findAllFromDate(@Param("baseDate") LocalDate baseDate);
 }
