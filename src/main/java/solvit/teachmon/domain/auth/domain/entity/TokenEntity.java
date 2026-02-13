@@ -41,8 +41,10 @@ public class TokenEntity {
     }
 
     private void validateExpiration(Long expiration) {
-        if(expiration == null || expiration < 0)
-            throw new InvalidTokenInfoException("expiration 값은 0 이상이어야 합니다.");
+        if(expiration == null)
+            throw new InvalidTokenInfoException("expiration 값은 null일 수 없습니다.");
+        if(expiration < 0) 
+            throw new InvalidTokenInfoException("expiration은 0 이상이어야 합니다.");
     }
 
 }
