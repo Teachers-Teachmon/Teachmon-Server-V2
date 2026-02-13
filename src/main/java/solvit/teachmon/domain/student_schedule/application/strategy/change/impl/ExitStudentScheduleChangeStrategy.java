@@ -31,7 +31,8 @@ public class ExitStudentScheduleChangeStrategy implements StudentScheduleChangeS
     @Override
     public void change(StudentScheduleEntity studentSchedule, TeacherEntity teacher) {
         // 기존 이탈 스케줄 삭제
-        scheduleRepository.deleteByStudentScheduleIdAndType(studentSchedule.getId(), ScheduleType.EXIT);
+        exitRepository.findByDayAndPeriodAndStudent(studentSchedule.getDay(), studentSchedule.getPeriod(), studentSchedule.getStudent())
+                .ifPresent(exitRepository::delete);
 
         // 새로운 스케줄 엔티티 생성
         Integer lastStackOrder = scheduleRepository.findLastStackOrderByStudentScheduleId(studentSchedule.getId());

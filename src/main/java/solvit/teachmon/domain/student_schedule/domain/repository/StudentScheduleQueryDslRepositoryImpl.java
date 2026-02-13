@@ -22,6 +22,7 @@ import solvit.teachmon.global.enums.SchoolPeriod;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
@@ -103,8 +104,7 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                 )
                 .where(
                         queryEq(query),
-                        dayEq(day),
-                        scheduleTypeIsNotNull()
+                        dayEq(day)
                 )
                 .transform(
                         groupBy(student).as(
@@ -117,12 +117,6 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                                 )
                         )
                 );
-
-    }
-
-    private BooleanExpression scheduleTypeIsNotNull() {
-        QScheduleEntity schedule = QScheduleEntity.scheduleEntity;
-        return schedule.type.isNotNull();
     }
 
     @Override

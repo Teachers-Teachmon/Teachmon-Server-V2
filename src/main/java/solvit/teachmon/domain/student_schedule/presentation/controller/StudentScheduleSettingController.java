@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleSettingService;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 
 @Validated
@@ -24,7 +23,6 @@ public class StudentScheduleSettingController {
     public ResponseEntity<String> settingWeeklyStudentSchedule(
             @RequestParam("base_day") @NotNull(message = "주간 학생 스케줄 설정시 base_day(기준 날)는 필수입니다.") LocalDate baseDay
     ) {
-        baseDay = baseDay.with(DayOfWeek.MONDAY);
         studentScheduleSettingService.createNewStudentSchedule(baseDay);
         studentScheduleSettingService.settingAllTypeSchedule(baseDay);
 

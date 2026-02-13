@@ -30,9 +30,12 @@ public class StudentScheduleSettingStrategyComposite {
         return List.of(
                 getStrategy(ScheduleType.SELF_STUDY),
                 getStrategy(ScheduleType.AFTER_SCHOOL),
+                getStrategy(ScheduleType.FIXED_LEAVE_SEAT),
                 getStrategy(ScheduleType.LEAVE_SEAT),
                 getStrategy(ScheduleType.ADDITIONAL_SELF_STUDY),
-                getStrategy(ScheduleType.AFTER_SCHOOL_REINFORCEMENT)
+                getStrategy(ScheduleType.AFTER_SCHOOL_REINFORCEMENT),
+                getStrategy(ScheduleType.EXIT),
+                getStrategy(ScheduleType.AWAY)
         );
     }
 }
