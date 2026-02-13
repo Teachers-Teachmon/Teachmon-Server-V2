@@ -40,7 +40,7 @@ public class AfterSchoolController {
     @GetMapping
     public ResponseEntity<List<AfterSchoolResponseDto>> searchAfterSchools(
             @RequestParam @NotNull(message = "학년은 필수입니다.") Integer grade,
-            @RequestParam(required = false) Integer branch,
+            @RequestParam(name = "branch") @NotNull(message = "분기는 필수입니다.") Integer branch,
             @RequestParam(name = "week_day") @NotNull(message = "요일은 필수입니다.") WeekDay weekDay,
             @RequestParam(name = "start_period") @NotNull(message = "시작 교시는 필수입니다.") Integer startPeriod,
             @RequestParam(name = "end_period") @NotNull(message = "종료 교시는 필수입니다.") Integer endPeriod) {
