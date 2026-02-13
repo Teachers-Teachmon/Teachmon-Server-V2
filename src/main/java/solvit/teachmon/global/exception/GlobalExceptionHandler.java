@@ -12,6 +12,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import solvit.teachmon.global.infra.discord.DiscordAlertService;
 
 import java.util.Objects;
@@ -69,9 +70,17 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNotFound() {
+        ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.NOT_FOUND.value(), "요청한 리소스를 찾을 수 없습니다.");
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND.value())
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoHandlerFoundException() {
-        ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.NOT_FOUND.value(), "해당 API는 존재하지 않습니다.");
+        ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.NOT_FOUND.value(), "요청한 경로를 찾을 수 없습니다.");
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND.value())
                 .body(errorResponse);
