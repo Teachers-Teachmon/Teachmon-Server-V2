@@ -36,6 +36,7 @@ public interface StudentScheduleMapper {
 
         // 기존 states 맵 생성
         Map<SchoolPeriod, PeriodScheduleResponse> scheduleTypes = scheduleDtos.stream()
+                .filter(dto -> dto.type() != null)
                 .filter(dto -> dto.period() != null)
                 .collect(Collectors.toMap(
                         PeriodScheduleDto::period,

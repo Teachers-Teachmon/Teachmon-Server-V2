@@ -1,7 +1,6 @@
 package solvit.teachmon.domain.student_schedule.domain.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
@@ -89,7 +88,7 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
         QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
 
         // 최적화: 상관 서브쿼리를 비상관 서브쿼리로 변경
-        Map<StudentEntity, List<PeriodScheduleDto>> result = queryFactory
+        return queryFactory
                 .from(student)
                 .leftJoin(studentSchedule).on(studentSchedule.student.id.eq(student.id))
                 .leftJoin(schedule).on(
@@ -118,14 +117,6 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                                 )
                         )
                 );
-
-        result.replaceAll((s, list) ->
-                list.stream()
-                        .filter(Objects::nonNull)
-                        .toList()
-        );
-
-        return result;
     }
 
     @Override
