@@ -30,7 +30,8 @@ public interface LeaveSeatMapper {
     @Mapping(target = "day", source = "leaveSeat.day")
     @Mapping(target = "teacher", source = "leaveSeat.teacher.name")
     @Mapping(target = "period", source = "leaveSeat.period")
-    @Mapping(target = "place", source = "leaveSeat.place.id")
+    @Mapping(target = "place.id", source = "leaveSeat.place.id")
+    @Mapping(target = "place.name", source = "leaveSeat.place.name")
     @Mapping(target = "cause", source = "leaveSeat.cause")
     @Mapping(target = "students", expression = "java(mapStudentInfosWithScheduleTypes(students, studentLastScheduleTypes))")
     LeaveSeatDetailResponse toDetailResponse(
@@ -56,6 +57,7 @@ public interface LeaveSeatMapper {
                     String state = scheduleType.name();
 
                     return StudentInfoResponse.builder()
+                            .id(student.getId())
                             .number(student.calculateStudentNumber())
                             .name(student.getName())
                             .state(state)

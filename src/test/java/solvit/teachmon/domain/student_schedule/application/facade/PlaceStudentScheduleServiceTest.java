@@ -103,7 +103,7 @@ class PlaceStudentScheduleServiceTest {
         FloorStateResponse floor3Response = FloorStateResponse.builder()
                 .floor(3).count(6L).build();
 
-        given(studentScheduleRepository.findAllByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList()))
+        given(studentScheduleRepository.findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList()))
                 .willReturn(placeFillScheduleMap);
         given(selfStudyScheduleRepository.getSelfStudyPlaceCount(List.of(selfStudySchedule)))
                 .willReturn(selfStudyCountMap);
@@ -125,7 +125,7 @@ class PlaceStudentScheduleServiceTest {
                 .containsExactlyInAnyOrder(1, 2, 3);
 
         verify(studentScheduleRepository, times(1))
-                .findAllByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList());
+                .findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList());
         verify(selfStudyScheduleRepository, times(1))
                 .getSelfStudyPlaceCount(List.of(selfStudySchedule));
         verify(additionalSelfStudyScheduleRepository, times(1))
@@ -152,7 +152,7 @@ class PlaceStudentScheduleServiceTest {
                 ScheduleType.AFTER_SCHOOL, List.of()
         );
 
-        given(studentScheduleRepository.findAllByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList()))
+        given(studentScheduleRepository.findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList()))
                 .willReturn(emptyScheduleMap);
         given(selfStudyScheduleRepository.getSelfStudyPlaceCount(List.of())).willReturn(Map.of());
         given(additionalSelfStudyScheduleRepository.getAdditionalSelfStudyPlaceCount(List.of())).willReturn(Map.of());
@@ -167,7 +167,7 @@ class PlaceStudentScheduleServiceTest {
         assertThat(result).isEmpty();
 
         verify(studentScheduleRepository, times(1))
-                .findAllByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList());
+                .findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList());
     }
 
     @Test
@@ -199,7 +199,7 @@ class PlaceStudentScheduleServiceTest {
         PlaceStateResponse placeState2 = PlaceStateResponse.builder()
                 .placeId(2L).placeName("2층 자습실2").state(ScheduleType.ADDITIONAL_SELF_STUDY).build();
 
-        given(studentScheduleRepository.findAllByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList()))
+        given(studentScheduleRepository.findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList()))
                 .willReturn(placeFillScheduleMap);
         given(selfStudyScheduleRepository.getPlaceScheduleByFloor(List.of(selfStudySchedule), floor))
                 .willReturn(List.of(placeSchedule1));
@@ -221,7 +221,7 @@ class PlaceStudentScheduleServiceTest {
                 .containsExactlyInAnyOrder(ScheduleType.SELF_STUDY, ScheduleType.ADDITIONAL_SELF_STUDY);
 
         verify(studentScheduleRepository, times(1))
-                .findAllByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList());
+                .findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList());
         verify(selfStudyScheduleRepository, times(1))
                 .getPlaceScheduleByFloor(List.of(selfStudySchedule), floor);
         verify(additionalSelfStudyScheduleRepository, times(1))
@@ -245,7 +245,7 @@ class PlaceStudentScheduleServiceTest {
                 ScheduleType.AFTER_SCHOOL, List.of()
         );
 
-        given(studentScheduleRepository.findAllByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList()))
+        given(studentScheduleRepository.findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList()))
                 .willReturn(emptyScheduleMap);
         given(selfStudyScheduleRepository.getPlaceScheduleByFloor(List.of(), floor)).willReturn(List.of());
         given(additionalSelfStudyScheduleRepository.getPlaceScheduleByFloor(List.of(), floor)).willReturn(List.of());
@@ -260,7 +260,7 @@ class PlaceStudentScheduleServiceTest {
         assertThat(result).isEmpty();
 
         verify(studentScheduleRepository, times(1))
-                .findAllByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList());
+                .findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(eq(day), eq(period), anyList());
     }
 
     @Test

@@ -19,4 +19,9 @@ public record StudentScheduleDto(
         Long scheduleId,
         ScheduleType state
 ) {
+    public Integer calculateStudentNumber() {
+        return grade * 1000
+                + classNumber * 100
+                + number;
+    }
 }
