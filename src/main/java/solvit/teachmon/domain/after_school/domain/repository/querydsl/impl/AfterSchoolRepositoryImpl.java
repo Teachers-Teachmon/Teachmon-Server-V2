@@ -214,6 +214,7 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
     private AfterSchoolResponseDto convertToAfterSchoolResponseDto(AfterSchoolEntity entity, List<AfterSchoolStudentEntity> studentEntities) {
         List<StudentInfo> students = studentEntities.stream()
                 .map(ast -> new StudentInfo(
+                        ast.getStudent().getId(),
                         ast.getStudent().getGrade() + ast.getStudent().getClassNumber() + ast.getStudent().getNumber(),
                         ast.getStudent().getName()
                 ))
