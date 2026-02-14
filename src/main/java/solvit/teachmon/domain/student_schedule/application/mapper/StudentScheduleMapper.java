@@ -25,6 +25,7 @@ public interface StudentScheduleMapper {
             List<StudentScheduleDto> studentSchedulesDtos
     );
 
+    @Mapping(target = "number", expression = "java(dto.calculateStudentNumber())")
     StudentScheduleResponse toStudentScheduleResponse(StudentScheduleDto dto);
 
     List<StudentScheduleResponse> toStudentScheduleResponses(

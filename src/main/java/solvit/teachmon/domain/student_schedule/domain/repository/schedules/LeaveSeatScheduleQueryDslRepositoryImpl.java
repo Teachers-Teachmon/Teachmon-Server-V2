@@ -72,6 +72,7 @@ public class LeaveSeatScheduleQueryDslRepositoryImpl implements LeaveSeatSchedul
         QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
         QStudentEntity student = QStudentEntity.studentEntity;
         QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
+        QScheduleEntity scheduleMax = new QScheduleEntity("scheduleMax");
 
         return queryFactory
                 .select(new QStudentScheduleDto(
@@ -83,27 +84,40 @@ public class LeaveSeatScheduleQueryDslRepositoryImpl implements LeaveSeatSchedul
                         studentSchedule.day,
                         studentSchedule.period,
                         studentSchedule.id,
-                        schedule.type
+                        scheduleMax.type
                 ))
                 .from(leaveSeat)
                 .join(leaveSeatSchedule).on(leaveSeatSchedule.leaveSeat.id.eq(leaveSeat.id))
-                .join(schedule).on(
-                        leaveSeatSchedule.schedule.id.eq(schedule.id)
-                                // stack_order 가 가장 높은 스케줄 가져오기
-                                // 최적화: 상관 서브쿼리를 비상관 서브쿼리로 변경
-                                .and(Expressions.list(schedule.studentSchedule.id, schedule.stackOrder).in(
+                .join(schedule).on(leaveSeatSchedule.schedule.id.eq(schedule.id))
+                .join(schedule.studentSchedule, studentSchedule)
+                .join(studentSchedule.student, student)
+                // 최신 스케줄 조인 (EXIT/AWAY 정보 표시용)
+                .join(scheduleMax).on(
+                        scheduleMax.studentSchedule.id.eq(studentSchedule.id)
+                                .and(Expressions.list(scheduleMax.studentSchedule.id, scheduleMax.stackOrder).in(
                                         JPAExpressions
                                                 .select(scheduleSub.studentSchedule.id, scheduleSub.stackOrder.max())
                                                 .from(scheduleSub)
                                                 .groupBy(scheduleSub.studentSchedule.id)
                                 ))
                 )
-                .join(schedule.studentSchedule, studentSchedule)
-                .join(studentSchedule.student, student)
                 .where(
                         leaveSeat.place.id.eq(placeId),
                         studentSchedule.day.eq(day),
-                        studentSchedule.period.eq(period)
+                        studentSchedule.period.eq(period),
+                        // 이석은 실제 장소 이동이므로, 최신 스케줄이 이석이거나
+                        // 최신이 EXIT/AWAY인데 그 아래가 이석인 경우 조회
+                        schedule.id.eq(scheduleMax.id)
+                                .or(
+                                        scheduleMax.type.in(ScheduleType.EXIT, ScheduleType.AWAY)
+                                                .and(Expressions.list(schedule.studentSchedule.id, schedule.stackOrder).in(
+                                                        JPAExpressions
+                                                                .select(scheduleSub.studentSchedule.id, scheduleSub.stackOrder.max())
+                                                                .from(scheduleSub)
+                                                                .where(scheduleSub.type.notIn(ScheduleType.EXIT, ScheduleType.AWAY))
+                                                                .groupBy(scheduleSub.studentSchedule.id)
+                                                ))
+                                )
                 )
                 .fetch();
     }

@@ -71,6 +71,8 @@ public class AdditionalSelfStudyScheduleQueryDslRepositoryImpl implements Additi
         QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
         QStudentEntity student = QStudentEntity.studentEntity;
         QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
+        QScheduleEntity scheduleMax = new QScheduleEntity("scheduleMax");
+        QScheduleEntity schedulePlaceBased = new QScheduleEntity("schedulePlaceBased");
 
         return queryFactory
                 .select(new QStudentScheduleDto(
@@ -82,26 +84,41 @@ public class AdditionalSelfStudyScheduleQueryDslRepositoryImpl implements Additi
                         studentSchedule.day,
                         studentSchedule.period,
                         studentSchedule.id,
-                        schedule.type
+                        scheduleMax.type
                 ))
                 .from(additionalSelfStudySchedule)
-                .join(schedule).on(
-                        additionalSelfStudySchedule.schedule.id.eq(schedule.id)
-                                // stack_order 가 가장 높은 스케줄 가져오기
-                                // 최적화: 상관 서브쿼리를 비상관 서브쿼리로 변경
-                                .and(Expressions.list(schedule.studentSchedule.id, schedule.stackOrder).in(
+                .join(schedule).on(additionalSelfStudySchedule.schedule.id.eq(schedule.id))
+                .join(schedule.studentSchedule, studentSchedule)
+                .join(studentSchedule.student, student)
+                // 최신 스케줄 조인 (EXIT/AWAY 정보 표시용)
+                .join(scheduleMax).on(
+                        scheduleMax.studentSchedule.id.eq(studentSchedule.id)
+                                .and(Expressions.list(scheduleMax.studentSchedule.id, scheduleMax.stackOrder).in(
                                         JPAExpressions
                                                 .select(scheduleSub.studentSchedule.id, scheduleSub.stackOrder.max())
                                                 .from(scheduleSub)
                                                 .groupBy(scheduleSub.studentSchedule.id)
                                 ))
                 )
-                .join(schedule.studentSchedule, studentSchedule)
-                .join(studentSchedule.student, student)
                 .where(
                         additionalSelfStudySchedule.place.id.eq(placeId),
                         studentSchedule.day.eq(day),
-                        studentSchedule.period.eq(period)
+                        studentSchedule.period.eq(period),
+                        // 케이스 1: 최신 스케줄이 추가 자습인 경우
+                        schedule.id.eq(scheduleMax.id)
+                                // 케이스 2: 최신 스케줄이 EXIT/AWAY이고, 현재 스케줄이 EXIT/AWAY를 제외한 가장 최근 스케줄인 경우
+                                .or(
+                                        scheduleMax.type.in(ScheduleType.EXIT, ScheduleType.AWAY)
+                                                .and(schedule.stackOrder.eq(
+                                                        JPAExpressions
+                                                                .select(schedulePlaceBased.stackOrder.max())
+                                                                .from(schedulePlaceBased)
+                                                                .where(
+                                                                        schedulePlaceBased.studentSchedule.id.eq(studentSchedule.id),
+                                                                        schedulePlaceBased.type.notIn(ScheduleType.EXIT, ScheduleType.AWAY)
+                                                                )
+                                                ))
+                                )
                 )
                 .fetch();
     }
