@@ -3,6 +3,7 @@ package solvit.teachmon.global.configuration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -57,6 +58,18 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(EXCLUDED_PATHS).permitAll()
+
+                        .requestMatchers("/student-schedule/setting/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/student-schedule/**").hasAnyRole("ADMIN", "TEACHER", "VIEWER")
+                        .requestMatchers("/student-schedule/**").hasAnyRole("ADMIN", "TEACHER")
+
+                        .requestMatchers("/leaveseat/static/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/leaveseat/**").hasAnyRole("ADMIN", "TEACHER", "VIEWER")
+                        .requestMatchers("/leaveseat/**").hasAnyRole("ADMIN", "TEACHER")
+
+                        .requestMatchers("/self-study/**", "/teacher/**", "/student/**").hasRole("ADMIN")
+
+                        // 6. 나머지는 인증만 필요
                         .anyRequest().authenticated()
                 )
                 .sessionManagement((session) -> session
