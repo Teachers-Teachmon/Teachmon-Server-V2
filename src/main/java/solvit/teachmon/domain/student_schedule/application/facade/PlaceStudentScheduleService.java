@@ -39,6 +39,7 @@ public class PlaceStudentScheduleService {
     private final PlaceRepository placeRepository;
     private final PlaceStudentScheduleMapper placeStudentScheduleMapper;
     private final StudentScheduleMapper studentScheduleMapper;
+    // 장소 사용 스케줄
     private final List<ScheduleType> placeScheduleType = List.of(
             ScheduleType.SELF_STUDY,
             ScheduleType.ADDITIONAL_SELF_STUDY,
@@ -48,8 +49,8 @@ public class PlaceStudentScheduleService {
 
     @Transactional(readOnly = true)
     public List<FloorStateResponse> getAllFloorsPlaceCount(LocalDate day, SchoolPeriod period) {
-        // 해당 시간의 장소를 사용하고 있는 스케줄 조회
-        Map<ScheduleType, List<ScheduleEntity>> placeFillScheduleMap = studentScheduleRepository.findAllByDayAndPeriodAndTypeIn(day, period, placeScheduleType);
+        // 해당 시간의 장소를 사용하고 있는 스케줄 조회 (EXIT/AWAY 처리 포함)
+        Map<ScheduleType, List<ScheduleEntity>> placeFillScheduleMap = studentScheduleRepository.findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(day, period, placeScheduleType);
         // 방어: repository가 null을 반환하는 경우 빈 맵으로 대체
         if (placeFillScheduleMap == null) placeFillScheduleMap = Map.of();
 
@@ -86,8 +87,8 @@ public class PlaceStudentScheduleService {
 
     @Transactional(readOnly = true)
     public List<PlaceStateResponse> getPlaceStatesByFloor(Integer floor, LocalDate day, SchoolPeriod period) {
-        // 해당 시간의 장소를 사용하고 있는 스케줄 조회
-        Map<ScheduleType, List<ScheduleEntity>> placeFillScheduleMap = studentScheduleRepository.findAllByDayAndPeriodAndTypeIn(day, period, placeScheduleType);
+        // 해당 시간의 장소를 사용하고 있는 스케줄 조회 (EXIT/AWAY 처리 포함)
+        Map<ScheduleType, List<ScheduleEntity>> placeFillScheduleMap = studentScheduleRepository.findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(day, period, placeScheduleType);
         // 방어: repository가 null을 반환하는 경우 빈 맵으로 대체
         if (placeFillScheduleMap == null) placeFillScheduleMap = Map.of();
 

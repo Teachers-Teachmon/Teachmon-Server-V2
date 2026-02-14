@@ -22,7 +22,7 @@ import solvit.teachmon.global.enums.SchoolPeriod;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
@@ -178,6 +178,73 @@ public class StudentScheduleQueryDslRepositoryImpl implements StudentScheduleQue
                 .transform(
                         groupBy(student.id).as(schedule.type)
                 );
+    }
+
+    @Override
+    public Map<ScheduleType, List<ScheduleEntity>> findPlaceBasedSchedulesByDayAndPeriodAndTypeIn(LocalDate day, SchoolPeriod period, List<ScheduleType> types) {
+        QScheduleEntity schedule = QScheduleEntity.scheduleEntity;
+        QStudentScheduleEntity studentSchedule = QStudentScheduleEntity.studentScheduleEntity;
+        QScheduleEntity scheduleSub = new QScheduleEntity("scheduleSub");
+        QScheduleEntity scheduleMax = new QScheduleEntity("scheduleMax");
+        QScheduleEntity schedulePlaceBased = new QScheduleEntity("schedulePlaceBased");
+
+        // 장소 기반 스케줄 조회 (EXIT/AWAY 특별 처리)
+        List<ScheduleEntity> placeBasedSchedules = queryFactory
+                .select(schedule)
+                .from(studentSchedule)
+                .join(schedule).on(
+                        studentSchedule.id.eq(schedule.studentSchedule.id)
+                                .and(
+                                        // 케이스 1: 최신 스케줄이 placeScheduleType에 포함되는 경우
+                                        schedule.type.in(types)
+                                                .and(Expressions.list(schedule.studentSchedule.id, schedule.stackOrder).in(
+                                                        JPAExpressions
+                                                                .select(scheduleSub.studentSchedule.id, scheduleSub.stackOrder.max())
+                                                                .from(scheduleSub)
+                                                                .groupBy(scheduleSub.studentSchedule.id)
+                                                ))
+                                        // 케이스 2: 최신 스케줄이 EXIT/AWAY이고,
+                                        //          현재 스케줄이 placeScheduleType에 포함되며,
+                                        //          EXIT/AWAY가 아닌 스케줄 중 가장 최근 스케줄
+                                        .or(
+                                                schedule.type.in(types)
+                                                        .and(schedule.type.notIn(ScheduleType.EXIT, ScheduleType.AWAY))
+                                                        .and(schedule.stackOrder.eq(
+                                                                JPAExpressions
+                                                                        .select(schedulePlaceBased.stackOrder.max())
+                                                                        .from(schedulePlaceBased)
+                                                                        .where(
+                                                                                schedulePlaceBased.studentSchedule.id.eq(studentSchedule.id),
+                                                                                schedulePlaceBased.type.notIn(ScheduleType.EXIT, ScheduleType.AWAY)
+                                                                        )
+                                                        ))
+                                                        .and(JPAExpressions
+                                                                .selectOne()
+                                                                .from(scheduleMax)
+                                                                .where(
+                                                                        scheduleMax.studentSchedule.id.eq(studentSchedule.id),
+                                                                        scheduleMax.stackOrder.eq(
+                                                                                JPAExpressions
+                                                                                        .select(scheduleSub.stackOrder.max())
+                                                                                        .from(scheduleSub)
+                                                                                        .where(scheduleSub.studentSchedule.id.eq(studentSchedule.id))
+                                                                        ),
+                                                                        scheduleMax.type.in(ScheduleType.EXIT, ScheduleType.AWAY)
+                                                                )
+                                                                .exists()
+                                                        )
+                                        )
+                                )
+                )
+                .where(
+                        studentSchedule.day.eq(day),
+                        studentSchedule.period.eq(period)
+                )
+                .fetch();
+
+        // ScheduleType별로 그룹화
+        return placeBasedSchedules.stream()
+                .collect(Collectors.groupingBy(ScheduleEntity::getType));
     }
 
     private BooleanExpression gradeEq(Integer grade) {
