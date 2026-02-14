@@ -18,7 +18,6 @@ import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchool
 import solvit.teachmon.domain.after_school.presentation.dto.response.QAfterSchoolSearchResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.StudentInfo;
 import solvit.teachmon.domain.branch.domain.entity.QBranchEntity;
-import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.entity.QPlaceEntity;
 import solvit.teachmon.domain.user.domain.entity.QTeacherEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
@@ -52,13 +51,6 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
                         .where(afterSchool.id.eq(afterSchoolId))
                         .fetchOne()
         );
-    }
-
-    @Override
-    public List<PlaceEntity> findPlacesInBulk(List<Long> placeIds) {
-        return queryFactory.selectFrom(place)
-                .where(place.id.in(placeIds))
-                .fetch();
     }
 
     @Override
@@ -222,7 +214,8 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
     private AfterSchoolResponseDto convertToAfterSchoolResponseDto(AfterSchoolEntity entity, List<AfterSchoolStudentEntity> studentEntities) {
         List<StudentInfo> students = studentEntities.stream()
                 .map(ast -> new StudentInfo(
-                        ast.getStudent().getNumber(),
+                        ast.getStudent().getId(),
+                        ast.getStudent().getGrade() + ast.getStudent().getClassNumber() + ast.getStudent().getNumber(),
                         ast.getStudent().getName()
                 ))
                 .toList();

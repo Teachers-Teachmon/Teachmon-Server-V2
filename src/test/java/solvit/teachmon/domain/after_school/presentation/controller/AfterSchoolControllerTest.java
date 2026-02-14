@@ -20,7 +20,6 @@ import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchool
 import solvit.teachmon.global.enums.WeekDay;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.security.user.TeachmonUserDetails;
-import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 
 import java.util.List;
 
@@ -40,9 +39,6 @@ class AfterSchoolControllerTest {
     
     @Mock
     private TeachmonUserDetails teachmonUserDetails;
-    
-    @Mock
-    private TeacherEntity teacherEntity;
 
     @Test
     @DisplayName("방과후 생성 시 204 상태코드를 반환한다")
@@ -137,22 +133,9 @@ class AfterSchoolControllerTest {
         WeekDay weekDay = WeekDay.TUE;
         Integer startPeriod = 8;
         Integer endPeriod = 9;
-        
-        List<StudentInfo> students = List.of(
-                new StudentInfo(2203, "김동욱"),
-                new StudentInfo(2202, "권민재")
-        );
-        
-        AfterSchoolResponseDto responseDto = new AfterSchoolResponseDto(
-                1L,
-                "화",
-                "8~9교시",
-                "파이썬을 이용한 문제해결",
-                new AfterSchoolResponseDto.TeacherInfo(1L, "곽상미"),
-                new AfterSchoolResponseDto.PlaceInfo(1L, "객체지향 프로그래밍실"),
-                students
-        );
-        
+
+        AfterSchoolResponseDto responseDto = getAfterSchoolResponseDto();
+
         given(afterSchoolService.searchAfterSchools(any(AfterSchoolSearchRequestDto.class)))
                 .willReturn(List.of(responseDto));
 
@@ -161,10 +144,27 @@ class AfterSchoolControllerTest {
         );
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).hasSize(1);
-        assertThat(response.getBody().get(0).id()).isEqualTo(1L);
-        assertThat(response.getBody().get(0).name()).isEqualTo("파이썬을 이용한 문제해결");
+        assertThat(response.getBody().getFirst().id()).isEqualTo(1L);
+        assertThat(response.getBody().getFirst().name()).isEqualTo("파이썬을 이용한 문제해결");
         
         verify(afterSchoolService).searchAfterSchools(any(AfterSchoolSearchRequestDto.class));
+    }
+
+    private static AfterSchoolResponseDto getAfterSchoolResponseDto() {
+        List<StudentInfo> students = List.of(
+                new StudentInfo(1L, 2203, "김동욱"),
+                new StudentInfo(2L, 2202, "권민재")
+        );
+
+        return new AfterSchoolResponseDto(
+                1L,
+                "화",
+                "8~9교시",
+                "파이썬을 이용한 문제해결",
+                new AfterSchoolResponseDto.TeacherInfo(1L, "곽상미"),
+                new AfterSchoolResponseDto.PlaceInfo(1L, "객체지향 프로그래밍실"),
+                students
+        );
     }
 
     @Test
@@ -189,9 +189,9 @@ class AfterSchoolControllerTest {
         ResponseEntity<List<AfterSchoolMyResponseDto>> response = afterSchoolController.searchMyAfterSchools(grade, teachmonUserDetails);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).hasSize(1);
-        assertThat(response.getBody().get(0).id()).isEqualTo(1L);
-        assertThat(response.getBody().get(0).name()).isEqualTo("파이썬을 이용한 문제해결");
-        assertThat(response.getBody().get(0).reinforcementCount()).isEqualTo(0);
+        assertThat(response.getBody().getFirst().id()).isEqualTo(1L);
+        assertThat(response.getBody().getFirst().name()).isEqualTo("파이썬을 이용한 문제해결");
+        assertThat(response.getBody().getFirst().reinforcementCount()).isEqualTo(0);
         
         verify(afterSchoolService).searchMyAfterSchools(anyLong(), eq(grade));
     }
@@ -261,7 +261,7 @@ class AfterSchoolControllerTest {
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).hasSize(2);
         
-        AfterSchoolTodayResponseDto firstResult = response.getBody().get(0);
+        AfterSchoolTodayResponseDto firstResult = response.getBody().getFirst();
         assertThat(firstResult.id()).isEqualTo(1L);
         assertThat(firstResult.branch()).isEqualTo(3);
         assertThat(firstResult.name()).isEqualTo("파이썬을 이용한 문제해결");

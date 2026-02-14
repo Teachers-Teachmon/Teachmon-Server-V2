@@ -11,7 +11,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import solvit.teachmon.global.infra.discord.DiscordAlertService;
+
+import java.util.Objects;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -48,6 +52,7 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .filter(Objects::nonNull)
                 .findFirst()
                 .orElse("잘못된 요청입니다.");
 
@@ -62,6 +67,22 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST.value())
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNotFound() {
+        ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.NOT_FOUND.value(), "요청한 리소스를 찾을 수 없습니다.");
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND.value())
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoHandlerFoundException() {
+        ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.NOT_FOUND.value(), "요청한 경로를 찾을 수 없습니다.");
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND.value())
                 .body(errorResponse);
     }
 

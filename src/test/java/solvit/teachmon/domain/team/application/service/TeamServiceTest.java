@@ -16,8 +16,8 @@ import solvit.teachmon.domain.team.presentation.dto.request.TeamCreateRequestDto
 import solvit.teachmon.domain.team.presentation.dto.request.TeamDeleteRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateStudentDto;
-import solvit.teachmon.domain.team.presentation.dto.response.TeamResponseDto;
 import solvit.teachmon.domain.team.presentation.dto.response.TeamWithMembersResponseDto;
+import solvit.teachmon.domain.team.presentation.dto.response.TeamMemberDto;
 import solvit.teachmon.domain.team.application.mapper.TeamMapper;
 
 import java.util.List;
@@ -60,19 +60,26 @@ class TeamServiceTest {
     void shouldSearchTeamByQuerySuccessfully() {
         // Given: 검색 쿼리가 주어졌을 때
         String query = "개발";
-        List<TeamResponseDto> expectedResults = List.of(
-                new TeamResponseDto(1L, "개발팀"),
-                new TeamResponseDto(2L, "개발부서")
+        TeamMemberDto member1 = new TeamMemberDto(1L, 1, "김철수", 2, 3);
+        TeamMemberDto member2 = new TeamMemberDto(2L, 2, "이영희", 2, 3);
+        
+        List<TeamWithMembersResponseDto> expectedResults = List.of(
+                new TeamWithMembersResponseDto(1L, "개발팀", List.of(member1)),
+                new TeamWithMembersResponseDto(2L, "개발부서", List.of(member2))
         );
         given(teamRepository.searchTeamsByKeyword(query)).willReturn(expectedResults);
 
         // When: 쿼리로 팀을 검색하면
-        List<TeamResponseDto> results = teamService.searchTeamByQuery(query);
+        List<TeamWithMembersResponseDto> results = teamService.searchTeamByQuery(query);
 
         // Then: 검색 결과가 반환된다
         assertThat(results).hasSize(2);
-        assertThat(results.get(0).name()).isEqualTo("개발팀");
+        assertThat(results.getFirst().name()).isEqualTo("개발팀");
+        assertThat(results.get(0).members()).hasSize(1);
+        assertThat(results.get(0).members().getFirst().name()).isEqualTo("김철수");
         assertThat(results.get(1).name()).isEqualTo("개발부서");
+        assertThat(results.get(1).members()).hasSize(1);
+        assertThat(results.get(1).members().getFirst().name()).isEqualTo("이영희");
         verify(teamRepository).searchTeamsByKeyword(query);
     }
 
@@ -291,5 +298,69 @@ class TeamServiceTest {
         // Then: 빈 리스트가 반환된다
         assertThat(results).isEmpty();
         verify(teamRepository).findAll();
+    }
+
+    @Test
+    @DisplayName("검색 키워드가 없는 팀들은 반환되지 않는다")
+    void shouldNotReturnTeamsWithoutMatchingKeyword() {
+        // Given: 매칭되지 않는 검색 쿼리가 주어졌을 때
+        String query = "존재하지않는팀";
+        List<TeamWithMembersResponseDto> emptyResults = List.of();
+        given(teamRepository.searchTeamsByKeyword(query)).willReturn(emptyResults);
+
+        // When: 쿼리로 팀을 검색하면
+        List<TeamWithMembersResponseDto> results = teamService.searchTeamByQuery(query);
+
+        // Then: 빈 결과가 반환된다
+        assertThat(results).isEmpty();
+        verify(teamRepository).searchTeamsByKeyword(query);
+    }
+
+    @Test
+    @DisplayName("검색된 팀에 학생이 없어도 정상적으로 반환된다")
+    void shouldReturnTeamsEvenWithoutMembers() {
+        // Given: 학생이 없는 팀을 검색할 때
+        String query = "빈팀";
+        List<TeamWithMembersResponseDto> resultsWithEmptyMembers = List.of(
+                new TeamWithMembersResponseDto(1L, "빈팀", List.of())
+        );
+        given(teamRepository.searchTeamsByKeyword(query)).willReturn(resultsWithEmptyMembers);
+
+        // When: 쿼리로 팀을 검색하면
+        List<TeamWithMembersResponseDto> results = teamService.searchTeamByQuery(query);
+
+        // Then: 학생이 없는 팀도 정상적으로 반환된다
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().name()).isEqualTo("빈팀");
+        assertThat(results.getFirst().members()).isEmpty();
+        verify(teamRepository).searchTeamsByKeyword(query);
+    }
+
+    @Test
+    @DisplayName("검색된 팀에 여러 학생이 있을 때 모든 학생 정보가 포함된다")
+    void shouldReturnTeamsWithMultipleMembers() {
+        // Given: 여러 학생이 있는 팀을 검색할 때
+        String query = "개발";
+        TeamMemberDto member1 = new TeamMemberDto(1L, 1, "김철수", 2, 3);
+        TeamMemberDto member2 = new TeamMemberDto(2L, 2, "이영희", 2, 3);
+        TeamMemberDto member3 = new TeamMemberDto(3L, 3, "박민수", 2, 3);
+        
+        List<TeamWithMembersResponseDto> expectedResults = List.of(
+                new TeamWithMembersResponseDto(1L, "개발팀", List.of(member1, member2, member3))
+        );
+        given(teamRepository.searchTeamsByKeyword(query)).willReturn(expectedResults);
+
+        // When: 쿼리로 팀을 검색하면
+        List<TeamWithMembersResponseDto> results = teamService.searchTeamByQuery(query);
+
+        // Then: 모든 학생 정보가 포함되어 반환된다
+        assertThat(results).hasSize(1);
+        TeamWithMembersResponseDto team = results.getFirst();
+        assertThat(team.name()).isEqualTo("개발팀");
+        assertThat(team.members()).hasSize(3);
+        assertThat(team.members().get(0).name()).isEqualTo("김철수");
+        assertThat(team.members().get(1).name()).isEqualTo("이영희");
+        assertThat(team.members().get(2).name()).isEqualTo("박민수");
+        verify(teamRepository).searchTeamsByKeyword(query);
     }
 }

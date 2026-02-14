@@ -14,7 +14,6 @@ import solvit.teachmon.domain.team.presentation.dto.request.TeamCreateRequestDto
 import solvit.teachmon.domain.team.presentation.dto.request.TeamDeleteRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateStudentDto;
-import solvit.teachmon.domain.team.presentation.dto.response.TeamResponseDto;
 import solvit.teachmon.domain.team.presentation.dto.response.TeamWithMembersResponseDto;
 
 import java.util.List;
@@ -27,7 +26,7 @@ public class TeamService {
     private final StudentRepository studentRepository;
 
     @Transactional(readOnly = true)
-    public List<TeamResponseDto> searchTeamByQuery(String query) {
+    public List<TeamWithMembersResponseDto> searchTeamByQuery(String query) {
         return teamRepository.searchTeamsByKeyword(query);
     }
 

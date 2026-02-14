@@ -16,9 +16,9 @@ import solvit.teachmon.domain.team.presentation.dto.request.TeamCreateRequestDto
 import solvit.teachmon.domain.team.presentation.dto.request.TeamDeleteRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateRequestDto;
 import solvit.teachmon.domain.team.presentation.dto.request.TeamUpdateStudentDto;
-import solvit.teachmon.domain.team.presentation.dto.response.TeamResponseDto;
+import solvit.teachmon.domain.team.presentation.dto.response.TeamWithMembersResponseDto;
+import solvit.teachmon.domain.team.presentation.dto.response.TeamMemberDto;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.mockito.BDDMockito.*;
@@ -50,9 +50,12 @@ class TeamControllerTest {
     void shouldSearchTeamByQuerySuccessfully() throws Exception {
         // Given: 검색 쿼리와 예상 결과가 주어졌을 때
         String query = "개발";
-        List<TeamResponseDto> expectedResults = List.of(
-                new TeamResponseDto(1L, "개발팀"),
-                new TeamResponseDto(2L, "개발부서")
+        TeamMemberDto member1 = new TeamMemberDto(1L, 1, "김철수", 2, 3);
+        TeamMemberDto member2 = new TeamMemberDto(2L, 2, "이영희", 2, 3);
+        
+        List<TeamWithMembersResponseDto> expectedResults = List.of(
+                new TeamWithMembersResponseDto(1L, "개발팀", List.of(member1)),
+                new TeamWithMembersResponseDto(2L, "개발부서", List.of(member2))
         );
         given(teamService.searchTeamByQuery(query)).willReturn(expectedResults);
 
@@ -64,6 +67,8 @@ class TeamControllerTest {
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].name").value("개발팀"))
+                .andExpect(jsonPath("$[0].members").isArray())
+                .andExpect(jsonPath("$[0].members.length()").value(1))
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].name").value("개발부서"));
 
@@ -75,7 +80,7 @@ class TeamControllerTest {
     void shouldSearchTeamByEmptyQuery() throws Exception {
         // Given: 빈 쿼리가 주어졌을 때
         String query = "";
-        List<TeamResponseDto> expectedResults = List.of();
+        List<TeamWithMembersResponseDto> expectedResults = List.of();
         given(teamService.searchTeamByQuery(query)).willReturn(expectedResults);
 
         // When & Then: GET 요청을 보내면 빈 결과가 반환된다
