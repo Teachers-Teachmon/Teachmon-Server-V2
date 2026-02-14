@@ -12,7 +12,7 @@ public record LeaveSeatDetailResponse(
 
         SchoolPeriod period,
 
-        Long place,
+        PlaceInfoResponse place,
 
         String cause,
 
