@@ -43,8 +43,11 @@ public class AfterSchoolScheduleSettingStrategy implements StudentScheduleSettin
         List<AfterSchoolEntity> afterSchools = afterSchoolRepository.findAllByBranch(branch);
 
         for(AfterSchoolEntity afterSchool : afterSchools) {
+            // 종료되었는지 확인
+            if(afterSchool.getIsEnd())
+                continue;
             // 출장이면 넘어가기
-            if(afterSchoolBusinessTripRepository.existsByAfterSchoolAndDay(afterSchool, calculateAfterSchoolDay(afterSchool, baseDate)))
+            else if(afterSchoolBusinessTripRepository.existsByAfterSchoolAndDay(afterSchool, calculateAfterSchoolDay(afterSchool, baseDate)))
                 continue;
             // 이전 날짜면 넘어가기
             else if(isBeforeAfterSchool(afterSchool, baseDate))
