@@ -15,6 +15,9 @@ public record SupervisionRankResponseDto(
         @JsonProperty("leave_seat_supervision_count")
         Integer leaveSeatSupervisionCount,
 
+        @JsonProperty("seventh_period_supervision_count")
+        Integer seventhPeriodSupervisionCount,
+
         @JsonProperty("total_supervision_count")
         Integer totalSupervisionCount
 ) {}

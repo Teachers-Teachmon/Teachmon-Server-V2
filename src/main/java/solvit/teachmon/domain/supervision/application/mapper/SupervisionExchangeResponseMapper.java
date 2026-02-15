@@ -31,6 +31,7 @@ public interface SupervisionExchangeResponseMapper {
         return switch (type) {
             case SELF_STUDY_SUPERVISION -> "self_study";
             case LEAVE_SEAT_SUPERVISION -> "leave_seat";
+            case SEVENTH_PERIOD_SUPERVISION -> "seventh_period";
         };
     }
 }

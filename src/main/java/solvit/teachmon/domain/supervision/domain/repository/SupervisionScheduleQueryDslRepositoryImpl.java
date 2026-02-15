@@ -14,14 +14,9 @@ import solvit.teachmon.domain.supervision.domain.enums.SupervisionSortOrder;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionRankResponseDto;
 import solvit.teachmon.domain.supervision.presentation.dto.response.SupervisionScheduleResponseDto;
 import solvit.teachmon.domain.user.domain.entity.QTeacherEntity;
-import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -70,14 +65,6 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
         // 먼저 데이터를 조회
         List<SupervisionScheduleEntity> schedules = findByMonthAndQuery(month, query);
         
-        // 날짜별로 그룹핑 (LinkedHashMap으로 순서 보장)
-        Map<LocalDate, List<SupervisionScheduleEntity>> groupedByDay = schedules.stream()
-                .collect(Collectors.groupingBy(
-                    SupervisionScheduleEntity::getDay,
-                    LinkedHashMap::new,
-                    Collectors.toList()
-                ));
-        
         // SupervisionScheduleResponseDto로 변환
         return mapper.convertToResponseDtos(schedules);
     }
@@ -98,20 +85,24 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
         QTeacherEntity teacher = QTeacherEntity.teacherEntity;
         QSupervisionScheduleEntity selfStudySchedule = new QSupervisionScheduleEntity("selfStudySchedule");
         QSupervisionScheduleEntity leaveSeatSchedule = new QSupervisionScheduleEntity("leaveSeatSchedule");
+        QSupervisionScheduleEntity seventhPeriodSchedule = new QSupervisionScheduleEntity("seventhPeriodSchedule");
 
-        var totalCount = selfStudySchedule.count().add(leaveSeatSchedule.count());
+        var totalCount = selfStudySchedule.day.countDistinct().add(leaveSeatSchedule.day.countDistinct()).add(seventhPeriodSchedule.day.countDistinct());
         
         var results = queryFactory
                 .select(
                     teacher.name,
-                    selfStudySchedule.count().coalesce(0L),
-                    leaveSeatSchedule.count().coalesce(0L)
+                    selfStudySchedule.day.countDistinct().coalesce(0L),
+                    leaveSeatSchedule.day.countDistinct().coalesce(0L),
+                    seventhPeriodSchedule.day.countDistinct().coalesce(0L)
                 )
                 .from(teacher)
                 .leftJoin(selfStudySchedule).on(selfStudySchedule.teacher.eq(teacher)
                     .and(selfStudySchedule.type.eq(SupervisionType.SELF_STUDY_SUPERVISION)))
                 .leftJoin(leaveSeatSchedule).on(leaveSeatSchedule.teacher.eq(teacher)
                     .and(leaveSeatSchedule.type.eq(SupervisionType.LEAVE_SEAT_SUPERVISION)))
+                .leftJoin(seventhPeriodSchedule).on(seventhPeriodSchedule.teacher.eq(teacher)
+                    .and(seventhPeriodSchedule.type.eq(SupervisionType.SEVENTH_PERIOD_SUPERVISION)))
                 .where(teacherNameContains(teacher, query))
                 .groupBy(teacher.id, teacher.name)
                 .orderBy(sortOrder == SupervisionSortOrder.DESC ? 
@@ -123,40 +114,29 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
             var tuple = results.get(i);
             Long selfStudyCount = tuple.get(1, Long.class);
             Long leaveSeatCount = tuple.get(2, Long.class);
+            Long seventhPeriodCount = tuple.get(3, Long.class);
             
             int selfStudy = selfStudyCount != null ? selfStudyCount.intValue() : 0;
             int leaveSeat = leaveSeatCount != null ? leaveSeatCount.intValue() : 0;
+            int seventhPeriod = seventhPeriodCount != null ? seventhPeriodCount.intValue() : 0;
             
             SupervisionRankResponseDto dto = SupervisionRankResponseDto.builder()
                     .rank(i + 1)
                     .name(tuple.get(teacher.name))
                     .selfStudySupervisionCount(selfStudy)
                     .leaveSeatSupervisionCount(leaveSeat)
-                    .totalSupervisionCount(selfStudy + leaveSeat)
+                    .seventhPeriodSupervisionCount(seventhPeriod)
+                    .totalSupervisionCount(selfStudy + leaveSeat + seventhPeriod)
                     .build();
             rankList.add(dto);
         }
         
         return rankList;
     }
-
-    private BooleanExpression dayEquals(LocalDate day) {
-        QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
-        return day != null 
-                ? schedule.day.eq(day)
-                : null;
-    }
     
     private BooleanExpression teacherNameContains(QTeacherEntity teacher, String query) {
         return query != null && !query.isBlank() 
                 ? teacher.name.containsIgnoreCase(query) 
-                : null;
-    }
-
-    private BooleanExpression supervisionTypeEquals(SupervisionType type) {
-        QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
-        return type != null 
-                ? schedule.type.eq(type)
                 : null;
     }
 }

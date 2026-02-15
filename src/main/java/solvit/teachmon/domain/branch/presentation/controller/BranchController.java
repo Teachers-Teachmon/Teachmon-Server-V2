@@ -16,15 +16,15 @@ import java.util.List;
 public class BranchController {
     private final BranchService branchService;
 
-@GetMapping
-public ResponseEntity<List<BranchResponseDto>> getBranches() {
-    List<BranchResponseDto> branches = branchService.getAllBranchesByCurrentYear();
-    return ResponseEntity.ok(branches);
-}
+    @GetMapping
+    public ResponseEntity<List<BranchResponseDto>> getBranches() {
+        List<BranchResponseDto> branches = branchService.getAllBranchesByCurrentYear();
+        return ResponseEntity.ok(branches);
+    }
 
-@PostMapping
-public ResponseEntity<Void> createOrUpdateBranch(@Valid @RequestBody BranchRequestDto requestDto) {
-    branchService.createOrUpdateBranch(requestDto);
-    return ResponseEntity.noContent().build();
-}
+    @PostMapping
+    public ResponseEntity<Void> createOrUpdateBranch(@Valid @RequestBody BranchRequestDto requestDto) {
+        branchService.createOrUpdateBranch(requestDto);
+        return ResponseEntity.noContent().build();
+    }
 }

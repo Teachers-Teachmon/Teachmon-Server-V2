@@ -1,7 +1,6 @@
 package solvit.teachmon.domain.supervision.application.mapper;
 
 import org.mapstruct.Mapper;
-import solvit.teachmon.domain.supervision.domain.vo.DailySupervisionAssignment;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
@@ -14,10 +13,10 @@ import java.util.List;
 public interface SupervisionAssignmentMapper {
     
     default List<SupervisionScheduleEntity> toScheduleEntities(
-            DailySupervisionAssignment assignment, 
             LocalDate date,
             TeacherEntity selfStudyTeacherEntity,
-            TeacherEntity leaveSeatTeacherEntity) {
+            TeacherEntity leaveSeatTeacherEntity,
+            TeacherEntity seventhPeriodTeacherEntity) {
         
         SchoolPeriod[] periods = {
                 SchoolPeriod.SEVEN_PERIOD,
@@ -64,6 +63,14 @@ public interface SupervisionAssignmentMapper {
                         .day(date)
                         .period(periods[2])
                         .type(SupervisionType.LEAVE_SEAT_SUPERVISION)
+                        .build(),
+
+                // 7교시 감독 스케줄
+                SupervisionScheduleEntity.builder()
+                        .teacher(seventhPeriodTeacherEntity)
+                        .day(date)
+                        .period(SchoolPeriod.SEVEN_PERIOD)
+                        .type(SupervisionType.SEVENTH_PERIOD_SUPERVISION)
                         .build()
         );
     }
