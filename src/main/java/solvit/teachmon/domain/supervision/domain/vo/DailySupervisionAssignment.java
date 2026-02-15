@@ -7,7 +7,8 @@ import lombok.Builder;
  */
 @Builder
 public record DailySupervisionAssignment(
-        TeacherSupervisionInfo selfStudyTeacher,    // 자습 감독 교사
-        TeacherSupervisionInfo leaveSeatTeacher     // 이석 감독 교사
+        TeacherSupervisionInfo selfStudyTeacher,     // 자습 감독 교사
+        TeacherSupervisionInfo leaveSeatTeacher,     // 이석 감독 교사
+        TeacherSupervisionInfo seventhPeriodTeacher  // 7교시 감독 교사
 ) {
 }

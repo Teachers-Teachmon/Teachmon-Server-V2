@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 public enum SupervisionDeleteType {
     SELF_STUDY("self_study", SupervisionType.SELF_STUDY_SUPERVISION),
     LEAVE_SEAT("leave_seat", SupervisionType.LEAVE_SEAT_SUPERVISION),
+    SEVENTH_PERIOD("seventh_period", SupervisionType.SEVENTH_PERIOD_SUPERVISION),
     ALL("all", null);
 
     private final String value;
