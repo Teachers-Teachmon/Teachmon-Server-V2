@@ -70,6 +70,7 @@ class AfterSchoolServiceTeacherTest {
                 .branch(1)
                 .startDay(LocalDate.of(2025, 3, 1))
                 .endDay(LocalDate.of(2025, 12, 31))
+                .afterSchoolEndDay(LocalDate.of(2025, 12, 20))
                 .build();
         
         place = mock(PlaceEntity.class);
