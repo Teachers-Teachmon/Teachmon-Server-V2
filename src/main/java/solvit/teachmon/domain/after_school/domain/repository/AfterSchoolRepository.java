@@ -30,4 +30,13 @@ public interface AfterSchoolRepository extends JpaRepository<AfterSchoolEntity, 
            "LEFT JOIN FETCH ass.student " +
            "WHERE a.isEnd = false")
     List<AfterSchoolEntity> findActiveAfterSchoolsWithRelations();
+
+    @Query("SELECT DISTINCT a FROM AfterSchoolEntity a " +
+           "JOIN FETCH a.branch " +
+           "JOIN FETCH a.teacher " +
+           "JOIN FETCH a.place " +
+           "LEFT JOIN FETCH a.afterSchoolStudents ass " +
+           "LEFT JOIN FETCH ass.student " +
+           "WHERE a.teacher.id = :teacherId AND a.isEnd = false")
+    List<AfterSchoolEntity> findByTeacherIdWithRelations(Long teacherId);
 }
