@@ -17,7 +17,6 @@ import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -92,39 +91,16 @@ public class AfterSchoolEndScheduler {
             return Set.of();
         }
 
-        // 가장 이른 출장 날짜부터 오늘까지 모든 보강 조회
-        LocalDate earliestTripDate = pastBusinessTrips.stream()
-                .map(AfterSchoolBusinessTripEntity::getDay)
-                .min(LocalDate::compareTo)
-                .get();
+        // 출장이 있는 방과후들 추출 (중복 제거)
+        List<AfterSchoolEntity> afterSchoolsWithTrips = pastBusinessTrips.stream()
+                .map(AfterSchoolBusinessTripEntity::getAfterSchool)
+                .distinct()
+                .toList();
 
-        List<AfterSchoolReinforcementEntity> allReinforcements = afterSchoolReinforcementRepository
-                .findAllByChangeDayBetween(earliestTripDate, today.plusDays(1));
+        // DB에서 직접 미보강 방과후들 조회 (출장 개수 > 보강 개수인 방과후들)
+        List<AfterSchoolEntity> unreinforcedAfterSchools = afterSchoolBusinessTripRepository
+                .findAfterSchoolsWithUnreinforcedTrips(afterSchoolsWithTrips, today);
         
-        Set<AfterSchoolEntity> unreinforcedAfterSchools = new HashSet<>();
-
-        // 방과후별 출장 개수 계산
-        Map<AfterSchoolEntity, Integer> tripCountByAfterSchool = pastBusinessTrips.stream()
-                .collect(Collectors.groupingBy(
-                    AfterSchoolBusinessTripEntity::getAfterSchool,
-                    Collectors.collectingAndThen(Collectors.counting(), Math::toIntExact)
-                ));
-        
-        // 방과후별 보강 개수 계산 (한 번에)
-        Map<AfterSchoolEntity, Long> reinforcementCountByAfterSchool = allReinforcements.stream()
-                .collect(Collectors.groupingBy(
-                    AfterSchoolReinforcementEntity::getAfterSchool,
-                    Collectors.counting()
-                ));
-
-        // 출장 개수와 보강 개수 비교
-        tripCountByAfterSchool.forEach((afterSchool, tripCount) -> {
-            long reinforcementCount = reinforcementCountByAfterSchool.getOrDefault(afterSchool, 0L);
-            if (reinforcementCount < tripCount) {
-                unreinforcedAfterSchools.add(afterSchool);
-            }
-        });
-
-        return unreinforcedAfterSchools;
+        return new HashSet<>(unreinforcedAfterSchools);
     }
 }

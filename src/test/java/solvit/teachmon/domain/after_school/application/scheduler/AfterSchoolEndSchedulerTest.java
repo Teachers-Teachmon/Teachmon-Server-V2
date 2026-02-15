@@ -142,19 +142,17 @@ class AfterSchoolEndSchedulerTest {
     void shouldNotEndAfterSchoolsWithUnreinforcedBusinessTrips() {
         // Given: 활성 방과후와 미보강 출장이 있음
         List<AfterSchoolEntity> activeAfterSchools = List.of(afterSchool1, afterSchool2);
-        LocalDate pastDate = testDate.minusDays(5);
         
         AfterSchoolBusinessTripEntity pastTrip = mock(AfterSchoolBusinessTripEntity.class);
         when(pastTrip.getAfterSchool()).thenReturn(afterSchool1);
-        when(pastTrip.getDay()).thenReturn(pastDate);
         
         setupBasicMocks(activeAfterSchools);
         when(afterSchoolReinforcementRepository.findFutureReinforcementsByAfterSchools(activeAfterSchools, testDate))
             .thenReturn(List.of());
         when(afterSchoolBusinessTripRepository.findPastBusinessTripsByAfterSchools(activeAfterSchools, testDate))
             .thenReturn(List.of(pastTrip));
-        when(afterSchoolReinforcementRepository.findAllByChangeDayBetween(pastDate, testDate.plusDays(1)))
-            .thenReturn(List.of()); // 보강 없음
+        when(afterSchoolBusinessTripRepository.findAfterSchoolsWithUnreinforcedTrips(List.of(afterSchool1), testDate))
+            .thenReturn(List.of(afterSchool1)); // afterSchool1에 미보강 출장 있음
 
         // When: 스케줄러 실행
         afterSchoolEndScheduler.checkAndEndAfterSchool();
@@ -167,24 +165,19 @@ class AfterSchoolEndSchedulerTest {
     @Test
     @DisplayName("출장과 보강 개수가 같으면 방과후를 종료한다")
     void shouldEndAfterSchoolsWhenBusinessTripsAreFullyReinforced() {
-        // Given: 출장 개수와 보강 개수가 같음
+        // Given: 출장 개수와 보강 개수가 같음 (미보강 출장 없음)
         List<AfterSchoolEntity> activeAfterSchools = List.of(afterSchool1, afterSchool2);
-        LocalDate pastDate = testDate.minusDays(5);
         
         AfterSchoolBusinessTripEntity pastTrip = mock(AfterSchoolBusinessTripEntity.class);
         when(pastTrip.getAfterSchool()).thenReturn(afterSchool1);
-        when(pastTrip.getDay()).thenReturn(pastDate);
-        
-        AfterSchoolReinforcementEntity reinforcement = mock(AfterSchoolReinforcementEntity.class);
-        when(reinforcement.getAfterSchool()).thenReturn(afterSchool1);
         
         setupBasicMocks(activeAfterSchools);
         when(afterSchoolReinforcementRepository.findFutureReinforcementsByAfterSchools(activeAfterSchools, testDate))
             .thenReturn(List.of());
         when(afterSchoolBusinessTripRepository.findPastBusinessTripsByAfterSchools(activeAfterSchools, testDate))
             .thenReturn(List.of(pastTrip));
-        when(afterSchoolReinforcementRepository.findAllByChangeDayBetween(pastDate, testDate.plusDays(1)))
-            .thenReturn(List.of(reinforcement)); // 출장 1개 = 보강 1개
+        when(afterSchoolBusinessTripRepository.findAfterSchoolsWithUnreinforcedTrips(List.of(afterSchool1), testDate))
+            .thenReturn(List.of()); // 미보강 출장 없음 (모두 보강됨)
 
         // When: 스케줄러 실행
         afterSchoolEndScheduler.checkAndEndAfterSchool();
@@ -220,7 +213,6 @@ class AfterSchoolEndSchedulerTest {
     void shouldHandleComplexScenarioCorrectly() {
         // Given: 복잡한 시나리오
         List<AfterSchoolEntity> activeAfterSchools = List.of(afterSchool1, afterSchool2, afterSchool3);
-        LocalDate pastDate = testDate.minusDays(10);
 
         // afterSchool1: 미래 보강 있음 (종료 안됨)
         AfterSchoolReinforcementEntity futureReinforcement = mock(AfterSchoolReinforcementEntity.class);
@@ -229,7 +221,6 @@ class AfterSchoolEndSchedulerTest {
         // afterSchool2: 미보강 출장 있음 (종료 안됨)
         AfterSchoolBusinessTripEntity unreinforcedTrip = mock(AfterSchoolBusinessTripEntity.class);
         when(unreinforcedTrip.getAfterSchool()).thenReturn(afterSchool2);
-        when(unreinforcedTrip.getDay()).thenReturn(pastDate);
         
         // afterSchool3: 정상 종료 조건 (종료됨)
         
@@ -238,8 +229,8 @@ class AfterSchoolEndSchedulerTest {
             .thenReturn(List.of(futureReinforcement));
         when(afterSchoolBusinessTripRepository.findPastBusinessTripsByAfterSchools(activeAfterSchools, testDate))
             .thenReturn(List.of(unreinforcedTrip));
-        when(afterSchoolReinforcementRepository.findAllByChangeDayBetween(pastDate, testDate.plusDays(1)))
-            .thenReturn(List.of()); // afterSchool2의 출장에 대한 보강 없음
+        when(afterSchoolBusinessTripRepository.findAfterSchoolsWithUnreinforcedTrips(List.of(afterSchool2), testDate))
+            .thenReturn(List.of(afterSchool2)); // afterSchool2에 미보강 출장 있음
 
         // When: 스케줄러 실행
         afterSchoolEndScheduler.checkAndEndAfterSchool();
@@ -255,27 +246,20 @@ class AfterSchoolEndSchedulerTest {
     void shouldNotEndWhenMultipleTripsPartiallyReinforced() {
         // Given: 출장 2개, 보강 1개인 경우
         List<AfterSchoolEntity> activeAfterSchools = List.of(afterSchool1);
-        LocalDate pastDate1 = testDate.minusDays(10);
-        LocalDate pastDate2 = testDate.minusDays(5);
         
         AfterSchoolBusinessTripEntity trip1 = mock(AfterSchoolBusinessTripEntity.class);
         when(trip1.getAfterSchool()).thenReturn(afterSchool1);
-        when(trip1.getDay()).thenReturn(pastDate1);
         
         AfterSchoolBusinessTripEntity trip2 = mock(AfterSchoolBusinessTripEntity.class);
         when(trip2.getAfterSchool()).thenReturn(afterSchool1);
-        when(trip2.getDay()).thenReturn(pastDate2);
-        
-        AfterSchoolReinforcementEntity reinforcement = mock(AfterSchoolReinforcementEntity.class);
-        when(reinforcement.getAfterSchool()).thenReturn(afterSchool1);
         
         setupBasicMocks(activeAfterSchools);
         when(afterSchoolReinforcementRepository.findFutureReinforcementsByAfterSchools(activeAfterSchools, testDate))
             .thenReturn(List.of());
         when(afterSchoolBusinessTripRepository.findPastBusinessTripsByAfterSchools(activeAfterSchools, testDate))
             .thenReturn(List.of(trip1, trip2)); // 출장 2개
-        when(afterSchoolReinforcementRepository.findAllByChangeDayBetween(pastDate1, testDate.plusDays(1)))
-            .thenReturn(List.of(reinforcement)); // 보강 1개만
+        when(afterSchoolBusinessTripRepository.findAfterSchoolsWithUnreinforcedTrips(List.of(afterSchool1), testDate))
+            .thenReturn(List.of(afterSchool1)); // afterSchool1에 미보강 출장 있음 (출장 2개 > 보강 1개)
 
         // When: 스케줄러 실행
         afterSchoolEndScheduler.checkAndEndAfterSchool();
@@ -287,27 +271,19 @@ class AfterSchoolEndSchedulerTest {
     @Test
     @DisplayName("출장보다 보강이 더 많은 경우 방과후를 종료한다")
     void shouldEndWhenMoreReinforcementsThanTrips() {
-        // Given: 출장 1개, 보강 2개인 경우
+        // Given: 출장보다 보강이 더 많은 경우 (미보강 출장 없음)
         List<AfterSchoolEntity> activeAfterSchools = List.of(afterSchool1);
-        LocalDate pastDate = testDate.minusDays(10);
         
         AfterSchoolBusinessTripEntity trip = mock(AfterSchoolBusinessTripEntity.class);
         when(trip.getAfterSchool()).thenReturn(afterSchool1);
-        when(trip.getDay()).thenReturn(pastDate);
-        
-        AfterSchoolReinforcementEntity reinforcement1 = mock(AfterSchoolReinforcementEntity.class);
-        when(reinforcement1.getAfterSchool()).thenReturn(afterSchool1);
-        
-        AfterSchoolReinforcementEntity reinforcement2 = mock(AfterSchoolReinforcementEntity.class);
-        when(reinforcement2.getAfterSchool()).thenReturn(afterSchool1);
         
         setupBasicMocks(activeAfterSchools);
         when(afterSchoolReinforcementRepository.findFutureReinforcementsByAfterSchools(activeAfterSchools, testDate))
             .thenReturn(List.of());
         when(afterSchoolBusinessTripRepository.findPastBusinessTripsByAfterSchools(activeAfterSchools, testDate))
             .thenReturn(List.of(trip)); // 출장 1개
-        when(afterSchoolReinforcementRepository.findAllByChangeDayBetween(pastDate, testDate.plusDays(1)))
-            .thenReturn(List.of(reinforcement1, reinforcement2)); // 보강 2개
+        when(afterSchoolBusinessTripRepository.findAfterSchoolsWithUnreinforcedTrips(List.of(afterSchool1), testDate))
+            .thenReturn(List.of()); // 미보강 출장 없음 (보강이 충분함)
 
         // When: 스케줄러 실행
         afterSchoolEndScheduler.checkAndEndAfterSchool();
