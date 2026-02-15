@@ -36,8 +36,8 @@ public class AfterSchoolEndScheduler {
     public void checkAndEndAfterSchool() {
         LocalDate today = LocalDate.now();
         
-        Optional<BranchEntity> branch = branchRepository.findByYearAndDate(today.getYear(), today);
-        if (branch.isEmpty() || !branch.get().isAfterSchoolEndDay(today)) {
+        Optional<BranchEntity> branch = branchRepository.findByAfterSchoolDate(today);
+        if (branch.isEmpty()) {
             return;
         }
 

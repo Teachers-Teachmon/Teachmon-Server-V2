@@ -63,26 +63,8 @@ class AfterSchoolEndSchedulerTest {
     @DisplayName("브랜치가 없으면 종료하지 않는다")
     void shouldNotEndWhenBranchNotFound() {
         // Given: 브랜치가 존재하지 않음
-        when(branchRepository.findByYearAndDate(testDate.getYear(), testDate))
+        when(branchRepository.findByAfterSchoolDate(testDate))
             .thenReturn(Optional.empty());
-
-        // When: 스케줄러 실행
-        afterSchoolEndScheduler.checkAndEndAfterSchool();
-
-        // Then: 다른 repository 호출되지 않음
-        verify(afterSchoolRepository, never()).findByBranchAndIsEndFalse(any());
-        verify(afterSchool1, never()).endAfterSchool();
-        verify(afterSchool2, never()).endAfterSchool();
-        verify(afterSchool3, never()).endAfterSchool();
-    }
-
-    @Test
-    @DisplayName("방과후 종료일이 아니면 종료하지 않는다")
-    void shouldNotEndWhenNotAfterSchoolEndDay() {
-        // Given: 브랜치는 있지만 방과후 종료일이 아님
-        when(branchRepository.findByYearAndDate(testDate.getYear(), testDate))
-            .thenReturn(Optional.of(branch));
-        when(branch.isAfterSchoolEndDay(testDate)).thenReturn(false);
 
         // When: 스케줄러 실행
         afterSchoolEndScheduler.checkAndEndAfterSchool();
@@ -97,10 +79,9 @@ class AfterSchoolEndSchedulerTest {
     @Test
     @DisplayName("활성 방과후가 없으면 종료하지 않는다")
     void shouldNotEndWhenNoActiveAfterSchools() {
-        // Given: 브랜치와 종료일 조건은 만족하지만 활성 방과후가 없음
-        when(branchRepository.findByYearAndDate(testDate.getYear(), testDate))
+        // Given: 브랜치 조건은 만족하지만 활성 방과후가 없음
+        when(branchRepository.findByAfterSchoolDate(testDate))
             .thenReturn(Optional.of(branch));
-        when(branch.isAfterSchoolEndDay(testDate)).thenReturn(true);
         when(afterSchoolRepository.findByBranchAndIsEndFalse(branch))
             .thenReturn(List.of());
 
@@ -293,9 +274,8 @@ class AfterSchoolEndSchedulerTest {
     }
 
     private void setupBasicMocks(List<AfterSchoolEntity> activeAfterSchools) {
-        when(branchRepository.findByYearAndDate(testDate.getYear(), testDate))
+        when(branchRepository.findByAfterSchoolDate(testDate))
             .thenReturn(Optional.of(branch));
-        when(branch.isAfterSchoolEndDay(testDate)).thenReturn(true);
         when(afterSchoolRepository.findByBranchAndIsEndFalse(branch))
             .thenReturn(activeAfterSchools);
     }
