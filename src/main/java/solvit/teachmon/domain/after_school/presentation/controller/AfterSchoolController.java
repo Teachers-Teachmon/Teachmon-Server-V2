@@ -24,6 +24,7 @@ import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolS
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolUpdateRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolMyResponseDto;
+import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolByTeacherResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolTodayResponseDto;
 import solvit.teachmon.global.enums.WeekDay;
 import solvit.teachmon.global.security.user.TeachmonUserDetails;
@@ -65,6 +66,13 @@ public class AfterSchoolController {
             @AuthenticationPrincipal TeachmonUserDetails teachmonUserDetails) {
         Long teacherId = teachmonUserDetails.getId();
         List<AfterSchoolTodayResponseDto> results = afterSchoolService.searchMyTodayAfterSchools(teacherId);
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/teacher")
+    public ResponseEntity<List<AfterSchoolByTeacherResponseDto>> getAfterSchoolsByTeacherId(
+            @RequestParam("teacher_id") @NotNull(message = "선생님 ID는 필수입니다.") Long teacherId) {
+        List<AfterSchoolByTeacherResponseDto> results = afterSchoolService.getAfterSchoolsByTeacherId(teacherId);
         return ResponseEntity.ok(results);
     }
 

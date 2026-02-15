@@ -16,6 +16,7 @@ import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolS
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.StudentInfo;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolMyResponseDto;
+import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolByTeacherResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolTodayResponseDto;
 import solvit.teachmon.global.enums.WeekDay;
 import solvit.teachmon.global.enums.SchoolPeriod;
@@ -290,5 +291,78 @@ class AfterSchoolControllerTest {
         assertThat(response.getBody()).isEmpty();
         
         verify(afterSchoolService).searchMyTodayAfterSchools(anyLong());
+    }
+
+    @Test
+    @DisplayName("선생님 ID로 방과후를 조회할 수 있다")
+    void shouldGetAfterSchoolsByTeacherId() {
+        // Given
+        Long teacherId = 1L;
+        List<AfterSchoolByTeacherResponseDto> mockResponse = List.of(
+                new AfterSchoolByTeacherResponseDto(
+                        1L,
+                        "월요일",
+                        "7교시",
+                        "수학 방과후",
+                        new AfterSchoolByTeacherResponseDto.PlaceInfo(101L, "수학실"),
+                        2
+                ),
+                new AfterSchoolByTeacherResponseDto(
+                        2L,
+                        "화요일",
+                        "8-9교시",
+                        "영어 방과후",
+                        new AfterSchoolByTeacherResponseDto.PlaceInfo(102L, "영어실"),
+                        0
+                )
+        );
+        
+        given(afterSchoolService.getAfterSchoolsByTeacherId(teacherId))
+                .willReturn(mockResponse);
+
+        // When
+        ResponseEntity<List<AfterSchoolByTeacherResponseDto>> response = 
+                afterSchoolController.getAfterSchoolsByTeacherId(teacherId);
+
+        // Then
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).hasSize(2);
+        
+        AfterSchoolByTeacherResponseDto first = response.getBody().get(0);
+        assertThat(first.id()).isEqualTo(1L);
+        assertThat(first.name()).isEqualTo("수학 방과후");
+        assertThat(first.weekDay()).isEqualTo("월요일");
+        assertThat(first.period()).isEqualTo("7교시");
+        assertThat(first.place().name()).isEqualTo("수학실");
+        assertThat(first.reinforcementCount()).isEqualTo(2);
+        
+        AfterSchoolByTeacherResponseDto second = response.getBody().get(1);
+        assertThat(second.id()).isEqualTo(2L);
+        assertThat(second.name()).isEqualTo("영어 방과후");
+        assertThat(second.weekDay()).isEqualTo("화요일");
+        assertThat(second.period()).isEqualTo("8-9교시");
+        assertThat(second.place().name()).isEqualTo("영어실");
+        assertThat(second.reinforcementCount()).isEqualTo(0);
+        
+        verify(afterSchoolService).getAfterSchoolsByTeacherId(teacherId);
+    }
+
+    @Test
+    @DisplayName("선생님 ID로 조회 시 해당 선생님의 방과후가 없으면 빈 리스트를 반환한다")
+    void shouldReturnEmptyListWhenNoAfterSchoolsForTeacher() {
+        // Given
+        Long teacherId = 999L;
+        given(afterSchoolService.getAfterSchoolsByTeacherId(teacherId))
+                .willReturn(List.of());
+
+        // When
+        ResponseEntity<List<AfterSchoolByTeacherResponseDto>> response = 
+                afterSchoolController.getAfterSchoolsByTeacherId(teacherId);
+
+        // Then
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEmpty();
+        
+        verify(afterSchoolService).getAfterSchoolsByTeacherId(teacherId);
     }
 }
