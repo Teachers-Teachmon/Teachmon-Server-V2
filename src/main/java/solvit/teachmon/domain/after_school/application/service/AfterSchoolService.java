@@ -22,6 +22,7 @@ import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolU
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolSearchRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolMyResponseDto;
+import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolByTeacherResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolTodayResponseDto;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
@@ -147,6 +148,33 @@ public class AfterSchoolService {
     @Transactional(readOnly = true)
     public List<AfterSchoolMyResponseDto> searchMyAfterSchools(Long teacherId, Integer grade) {
         return afterSchoolRepository.findMyAfterSchoolsByTeacherId(teacherId, grade);
+    }
+
+    public List<AfterSchoolByTeacherResponseDto> getAfterSchoolsByTeacherId(Long teacherId) {
+        List<AfterSchoolEntity> afterSchools = afterSchoolRepository.findByTeacherIdWithRelations(teacherId);
+        
+        return afterSchools.stream()
+                .map(afterSchool -> {
+                    // 보강 횟수 계산
+                    int reinforcementCount = afterSchoolReinforcementRepository
+                            .findAllByChangeDayBetween(LocalDate.now().minusMonths(1), LocalDate.now().plusDays(1))
+                            .stream()
+                            .mapToInt(reinforcement -> reinforcement.getAfterSchool().getId().equals(afterSchool.getId()) ? 1 : 0)
+                            .sum();
+
+                    return new AfterSchoolByTeacherResponseDto(
+                            afterSchool.getId(),
+                            afterSchool.getWeekDay().toKorean(),
+                            afterSchool.getPeriod().getPeriod(),
+                            afterSchool.getName(),
+                            new AfterSchoolByTeacherResponseDto.PlaceInfo(
+                                    afterSchool.getPlace().getId(),
+                                    afterSchool.getPlace().getName()
+                            ),
+                            reinforcementCount
+                    );
+                })
+                .toList();
     }
 
     @Transactional(readOnly = true)
