@@ -17,4 +17,7 @@ public class BranchResponseDto {
     
     @JsonProperty("end_day")
     private LocalDate endDay;
+
+    @JsonProperty("after_school_end_day")
+    private LocalDate afterSchoolEndDay;
 }

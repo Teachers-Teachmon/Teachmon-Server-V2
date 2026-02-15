@@ -3,6 +3,7 @@ package solvit.teachmon.domain.after_school.domain.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolEntity;
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolReinforcementEntity;
 
 import java.time.LocalDate;
@@ -20,4 +21,7 @@ public interface AfterSchoolReinforcementRepository extends JpaRepository<AfterS
             @Param("startDay") LocalDate startDay,
             @Param("endDay") LocalDate endDay
     );
+
+    @Query("SELECT r FROM AfterSchoolReinforcementEntity r WHERE r.afterSchool IN :afterSchools AND r.changeDay > :currentDate")
+    List<AfterSchoolReinforcementEntity> findFutureReinforcementsByAfterSchools(@Param("afterSchools") List<AfterSchoolEntity> afterSchools, @Param("currentDate") LocalDate currentDate);
 }

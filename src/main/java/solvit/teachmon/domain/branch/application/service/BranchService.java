@@ -24,7 +24,8 @@ public class BranchService {
                 .map(branch -> new BranchResponseDto(
                         branch.getBranch(),
                         branch.getStartDay(),
-                        branch.getEndDay()
+                        branch.getEndDay(),
+                        branch.getAfterSchoolEndDay()
                 ))
                 .toList();
     }
@@ -41,7 +42,7 @@ public class BranchService {
     }
 
     private BranchEntity updateExistingBranch(BranchEntity branch, BranchRequestDto requestDto) {
-        branch.updateBranch(requestDto.getStartDay(), requestDto.getEndDay());
+        branch.updateBranch(requestDto.getStartDay(), requestDto.getEndDay(), requestDto.getAfterSchoolEndDay());
         return branch;
     }
 
@@ -50,6 +51,7 @@ public class BranchService {
                 .branch(requestDto.getNumber())
                 .startDay(requestDto.getStartDay())
                 .endDay(requestDto.getEndDay())
+                .afterSchoolEndDay(requestDto.getAfterSchoolEndDay())
                 .year(currentYear)
                 .build();
     }
