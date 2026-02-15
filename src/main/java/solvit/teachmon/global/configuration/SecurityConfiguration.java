@@ -66,6 +66,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/leaveseat/static/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/leaveseat/**").hasAnyRole("ADMIN", "TEACHER", "VIEWER")
                         .requestMatchers("/leaveseat/**").hasAnyRole("ADMIN", "TEACHER")
+                        .requestMatchers("/teacher/me").hasAnyRole("ADMIN", "TEACHER", "VIEWER")
 
                         .requestMatchers("/self-study/**", "/teacher/**", "/student/**").hasRole("ADMIN")
 
