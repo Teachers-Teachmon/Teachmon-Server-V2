@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import solvit.teachmon.domain.place.PlaceNotFoundException;
+import solvit.teachmon.domain.place.exception.PlaceNotFoundException;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.student_schedule.application.dto.PlaceScheduleDto;
