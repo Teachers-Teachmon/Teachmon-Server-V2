@@ -3,7 +3,7 @@ package solvit.teachmon.domain.student_schedule.application.facade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import solvit.teachmon.domain.place.PlaceNotFoundException;
+import solvit.teachmon.domain.place.exception.PlaceNotFoundException;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.student_schedule.application.dto.PlaceScheduleDto;
