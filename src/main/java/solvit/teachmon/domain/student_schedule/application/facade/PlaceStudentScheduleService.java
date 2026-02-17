@@ -67,13 +67,17 @@ public class PlaceStudentScheduleService {
         Map<Integer, Long> afterSchoolCountMap = afterSchoolScheduleRepository.getAfterSchoolPlaceCount(
                 placeFillScheduleMap.getOrDefault(ScheduleType.AFTER_SCHOOL, List.of())
         );
+        Map<Integer, Long> afterSchoolReinfocementCountMap = afterSchoolScheduleRepository.getAfterSchoolReinforcementPlaceCount(
+                placeFillScheduleMap.getOrDefault(ScheduleType.AFTER_SCHOOL_REINFORCEMENT, List.of())
+        );
 
         // 각 층별로 장소 사용 인원 합산
         Map<Integer, Long> result = Stream.of(
                         selfStudyCountMap,
                         additionalSelfStudyCountMap,
                         leaveSeatCountMap,
-                        afterSchoolCountMap
+                        afterSchoolCountMap,
+                        afterSchoolReinfocementCountMap
                 ).flatMap(m -> m.entrySet().stream())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -97,7 +101,8 @@ public class PlaceStudentScheduleService {
                 selfStudyScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.getOrDefault(ScheduleType.SELF_STUDY, List.of()), floor),
                 additionalSelfStudyScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.getOrDefault(ScheduleType.ADDITIONAL_SELF_STUDY, List.of()), floor),
                 leaveSeatScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.getOrDefault(ScheduleType.LEAVE_SEAT, List.of()), floor),
-                afterSchoolScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.getOrDefault(ScheduleType.AFTER_SCHOOL, List.of()), floor)
+                afterSchoolScheduleRepository.getPlaceScheduleByFloor(placeFillScheduleMap.getOrDefault(ScheduleType.AFTER_SCHOOL, List.of()), floor),
+                afterSchoolScheduleRepository.getReinforcementPlaceScheduleByFloor(placeFillScheduleMap.getOrDefault(ScheduleType.AFTER_SCHOOL_REINFORCEMENT, List.of()), floor)
         ).flatMap(List::stream)
                 .toList();
 
@@ -114,7 +119,8 @@ public class PlaceStudentScheduleService {
                 selfStudyScheduleRepository.getStudentScheduleByPlaceAndDayAndPeriod(placeId, day, period),
                 additionalSelfStudyScheduleRepository.getStudentScheduleByPlaceAndDayAndPeriod(placeId, day, period),
                 leaveSeatScheduleRepository.getStudentScheduleByPlaceAndDayAndPeriod(placeId, day, period),
-                afterSchoolScheduleRepository.getStudentScheduleByPlaceAndDayAndPeriod(placeId, day, period)
+                afterSchoolScheduleRepository.getStudentScheduleByPlaceAndDayAndPeriod(placeId, day, period),
+                afterSchoolScheduleRepository.getReinforcementStudentScheduleByPlaceAndDayAndPeriod(placeId, day, period)
         ).flatMap(List::stream)
                 .map(studentScheduleMapper::toStudentScheduleResponse)
                 .toList();
