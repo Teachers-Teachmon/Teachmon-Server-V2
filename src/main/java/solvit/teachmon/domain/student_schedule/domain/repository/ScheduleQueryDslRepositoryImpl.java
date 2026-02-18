@@ -4,6 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.student_schedule.domain.entity.QScheduleEntity;
+import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class ScheduleQueryDslRepositoryImpl implements ScheduleQueryDslRepositor
         QScheduleEntity schedule = QScheduleEntity.scheduleEntity;
         QScheduleEntity subSchedule = new QScheduleEntity("subSchedule");
 
-        // 각 studentScheduleId별로 가장 높은 stackOrder를 가진 Schedule들의 ID 조회
+        // 각 studentScheduleId별로 가장 높은 stackOrder를 가진 Schedule들의 ID 조회 (방과후 타입인 경우만)
         List<Long> scheduleIdsToDelete = queryFactory
                 .select(schedule.id)
                 .from(schedule)
@@ -28,6 +29,7 @@ public class ScheduleQueryDslRepositoryImpl implements ScheduleQueryDslRepositor
                                                 .from(subSchedule)
                                                 .where(subSchedule.studentSchedule.id.eq(schedule.studentSchedule.id))
                                 ))
+                                .and(schedule.type.in(ScheduleType.AFTER_SCHOOL))
                 )
                 .fetch();
 
