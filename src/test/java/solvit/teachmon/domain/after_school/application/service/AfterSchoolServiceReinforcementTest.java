@@ -14,6 +14,7 @@ import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolReposito
 import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDomainService;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundException;
 import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolReinforcementException;
+import solvit.teachmon.domain.after_school.exception.PlaceAlreadyBookedException;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolReinforcementRequestDto;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
@@ -221,6 +222,26 @@ class AfterSchoolServiceReinforcementTest {
         assertThatThrownBy(() -> afterSchoolService.createReinforcement(invalidRequest))
                 .isInstanceOf(InvalidAfterSchoolReinforcementException.class)
                 .hasMessageContaining("보강 교시는 필수입니다.");
+
+        verify(afterSchoolReinforcementRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("같은 날짜/교시에 장소가 예약되어 있으면 예외가 발생한다")
+    void shouldThrowExceptionWhenPlaceAlreadyBooked() {
+        // Given
+        given(afterSchoolRepository.findWithAllRelations(1L))
+                .willReturn(Optional.of(afterSchool));
+        given(placeRepository.findById(1L))
+                .willReturn(Optional.of(place));
+        given(placeRepository.existAfterSchoolPlaceByDayAndPeriodAndPlace(
+                reinforcementRequest.day(),
+                reinforcementRequest.changePeriod(),
+                place)).willReturn(true);
+
+        // When & Then
+        assertThatThrownBy(() -> afterSchoolService.createReinforcement(reinforcementRequest))
+                .isInstanceOf(PlaceAlreadyBookedException.class);
 
         verify(afterSchoolReinforcementRepository, never()).save(any());
     }

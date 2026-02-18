@@ -14,6 +14,7 @@ import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDoma
 import solvit.teachmon.domain.after_school.domain.vo.StudentAssignmentResultVo;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundException;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolBusinessTripScheduleNotFoundException;
+import solvit.teachmon.domain.after_school.exception.PlaceAlreadyBookedException;
 import solvit.teachmon.domain.after_school.presentation.dto.response.*;
 import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
 import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
@@ -273,6 +274,9 @@ public class AfterSchoolService {
     public void createReinforcement(AfterSchoolReinforcementRequestDto requestDto) {
         AfterSchoolEntity afterSchool = getAfterSchoolById(requestDto.afterschoolId());
         PlaceEntity changePlace = getPlaceById(requestDto.changePlaceId());
+        if(placeRepository.existAfterSchoolPlaceByDayAndPeriodAndPlace(requestDto.day(), requestDto.changePeriod(), changePlace)) {
+            throw new PlaceAlreadyBookedException();
+        }
         
         AfterSchoolReinforcementEntity reinforcement = AfterSchoolReinforcementEntity.builder()
                 .changeDay(requestDto.day())
