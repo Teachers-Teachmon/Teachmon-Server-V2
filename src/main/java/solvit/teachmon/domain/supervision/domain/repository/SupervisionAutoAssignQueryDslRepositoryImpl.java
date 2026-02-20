@@ -24,7 +24,7 @@ public class SupervisionAutoAssignQueryDslRepositoryImpl implements SupervisionA
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TeacherSupervisionInfoVo> findTeacherSupervisionInfoByRole(Role role) {
+    public List<TeacherSupervisionInfoVo> findEligibleTeacherSupervisionInfo() {
         QTeacherEntity teacher = QTeacherEntity.teacherEntity;
         QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
 
@@ -38,7 +38,9 @@ public class SupervisionAutoAssignQueryDslRepositoryImpl implements SupervisionA
                 ))
                 .from(teacher)
                 .leftJoin(schedule).on(schedule.teacher.eq(teacher))
-                .where(teacher.role.eq(role).and(teacher.isActive.eq(true)))
+                .where(teacher.role.ne(Role.VIEWER)
+                        .and(teacher.mail.endsWith("@bssm.hs.kr"))
+                        .and(teacher.isActive.eq(true)))
                 .groupBy(teacher.id, teacher.name)
                 .fetch();
     }
