@@ -2,7 +2,6 @@ package solvit.teachmon.domain.supervision.domain.repository;
 
 import solvit.teachmon.domain.supervision.domain.vo.SupervisionBanDayVo;
 import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfoVo;
-import solvit.teachmon.domain.user.domain.enums.Role;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,10 +12,11 @@ import java.util.List;
 public interface SupervisionAutoAssignQueryDslRepository {
 
     /**
-     * Role이 TEACHER인 교사들의 감독 정보 조회
+     * 감독 가능한 교사들의 감독 정보 조회
+     * VIEWER 역할이 아니고 @bssm.hs.kr 메일을 가진 활성 교사들
      * 최근 감독일과 총 감독횟수 포함
      */
-    List<TeacherSupervisionInfoVo> findTeacherSupervisionInfoByRole(Role role);
+    List<TeacherSupervisionInfoVo> findEligibleTeacherSupervisionInfo();
 
     /**
      * 교사들의 금지요일 정보 조회

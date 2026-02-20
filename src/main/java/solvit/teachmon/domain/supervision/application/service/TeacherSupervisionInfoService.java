@@ -7,7 +7,6 @@ import solvit.teachmon.domain.supervision.domain.vo.SupervisionBanDayVo;
 import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfo;
 import solvit.teachmon.domain.supervision.domain.vo.TeacherSupervisionInfoVo;
 import solvit.teachmon.domain.supervision.exception.InsufficientTeachersException;
-import solvit.teachmon.domain.user.domain.enums.Role;
 import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.HashMap;
@@ -34,7 +33,7 @@ public class TeacherSupervisionInfoService {
 
     private List<TeacherSupervisionInfoVo> getTeacherProjections() {
         List<TeacherSupervisionInfoVo> teacherProjections =
-                autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER);
+                autoAssignRepository.findEligibleTeacherSupervisionInfo();
 
         if (teacherProjections.isEmpty()) {
             throw new InsufficientTeachersException("감독 배정 가능한 교사가 없습니다.");

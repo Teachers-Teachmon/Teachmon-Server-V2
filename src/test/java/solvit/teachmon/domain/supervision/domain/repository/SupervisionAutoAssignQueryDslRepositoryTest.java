@@ -50,9 +50,9 @@ class SupervisionAutoAssignQueryDslRepositoryTest {
     @BeforeEach
     void setUp() {
         // 교사 생성
-        teacher1 = createAndSaveTeacher("김선생", "kim@test.com");
-        teacher2 = createAndSaveTeacher("이선생", "lee@test.com");
-        teacher3 = createAndSaveTeacher("박선생", "park@test.com");
+        teacher1 = createAndSaveTeacher("김선생", "kim@bssm.hs.kr");
+        teacher2 = createAndSaveTeacher("이선생", "lee@bssm.hs.kr");
+        teacher3 = createAndSaveTeacher("박선생", "park@bssm.hs.kr");
         
         // 기존 감독 이력 생성
         createSupervisionHistory();
@@ -62,16 +62,16 @@ class SupervisionAutoAssignQueryDslRepositoryTest {
     }
 
     @Test
-    @DisplayName("Role이 TEACHER인 활성 교사들의 감독 정보를 조회할 수 있다")
-    void shouldFindTeacherSupervisionInfoByTeacherRole() {
+    @DisplayName("감독 가능한 활성 교사들의 감독 정보를 조회할 수 있다")
+    void shouldFindEligibleTeacherSupervisionInfo() {
         // Given: 교사들과 감독 이력이 준비됨
 
         // When: 교사 감독 정보 조회
         List<TeacherSupervisionInfoVo> result = 
-                autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER);
+                autoAssignRepository.findEligibleTeacherSupervisionInfo();
 
-        // Then: 모든 교사가 활성 상태이므로 3명 조회됨
-        assertThat(result).hasSize(3); // 모든 교사가 활성 상태
+        // Then: VIEWER가 아니고 @bssm.hs.kr 메일을 가진 활성 교사 3명 조회됨
+        assertThat(result).hasSize(3); // 모든 교사가 조건에 맞음
         
         // 김선생 확인
         var kimTeacher = result.stream()
@@ -165,11 +165,11 @@ class SupervisionAutoAssignQueryDslRepositoryTest {
     @DisplayName("감독 이력이 없는 교사는 총 횟수가 0으로 조회된다")
     void shouldReturnZeroCountForTeachersWithNoHistory() {
         // Given: 감독 이력이 없는 새 교사
-        createAndSaveTeacher("정선생", "jung@test.com");
+        createAndSaveTeacher("정선생", "jung@bssm.hs.kr");
 
         // When: 교사 감독 정보 조회
         List<TeacherSupervisionInfoVo> result = 
-                autoAssignRepository.findTeacherSupervisionInfoByRole(Role.TEACHER);
+                autoAssignRepository.findEligibleTeacherSupervisionInfo();
 
         // Then: 새 교사는 총 횟수 0, 최근 날짜 null
         var newTeacherInfo = result.stream()
@@ -179,6 +179,31 @@ class SupervisionAutoAssignQueryDslRepositoryTest {
         
         assertThat(newTeacherInfo.totalSupervisionCount()).isEqualTo(0L);
         assertThat(newTeacherInfo.lastSupervisionDate()).isNull();
+    }
+
+    @Test
+    @DisplayName("VIEWER 역할이거나 @bssm.hs.kr 메일이 아닌 교사는 조회되지 않는다")
+    void shouldNotFindViewerOrNonBssmTeachers() {
+        // Given: VIEWER 역할 교사와 다른 도메인 메일 교사
+        TeacherEntity viewerTeacher = TeacherEntity.builder()
+                .name("뷰어선생")
+                .mail("viewer@bssm.hs.kr")
+                .providerId("viewer_provider")
+                .oAuth2Type(OAuth2Type.GOOGLE)
+                .build();
+        viewerTeacher.changeRole(Role.VIEWER);
+        teacherRepository.save(viewerTeacher);
+
+        // When: 교사 감독 정보 조회
+        List<TeacherSupervisionInfoVo> result = 
+                autoAssignRepository.findEligibleTeacherSupervisionInfo();
+
+        // Then: VIEWER나 다른 도메인 교사는 조회되지 않음
+        assertThat(result).noneMatch(t -> t.teacherName().equals("뷰어선생"));
+        assertThat(result).noneMatch(t -> t.teacherName().equals("타도메인선생"));
+        
+        // 기존 3명만 조회됨 (각 테스트는 독립적으로 실행됨)
+        assertThat(result).hasSize(3); // 기존 3명
     }
 
     // Helper methods
