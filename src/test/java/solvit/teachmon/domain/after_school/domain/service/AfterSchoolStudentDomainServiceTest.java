@@ -13,6 +13,8 @@ import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import java.util.ArrayList;
 import java.util.List;
 
+import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolStudentRepository;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -22,7 +24,8 @@ import static org.mockito.Mockito.mock;
 @DisplayName("AfterSchoolStudentDomainService 테스트")
 class AfterSchoolStudentDomainServiceTest {
 
-    private final AfterSchoolStudentDomainService service = new AfterSchoolStudentDomainService();
+    private final AfterSchoolStudentRepository repository = mock(AfterSchoolStudentRepository.class);
+    private final AfterSchoolStudentDomainService service = new AfterSchoolStudentDomainService(repository);
 
     @Test
     @DisplayName("학생 배정 시 추가/삭제 학생 정보가 반환된다")
