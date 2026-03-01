@@ -74,19 +74,23 @@ public class SupervisionAutoAssignService {
                 String.format("시작일(%s)이 종료일(%s)보다 늦을 수 없습니다.", startDate, endDate));
         }
         
-        // 다음달에만 자동배정 가능
+        // 이번달과 다음달에만 자동배정 가능
         LocalDate now = LocalDate.now();
-        LocalDate nextMonth = now.plusMonths(1);
         
-        if (startDate.getYear() != nextMonth.getYear() || startDate.getMonth() != nextMonth.getMonth()) {
-            throw new IllegalArgumentException("자동배정은 다음달에만 가능합니다.");
-        }
+        // startDate가 이번달 또는 다음달인지 확인
+        int currentYear = now.getYear();
+        int currentMonth = now.getMonthValue();
+        int startYear = startDate.getYear();
+        int startMonth = startDate.getMonthValue();
         
-        // startDate 전날이 배정되었는지 확인
-        LocalDate previousDay = startDate.minusDays(1);
-        if (previousDay.isAfter(now) || !scheduleRepository.existsByDay(previousDay)) {
+        boolean isCurrentMonth = (startYear == currentYear && startMonth == currentMonth);
+        boolean isNextMonth = (startYear == currentYear && startMonth == currentMonth + 1) ||
+                              (currentMonth == 12 && startYear == currentYear + 1 && startMonth == 1);
+        
+        if (!isCurrentMonth && !isNextMonth) {
             throw new IllegalArgumentException(
-                String.format("전날(%s)의 자동배정이 완료되지 않았습니다.", previousDay));
+                String.format("이번달(%d-%02d) 또는 다음달만 자동배정이 가능합니다.", currentYear, currentMonth));
         }
+
     }
 }
