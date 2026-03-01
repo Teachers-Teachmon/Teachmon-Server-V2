@@ -7,6 +7,7 @@ import org.springframework.util.StringUtils;
 import solvit.teachmon.domain.supervision.application.mapper.SupervisionScheduleRequestMapper;
 import solvit.teachmon.domain.supervision.domain.entity.SupervisionScheduleEntity;
 import solvit.teachmon.domain.supervision.domain.enums.SupervisionType;
+import solvit.teachmon.domain.supervision.domain.repository.SupervisionExchangeRepository;
 import solvit.teachmon.domain.supervision.domain.repository.SupervisionScheduleRepository;
 import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionScheduleCreateRequestDto;
 import solvit.teachmon.domain.supervision.presentation.dto.request.SupervisionScheduleDeleteRequestDto;
@@ -31,6 +32,7 @@ import java.util.List;
 public class SupervisionScheduleService {
 
     private final SupervisionScheduleRepository supervisionScheduleRepository;
+    private final SupervisionExchangeRepository supervisionExchangeRepository;
     private final TeacherRepository teacherRepository;
     private final SupervisionScheduleRequestMapper mapper;
 
@@ -42,6 +44,7 @@ public class SupervisionScheduleService {
     @Transactional
     public void updateSupervisionSchedule(SupervisionScheduleUpdateRequestDto requestDto) {
         // 해당 날짜의 기존 감독 일정들을 모두 삭제
+        supervisionExchangeRepository.deleteExchangeByDay(requestDto.day());
         supervisionScheduleRepository.deleteByDay(requestDto.day());
         
         // 새로운 감독 일정 생성
@@ -106,8 +109,10 @@ public class SupervisionScheduleService {
     @Transactional
     public void deleteSupervisionSchedule(SupervisionScheduleDeleteRequestDto requestDto) {
         if (requestDto.type().isAll()) {
+            supervisionExchangeRepository.deleteExchangeByDay(requestDto.day());
             supervisionScheduleRepository.deleteByDay(requestDto.day());
         } else {
+            supervisionExchangeRepository.deleteExchangeByDayAndType(requestDto.day(), requestDto.type().toSupervisionType());
             supervisionScheduleRepository.deleteByDayAndType(requestDto.day(), requestDto.type().toSupervisionType());
         }
     }
