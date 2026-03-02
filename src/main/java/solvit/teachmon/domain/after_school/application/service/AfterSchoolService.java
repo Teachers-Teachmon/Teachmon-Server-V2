@@ -37,6 +37,7 @@ import solvit.teachmon.domain.student_schedule.domain.repository.StudentSchedule
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.repository.ScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
+import solvit.teachmon.domain.student_schedule.domain.repository.schedules.AfterSchoolScheduleRepository;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
@@ -64,6 +65,7 @@ public class AfterSchoolService {
     private final StudentScheduleRepository studentScheduleRepository;
     private final ScheduleRepository scheduleRepository;
     private final AfterSchoolScheduleService afterSchoolScheduleService;
+    private final AfterSchoolScheduleRepository afterSchoolScheduleRepository;
 
     @Transactional
     public void createAfterSchool(AfterSchoolCreateRequestDto requestDto) {
@@ -110,6 +112,9 @@ public class AfterSchoolService {
         Integer grade = requestDto.grade() != null ? requestDto.grade() : afterSchool.getGrade();
         Integer year = requestDto.year() != null ? requestDto.year() : afterSchool.getYear();
 
+        // 변경사항이 있는지 확인
+        boolean hasChanges = hasAnyChange(teacher, place, weekDay, schoolPeriod, year, name, grade, afterSchool);
+
         afterSchool.updateAfterSchool(
                 teacher,
                 place,
@@ -128,7 +133,21 @@ public class AfterSchoolService {
 
         supervisionBanDayRepository.save(supervisionBanDayEntity);
 
-        updateStudentsIfPresent(requestDto.studentsId(), afterSchool);
+        // 변경사항이 있고 이번주라면 모든 학생들의 스케줄을 업데이트
+        if (hasChanges && isDateInCurrentWeek(LocalDate.now().with(weekDay.toDayOfWeek()))) {
+            List<Long> allStudentIds = afterSchool.getAfterSchoolStudents().stream()
+                    .map(afterSchoolStudent -> afterSchoolStudent.getStudent().getId())
+                    .toList();
+            
+            if (!allStudentIds.isEmpty()) {
+                List<StudentEntity> allStudents = fetchStudentsByIds(allStudentIds);
+                StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(afterSchool, allStudents);
+                afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
+            }
+        }
+        else {
+            updateStudentsIfPresent(requestDto.studentsId(), afterSchool);
+        }
     }
 
     @Transactional
@@ -344,7 +363,20 @@ public class AfterSchoolService {
             throw new AfterSchoolBusinessTripScheduleNotFoundException(afterSchool.getName());
         }
 
+        afterSchoolScheduleRepository.deleteByStudentScheduleIds(studentScheduleIds);
         scheduleRepository.deleteTopSchedulesByStudentScheduleIds(studentScheduleIds);
+    }
+
+    private boolean hasAnyChange(TeacherEntity teacher, PlaceEntity place, WeekDay weekDay, 
+                                SchoolPeriod schoolPeriod, Integer year, String name, Integer grade,
+                                AfterSchoolEntity afterSchool) {
+        return !teacher.equals(afterSchool.getTeacher()) ||
+               !place.equals(afterSchool.getPlace()) ||
+               !weekDay.equals(afterSchool.getWeekDay()) ||
+               !schoolPeriod.equals(afterSchool.getPeriod()) ||
+               !year.equals(afterSchool.getYear()) ||
+               !name.equals(afterSchool.getName()) ||
+               !grade.equals(afterSchool.getGrade());
     }
 
     private void createAfterSchoolReinforcementSchedules(
