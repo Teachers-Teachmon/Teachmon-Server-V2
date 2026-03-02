@@ -72,7 +72,7 @@ public class AfterSchoolService {
     public void createAfterSchool(AfterSchoolCreateRequestDto requestDto) {
         TeacherEntity teacher = getTeacherById(requestDto.teacherId());
         PlaceEntity place = getPlaceById(requestDto.placeId());
-        BranchEntity branch = getCurrentBranch();
+        BranchEntity branch = getBranchByYearAndId(requestDto.year(), requestDto.branch());
         List<StudentEntity> students = fetchStudentsByIds(requestDto.studentsId());
         
         validateStudentsGrade(students, requestDto.grade());
@@ -239,10 +239,8 @@ public class AfterSchoolService {
                 .orElseThrow(PlaceNotFoundException::new);
     }
 
-    private BranchEntity getCurrentBranch() {
-        LocalDate today = LocalDate.now();
-        int currentYear = today.getYear();
-        return branchRepository.findByYearAndDate(currentYear, today)
+    private BranchEntity getBranchByYearAndId(Integer year, Integer branch) {
+        return branchRepository.findByYearAndBranch(year, branch)
                 .orElseThrow(BranchNotFoundException::new);
     }
 
