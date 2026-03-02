@@ -30,6 +30,7 @@ import solvit.teachmon.domain.branch.exception.BranchNotFoundException;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
 import solvit.teachmon.domain.management.student.exception.StudentNotFoundException;
+import solvit.teachmon.domain.management.student.exception.InvalidStudentInfoException;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
@@ -73,6 +74,8 @@ public class AfterSchoolService {
         PlaceEntity place = getPlaceById(requestDto.placeId());
         BranchEntity branch = getCurrentBranch();
         List<StudentEntity> students = fetchStudentsByIds(requestDto.studentsId());
+        
+        validateStudentsGrade(students, requestDto.grade());
 
         AfterSchoolEntity afterSchool = AfterSchoolEntity.builder()
                 .teacher(teacher)
@@ -266,9 +269,12 @@ public class AfterSchoolService {
 
     private void updateStudentsIfPresent(List<Long> studentIds, AfterSchoolEntity afterSchool) {
         if (studentIds == null) return;
+        List<StudentEntity> students = fetchStudentsByIds(studentIds);
+        validateStudentsGrade(students, afterSchool.getGrade());
+        
         StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(
                 afterSchool,
-                fetchStudentsByIds(studentIds)
+                students
         );
         afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
     }
@@ -377,6 +383,16 @@ public class AfterSchoolService {
                !year.equals(afterSchool.getYear()) ||
                !name.equals(afterSchool.getName()) ||
                !grade.equals(afterSchool.getGrade());
+    }
+
+    private void validateStudentsGrade(List<StudentEntity> students, Integer requiredGrade) {
+        List<StudentEntity> invalidGradeStudents = students.stream()
+                .filter(student -> !student.getGrade().equals(requiredGrade))
+                .toList();
+        
+        if (!invalidGradeStudents.isEmpty()) {
+            throw new InvalidStudentInfoException("방과후 수업 학년과 일치하지 않는 학생이 포함되어 있습니다.");
+        }
     }
 
     private void createAfterSchoolReinforcementSchedules(
