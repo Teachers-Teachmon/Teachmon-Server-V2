@@ -26,6 +26,7 @@ import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEnti
 import solvit.teachmon.domain.student_schedule.domain.repository.StudentScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.ScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.schedules.AfterSchoolScheduleRepository;
+import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
 import solvit.teachmon.global.enums.SchoolPeriod;
 import solvit.teachmon.global.enums.WeekDay;
@@ -274,6 +275,8 @@ class AfterSchoolServiceBusinessTripTest {
                 afterSchool, currentWeekDate, SchoolPeriod.ONE_PERIOD)).willReturn(schedules);
         given(schedule1.getId()).willReturn(1L);
         given(schedule2.getId()).willReturn(2L);
+        given(scheduleRepository.findTopScheduleIdsByStudentScheduleIds(List.of(1L, 2L), ScheduleType.AFTER_SCHOOL))
+                .willReturn(List.of(10L, 20L)); // 실제 Schedule ID들
 
         // When
         afterSchoolService.createBusinessTrip(currentWeekRequest);
@@ -282,7 +285,9 @@ class AfterSchoolServiceBusinessTripTest {
         verify(afterSchoolBusinessTripRepository).save(any(AfterSchoolBusinessTripEntity.class));
         verify(studentScheduleRepository).findAllByAfterSchoolAndDayAndPeriod(
                 afterSchool, currentWeekDate, SchoolPeriod.ONE_PERIOD);
-        verify(scheduleRepository).deleteTopSchedulesByStudentScheduleIds(List.of(1L, 2L));
+        verify(scheduleRepository).findTopScheduleIdsByStudentScheduleIds(List.of(1L, 2L), ScheduleType.AFTER_SCHOOL);
+        verify(afterSchoolScheduleRepository).deleteByScheduleIds(any());
+        verify(scheduleRepository).deleteByIds(any());
     }
 
     @Test
@@ -302,7 +307,7 @@ class AfterSchoolServiceBusinessTripTest {
         // Then
         verify(afterSchoolBusinessTripRepository).save(any(AfterSchoolBusinessTripEntity.class));
         verify(studentScheduleRepository, never()).findAllByAfterSchoolAndDayAndPeriod(any(), any(), any());
-        verify(scheduleRepository, never()).deleteTopSchedulesByStudentScheduleIds(any());
+        verify(scheduleRepository, never()).findTopScheduleIdsByStudentScheduleIds(any(), any());
     }
 
     @Test
@@ -326,7 +331,7 @@ class AfterSchoolServiceBusinessTripTest {
                 .hasMessageContaining("테스트 방과후");
 
         verify(afterSchoolBusinessTripRepository).save(any(AfterSchoolBusinessTripEntity.class));
-        verify(scheduleRepository, never()).deleteTopSchedulesByStudentScheduleIds(any());
+        verify(scheduleRepository, never()).findTopScheduleIdsByStudentScheduleIds(any(), any());
     }
 
     @Test

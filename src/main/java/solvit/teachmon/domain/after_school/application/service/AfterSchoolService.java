@@ -369,8 +369,15 @@ public class AfterSchoolService {
             throw new AfterSchoolBusinessTripScheduleNotFoundException(afterSchool.getName());
         }
 
-        afterSchoolScheduleRepository.deleteByStudentScheduleIds(studentScheduleIds);
-        scheduleRepository.deleteTopSchedulesByStudentScheduleIds(studentScheduleIds);
+        // 먼저 각 StudentSchedule의 최상위 Schedule ID들을 조회 (AFTER_SCHOOL 타입만)
+        List<Long> scheduleIds = scheduleRepository.findTopScheduleIdsByStudentScheduleIds(studentScheduleIds, ScheduleType.AFTER_SCHOOL);
+        
+        if (!scheduleIds.isEmpty()) {
+            // 그 다음 after_school_schedule 테이블의 참조 레코드들을 삭제
+            afterSchoolScheduleRepository.deleteByScheduleIds(scheduleIds);
+            // 마지막으로 schedule 테이블의 레코드들을 삭제
+            scheduleRepository.deleteByIds(scheduleIds);
+        }
     }
 
     private boolean hasAnyChange(TeacherEntity teacher, PlaceEntity place, WeekDay weekDay, 
