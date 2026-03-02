@@ -4,6 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.student_schedule.domain.entity.QScheduleEntity;
+import solvit.teachmon.domain.student_schedule.domain.entity.schedules.QAfterSchoolScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
 
 import java.util.List;
@@ -35,6 +36,14 @@ public class ScheduleQueryDslRepositoryImpl implements ScheduleQueryDslRepositor
 
         // 조회된 Schedule들을 일괄 삭제
         if (!scheduleIdsToDelete.isEmpty()) {
+            // 먼저 after_school_schedule 테이블의 참조 레코드들을 삭제
+            QAfterSchoolScheduleEntity afterSchoolSchedule = QAfterSchoolScheduleEntity.afterSchoolScheduleEntity;
+            queryFactory
+                    .delete(afterSchoolSchedule)
+                    .where(afterSchoolSchedule.schedule.id.in(scheduleIdsToDelete))
+                    .execute();
+            
+            // 그 다음 schedule 테이블의 레코드들을 삭제
             queryFactory
                     .delete(schedule)
                     .where(schedule.id.in(scheduleIdsToDelete))

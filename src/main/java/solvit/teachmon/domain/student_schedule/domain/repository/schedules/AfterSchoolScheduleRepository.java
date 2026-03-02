@@ -13,6 +13,6 @@ import java.util.List;
 public interface AfterSchoolScheduleRepository extends JpaRepository<AfterSchoolScheduleEntity, Long>, AfterSchoolScheduleQueryDslRepository {
 
     @Modifying
-    @Query("DELETE FROM AfterSchoolScheduleEntity a WHERE a.schedule.id IN :studentScheduleIds")
-    void deleteByStudentScheduleIds(@Param("studentScheduleIds") List<Long> studentScheduleIds);
+    @Query("DELETE FROM AfterSchoolScheduleEntity a WHERE a.schedule.id IN :scheduleIds")
+    void deleteByScheduleIds(@Param("scheduleIds") List<Long> scheduleIds);
 }
