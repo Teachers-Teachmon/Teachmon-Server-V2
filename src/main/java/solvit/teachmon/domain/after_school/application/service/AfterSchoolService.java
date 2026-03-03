@@ -50,6 +50,8 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -188,7 +190,7 @@ public class AfterSchoolService {
     public List<AfterSchoolByTeacherResponseDto> getAfterSchoolsByTeacherId(Long teacherId) {
         List<AfterSchoolEntity> afterSchools = afterSchoolRepository.findByTeacherIdWithRelations(teacherId);
         
-        return afterSchools.stream()
+        List<AfterSchoolByTeacherResponseDto> responseList = afterSchools.stream()
                 .map(afterSchool -> {
                     // 보강 횟수 계산
                     int reinforcementCount = afterSchoolReinforcementRepository
@@ -209,7 +211,70 @@ public class AfterSchoolService {
                             reinforcementCount
                     );
                 })
-                .toList();
+                .collect(Collectors.toList());
+                
+        return mergeContinuousPeriods(responseList);
+    }
+    
+    private List<AfterSchoolByTeacherResponseDto> mergeContinuousPeriods(List<AfterSchoolByTeacherResponseDto> responseList) {
+        Map<String, List<AfterSchoolByTeacherResponseDto>> groupedByWeekDay = responseList.stream()
+                .collect(Collectors.groupingBy(AfterSchoolByTeacherResponseDto::weekDay));
+                
+        List<AfterSchoolByTeacherResponseDto> mergedList = new ArrayList<>();
+        
+        // 원본 순서를 유지하기 위해 원본 리스트를 순회
+        for (AfterSchoolByTeacherResponseDto dto : responseList) {
+            String weekDay = dto.weekDay();
+            List<AfterSchoolByTeacherResponseDto> dayGroup = groupedByWeekDay.get(weekDay);
+            
+            // 이미 처리한 요일은 건너뛰기
+            if (dayGroup == null) continue;
+            
+            boolean hasEightNine = dayGroup.stream().anyMatch(d -> "8~9교시".equals(d.period()));
+            boolean hasTenEleven = dayGroup.stream().anyMatch(d -> "10~11교시".equals(d.period()));
+            
+            if (hasEightNine && hasTenEleven) {
+                // 8~9교시와 10~11교시를 찾아서 8~11교시로 합치기
+                AfterSchoolByTeacherResponseDto eightNineDto = dayGroup.stream()
+                        .filter(d -> "8~9교시".equals(d.period()))
+                        .findFirst()
+                        .orElse(null);
+                
+                AfterSchoolByTeacherResponseDto tenElevenDto = dayGroup.stream()
+                        .filter(d -> "10~11교시".equals(d.period()))
+                        .findFirst()
+                        .orElse(null);
+                
+                if (eightNineDto != null && tenElevenDto != null) {
+                    // 8~11교시로 합친 DTO 생성 (8~9교시 기준으로)
+                    AfterSchoolByTeacherResponseDto mergedDto = new AfterSchoolByTeacherResponseDto(
+                            eightNineDto.id(),
+                            eightNineDto.weekDay(),
+                            "8~11교시",
+                            eightNineDto.name(),
+                            eightNineDto.place(),
+                            eightNineDto.reinforcementCount() + tenElevenDto.reinforcementCount()
+                    );
+                    
+                    mergedList.add(mergedDto);
+                    
+                    // 나머지 교시들 추가 (8~9교시, 10~11교시 제외)
+                    dayGroup.stream()
+                            .filter(d -> !"8~9교시".equals(d.period()) && !"10~11교시".equals(d.period()))
+                            .forEach(mergedList::add);
+                } else {
+                    mergedList.addAll(dayGroup);
+                }
+            } else {
+                // 연속 교시가 아니면 원본대로 추가
+                mergedList.add(dto);
+            }
+            
+            // 처리한 요일을 맵에서 제거하여 중복 처리 방지
+            groupedByWeekDay.remove(weekDay);
+        }
+        
+        return mergedList;
     }
 
     @Transactional(readOnly = true)
