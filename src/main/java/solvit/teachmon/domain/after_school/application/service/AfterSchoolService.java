@@ -332,9 +332,28 @@ public class AfterSchoolService {
                            d.name().equals(dto.name()) &&
                            d.teacher().id().equals(dto.teacher().id()) &&
                            d.place().id().equals(dto.place().id()) &&
+                           hasSameStudents(d.students(), dto.students()) &&
                            !processedDtos.contains(d))
                 .findFirst()
                 .orElse(null);
+    }
+    
+    private boolean hasSameStudents(List<StudentInfo> students1, List<StudentInfo> students2) {
+        if (students1.size() != students2.size()) {
+            return false;
+        }
+        
+        // 학생 ID로 비교 (순서는 상관없음)
+        List<Long> ids1 = students1.stream()
+                .map(StudentInfo::id)
+                .sorted()
+                .toList();
+        List<Long> ids2 = students2.stream()
+                .map(StudentInfo::id)
+                .sorted()
+                .toList();
+                
+        return ids1.equals(ids2);
     }
     
     private AfterSchoolResponseDto createMergedDto(AfterSchoolResponseDto eightNineDto, 
