@@ -105,7 +105,7 @@ public class AfterSchoolService {
     }
 
     @Transactional
-    public synchronized void updateAfterSchool(AfterSchoolUpdateRequestDto requestDto) {
+    public void updateAfterSchool(AfterSchoolUpdateRequestDto requestDto) {
         AfterSchoolEntity afterSchool = getAfterSchoolById(requestDto.afterSchoolId());
         supervisionBanDayRepository.deleteAfterSchoolBanDay(afterSchool.getTeacher().getId(), afterSchool.getWeekDay());
 
