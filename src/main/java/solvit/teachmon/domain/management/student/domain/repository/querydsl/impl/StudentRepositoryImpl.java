@@ -1,6 +1,5 @@
 package solvit.teachmon.domain.management.student.domain.repository.querydsl.impl;
 
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -35,7 +34,8 @@ public class StudentRepositoryImpl implements StudentQueryDslRepository {
         
         String trimmedKeyword = keyword.trim();
         
-        return queryFactory.select(
+        // 모든 학생을 조회하고 Java에서 필터링
+        List<StudentSearchResponseDto> allStudents = queryFactory.select(
                 new QStudentSearchResponseDto(
                         studentEntity.id,
                         studentEntity.grade,
@@ -45,17 +45,34 @@ public class StudentRepositoryImpl implements StudentQueryDslRepository {
                 )
         )
         .from(studentEntity)
-        .where(studentEntity.name.containsIgnoreCase(trimmedKeyword)
-                .or(studentEntity.grade.stringValue()
-                    .concat("-")
-                    .concat(studentEntity.classNumber.stringValue())
-                    .concat("-")
-                    .concat(studentEntity.number.stringValue())
-                    .containsIgnoreCase(trimmedKeyword))
-                .or(studentEntity.grade.stringValue()
-                    .concat(studentEntity.classNumber.stringValue())
-                    .concat(Expressions.stringTemplate("LPAD(CAST({0} AS VARCHAR), 2, '0')", studentEntity.number))
-                    .containsIgnoreCase(trimmedKeyword)))
         .fetch();
+        
+        // Java에서 검색 로직 처리
+        return allStudents.stream()
+                .filter(student -> matchesKeyword(student, trimmedKeyword))
+                .toList();
+    }
+    
+    private boolean matchesKeyword(StudentSearchResponseDto student, String keyword) {
+        // 1. 이름 검색
+        if (student.name().toLowerCase().contains(keyword.toLowerCase())) {
+            return true;
+        }
+        
+        // 2. "1-1-3" 형태 검색
+        String dashFormat = student.grade() + "-" + student.classNumber() + "-" + student.number();
+        if (dashFormat.toLowerCase().contains(keyword.toLowerCase())) {
+            return true;
+        }
+        
+        // 3. "113" 형태 검색 (기본)
+        String basicFormat = "" + student.grade() + student.classNumber() + student.number();
+        if (basicFormat.toLowerCase().contains(keyword.toLowerCase())) {
+            return true;
+        }
+        
+        // 4. "1103" 형태 검색 (zero-padding)
+        String paddedFormat = "" + student.grade() + student.classNumber() + String.format("%02d", student.number());
+        return paddedFormat.toLowerCase().contains(keyword.toLowerCase());
     }
 }
