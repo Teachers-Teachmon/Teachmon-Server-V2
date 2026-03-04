@@ -35,11 +35,10 @@ public class TeachmonOAuth2UserFacade extends DefaultOAuth2UserService {
     }
 
     public TeacherEntity processTeacher(TeachmonOAuth2UserInfo teachmonOAuth2UserInfo) {
-        return teacherRepository.findByProviderIdAndOAuth2Type(
-                teachmonOAuth2UserInfo.providerId(),
-                teachmonOAuth2UserInfo.oAuth2Type()
+        return teacherRepository.findByMail(
+                teachmonOAuth2UserInfo.mail()
         ).map(teacher -> {
-            teacher.update(teachmonOAuth2UserInfo.name(), teachmonOAuth2UserInfo.profile());
+            teacher.update(teachmonOAuth2UserInfo.name(), teachmonOAuth2UserInfo.profile(), teachmonOAuth2UserInfo.providerId());
             return teacher;
         }).orElseGet(() -> {
             TeacherEntity teacherEntity = TeacherEntity.builder()
