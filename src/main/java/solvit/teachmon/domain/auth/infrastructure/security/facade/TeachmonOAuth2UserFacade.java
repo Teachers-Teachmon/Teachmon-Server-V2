@@ -41,7 +41,7 @@ public class TeachmonOAuth2UserFacade extends DefaultOAuth2UserService {
                 teachmonOAuth2UserInfo.mail()
         ).map(teacher -> {
             teacher.update(teachmonOAuth2UserInfo.name(), teachmonOAuth2UserInfo.profile(), teachmonOAuth2UserInfo.providerId());
-            return teacher;
+            return teacherRepository.save(teacher);
         }).orElseGet(() -> {
             TeacherEntity teacherEntity = TeacherEntity.builder()
                     .name(teachmonOAuth2UserInfo.name())

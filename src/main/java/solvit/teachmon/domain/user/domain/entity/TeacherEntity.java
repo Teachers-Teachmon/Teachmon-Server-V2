@@ -51,7 +51,7 @@ public class TeacherEntity extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Column(name = "provider_id", updatable = false)
+    @Column(name = "provider_id")
     private String providerId;
 
     @Column(name = "oauth2_type", updatable = false)
@@ -135,7 +135,6 @@ public class TeacherEntity extends BaseEntity {
         this.name = name;
         this.profile = profile;
         this.providerId = providerId;
-        this.oAuth2Type = OAuth2Type.GOOGLE;
     }
 
     public Boolean hasStudentScheduleChangeAuthority() {
