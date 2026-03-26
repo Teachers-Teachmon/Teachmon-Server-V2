@@ -167,7 +167,13 @@ public class AfterSchoolService {
         afterSchoolBusinessTripRepository.deleteAllByAfterSchool(afterSchool);
         afterSchoolReinforcementRepository.deleteAllByAfterSchool(afterSchool);
         supervisionBanDayRepository.deleteAfterSchoolBanDay(afterSchool.getTeacher().getId(), afterSchool.getWeekDay());
-        
+
+        List<Long> scheduleIds = afterSchoolScheduleRepository.findScheduleIdsByAfterSchoolId(afterSchoolId);
+        afterSchoolScheduleRepository.deleteByAfterSchoolId(afterSchoolId);
+        if (!scheduleIds.isEmpty()) {
+            scheduleRepository.deleteByIds(scheduleIds);
+        }
+
         afterSchoolRepository.delete(afterSchool);
     }
 
