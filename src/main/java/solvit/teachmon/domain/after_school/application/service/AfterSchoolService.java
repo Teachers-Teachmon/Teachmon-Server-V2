@@ -8,6 +8,7 @@ import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolBusinessTrip
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolEntity;
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolReinforcementEntity;
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolStudentEntity;
+import solvit.teachmon.domain.after_school.domain.enums.AfterSchoolUpdatePeriod;
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolBusinessTripRepository;
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolReinforcementRepository;
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolRepository;
@@ -15,6 +16,7 @@ import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDoma
 import solvit.teachmon.domain.after_school.domain.vo.StudentAssignmentResultVo;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundException;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolBusinessTripScheduleNotFoundException;
+import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolInfoException;
 import solvit.teachmon.domain.after_school.exception.PlaceAlreadyBookedException;
 import solvit.teachmon.domain.after_school.presentation.dto.response.*;
 import solvit.teachmon.domain.after_school.presentation.dto.response.StudentInfo;
@@ -110,18 +112,44 @@ public class AfterSchoolService {
 
     @Transactional
     public void updateAfterSchool(AfterSchoolUpdateRequestDto requestDto) {
-        AfterSchoolEntity afterSchool = getAfterSchoolById(requestDto.afterSchoolId());
+        List<Long> afterSchoolIds = requestDto.afterSchoolIds();
+        AfterSchoolUpdatePeriod requestedPeriod = requestDto.requestedPeriod();
+
+        if (afterSchoolIds.isEmpty()) {
+            throw new InvalidAfterSchoolInfoException("수정할 방과후 ID가 필요합니다.");
+        }
+
+        if (afterSchoolIds.size() == 1) {
+            if (requestedPeriod != null && requestedPeriod.isCombined()) {
+                throw new InvalidAfterSchoolInfoException("8~11교시 수정은 병합된 방과후 ID가 필요합니다.");
+            }
+            updateSingleAfterSchool(afterSchoolIds.getFirst(), requestDto, requestedPeriod);
+            return;
+        }
+
+        if (afterSchoolIds.size() != 2) {
+            throw new InvalidAfterSchoolInfoException("병합 방과후 수정은 두 개의 ID만 지원합니다.");
+        }
+
+        updateCombinedAfterSchool(afterSchoolIds, requestDto, requestedPeriod);
+    }
+
+    private void updateSingleAfterSchool(
+            Long afterSchoolId,
+            AfterSchoolUpdateRequestDto requestDto,
+            AfterSchoolUpdatePeriod requestedPeriod
+    ) {
+        AfterSchoolEntity afterSchool = getAfterSchoolById(afterSchoolId);
         supervisionBanDayRepository.deleteAfterSchoolBanDay(afterSchool.getTeacher().getId(), afterSchool.getWeekDay());
 
         TeacherEntity teacher = resolveTeacher(requestDto.teacherId(), afterSchool);
         PlaceEntity place = resolvePlace(requestDto.placeId(), afterSchool);
         WeekDay weekDay = resolveWeekDay(requestDto.weekDay(), afterSchool);
-        SchoolPeriod schoolPeriod = resolveSchoolPeriod(requestDto.period(), afterSchool);
+        SchoolPeriod schoolPeriod = resolveSchoolPeriod(requestedPeriod, afterSchool);
         String name = requestDto.name() != null ? requestDto.name() : afterSchool.getName();
         Integer grade = requestDto.grade() != null ? requestDto.grade() : afterSchool.getGrade();
         Integer year = requestDto.year() != null ? requestDto.year() : afterSchool.getYear();
 
-        // 변경사항이 있는지 확인
         boolean hasChanges = hasAnyChange(teacher, place, weekDay, schoolPeriod, year, name, grade, afterSchool);
 
         afterSchool.updateAfterSchool(
@@ -136,13 +164,12 @@ public class AfterSchoolService {
 
         SupervisionBanDayEntity supervisionBanDayEntity = SupervisionBanDayEntity.builder()
                 .teacher(teacher)
-                .weekDay(requestDto.weekDay())
+                .weekDay(weekDay)
                 .isAfterschool(true)
                 .build();
 
         supervisionBanDayRepository.save(supervisionBanDayEntity);
 
-        // 변경사항이 있고 이번주라면 모든 학생들의 스케줄을 업데이트
         if (hasChanges && isDateInCurrentWeek(LocalDate.now().with(weekDay.toDayOfWeek()))) {
             List<Long> allStudentIds = afterSchool.getAfterSchoolStudents().stream()
                     .map(afterSchoolStudent -> afterSchoolStudent.getStudent().getId())
@@ -157,6 +184,24 @@ public class AfterSchoolService {
         else {
             updateStudentsIfPresent(requestDto.studentsId(), afterSchool);
         }
+    }
+
+    private void updateCombinedAfterSchool(
+            List<Long> afterSchoolIds,
+            AfterSchoolUpdateRequestDto requestDto,
+            AfterSchoolUpdatePeriod requestedPeriod
+    ) {
+        if (requestedPeriod == null || requestedPeriod.isCombined()) {
+            updateSingleAfterSchool(afterSchoolIds.get(0), requestDto, AfterSchoolUpdatePeriod.EIGHT_AND_NINE_PERIOD);
+            updateSingleAfterSchool(afterSchoolIds.get(1), requestDto, AfterSchoolUpdatePeriod.TEN_AND_ELEVEN_PERIOD);
+            return;
+        }
+
+        int targetIndex = requestedPeriod == AfterSchoolUpdatePeriod.TEN_AND_ELEVEN_PERIOD ? 1 : 0;
+        int deleteIndex = targetIndex == 0 ? 1 : 0;
+
+        deleteAfterSchool(afterSchoolIds.get(deleteIndex));
+        updateSingleAfterSchool(afterSchoolIds.get(targetIndex), requestDto, requestedPeriod);
     }
 
     @Transactional
@@ -441,8 +486,8 @@ public class AfterSchoolService {
         return weekDay != null ? weekDay : afterSchool.getWeekDay();
     }
 
-    private SchoolPeriod resolveSchoolPeriod(SchoolPeriod period, AfterSchoolEntity afterSchool) {
-        return period != null ? period : afterSchool.getPeriod();
+    private SchoolPeriod resolveSchoolPeriod(AfterSchoolUpdatePeriod period, AfterSchoolEntity afterSchool) {
+        return period != null ? period.toSchoolPeriod() : afterSchool.getPeriod();
     }
 
     private void updateStudentsIfPresent(List<Long> studentIds, AfterSchoolEntity afterSchool) {
