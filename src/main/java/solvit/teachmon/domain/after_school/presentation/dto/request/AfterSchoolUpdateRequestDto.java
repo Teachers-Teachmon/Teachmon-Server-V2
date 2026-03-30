@@ -12,7 +12,7 @@ import java.util.List;
 public record AfterSchoolUpdateRequestDto(
         @JsonProperty("after_school_id")
         @NotNull(message = "방과후 수정 요청에서 after_school_id는 필수입니다.")
-        Long afterSchoolId,
+        String afterSchoolId,
 
         @Min(value = 2000, message = "연도는 2000년 이상이어야 합니다.")
         @Max(value = 2100, message = "연도는 2100년 이하여야 합니다.")
@@ -25,7 +25,7 @@ public record AfterSchoolUpdateRequestDto(
         @JsonProperty("week_day")
         WeekDay weekDay,
 
-        SchoolPeriod period,
+        String period,
 
         @JsonProperty("teacher_id")
         Long teacherId,

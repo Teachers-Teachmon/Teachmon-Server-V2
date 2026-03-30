@@ -13,33 +13,33 @@ import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolReinforc
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolRepository;
 import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDomainService;
 import solvit.teachmon.domain.after_school.domain.vo.StudentAssignmentResultVo;
-import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundException;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolBusinessTripScheduleNotFoundException;
+import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundException;
 import solvit.teachmon.domain.after_school.exception.PlaceAlreadyBookedException;
-import solvit.teachmon.domain.after_school.presentation.dto.response.*;
-import solvit.teachmon.domain.after_school.presentation.dto.response.StudentInfo;
-import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
-import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
-import solvit.teachmon.domain.place.exception.PlaceNotFoundException;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolBusinessTripRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolCreateRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolReinforcementRequestDto;
-import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolUpdateRequestDto;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolSearchRequestDto;
+import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolUpdateRequestDto;
+import solvit.teachmon.domain.after_school.presentation.dto.response.*;
+import solvit.teachmon.domain.after_school.presentation.dto.response.StudentInfo;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.branch.exception.BranchNotFoundException;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.management.student.domain.repository.StudentRepository;
-import solvit.teachmon.domain.management.student.exception.StudentNotFoundException;
 import solvit.teachmon.domain.management.student.exception.InvalidStudentInfoException;
+import solvit.teachmon.domain.management.student.exception.StudentNotFoundException;
+import solvit.teachmon.domain.management.teacher.domain.entity.SupervisionBanDayEntity;
+import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
-import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
-import solvit.teachmon.domain.student_schedule.domain.repository.StudentScheduleRepository;
+import solvit.teachmon.domain.place.exception.PlaceNotFoundException;
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
-import solvit.teachmon.domain.student_schedule.domain.repository.ScheduleRepository;
+import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.enums.ScheduleType;
+import solvit.teachmon.domain.student_schedule.domain.repository.ScheduleRepository;
+import solvit.teachmon.domain.student_schedule.domain.repository.StudentScheduleRepository;
 import solvit.teachmon.domain.student_schedule.domain.repository.schedules.AfterSchoolScheduleRepository;
 import solvit.teachmon.domain.user.domain.entity.TeacherEntity;
 import solvit.teachmon.domain.user.domain.repository.TeacherRepository;
@@ -50,6 +50,7 @@ import solvit.teachmon.global.enums.WeekDay;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +81,7 @@ public class AfterSchoolService {
         PlaceEntity place = getPlaceById(requestDto.placeId());
         BranchEntity branch = getBranchByYearAndId(requestDto.year(), requestDto.branch());
         List<StudentEntity> students = fetchStudentsByIds(requestDto.studentsId());
-        
+
         validateStudentsGrade(students, requestDto.grade());
 
         AfterSchoolEntity afterSchool = AfterSchoolEntity.builder()
@@ -95,7 +96,7 @@ public class AfterSchoolService {
                 .build();
 
         afterSchoolRepository.save(afterSchool);
-        
+
         StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(afterSchool, students);
         afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
 
@@ -110,7 +111,17 @@ public class AfterSchoolService {
 
     @Transactional
     public void updateAfterSchool(AfterSchoolUpdateRequestDto requestDto) {
-        AfterSchoolEntity afterSchool = getAfterSchoolById(requestDto.afterSchoolId());
+        if (isMergedUpdateRequest(requestDto)) {
+            updateMergedAfterSchool(requestDto);
+            return;
+        }
+
+        updateSingleAfterSchool(requestDto);
+    }
+
+    @Transactional
+    public void updateSingleAfterSchool(AfterSchoolUpdateRequestDto requestDto) {
+        AfterSchoolEntity afterSchool = getAfterSchoolById(parseSingleAfterSchoolId(requestDto.afterSchoolId()));
         supervisionBanDayRepository.deleteAfterSchoolBanDay(afterSchool.getTeacher().getId(), afterSchool.getWeekDay());
 
         TeacherEntity teacher = resolveTeacher(requestDto.teacherId(), afterSchool);
@@ -121,7 +132,6 @@ public class AfterSchoolService {
         Integer grade = requestDto.grade() != null ? requestDto.grade() : afterSchool.getGrade();
         Integer year = requestDto.year() != null ? requestDto.year() : afterSchool.getYear();
 
-        // 변경사항이 있는지 확인
         boolean hasChanges = hasAnyChange(teacher, place, weekDay, schoolPeriod, year, name, grade, afterSchool);
 
         afterSchool.updateAfterSchool(
@@ -136,26 +146,116 @@ public class AfterSchoolService {
 
         SupervisionBanDayEntity supervisionBanDayEntity = SupervisionBanDayEntity.builder()
                 .teacher(teacher)
-                .weekDay(requestDto.weekDay())
+                .weekDay(weekDay)
                 .isAfterschool(true)
                 .build();
 
         supervisionBanDayRepository.save(supervisionBanDayEntity);
 
-        // 변경사항이 있고 이번주라면 모든 학생들의 스케줄을 업데이트
         if (hasChanges && isDateInCurrentWeek(LocalDate.now().with(weekDay.toDayOfWeek()))) {
             List<Long> allStudentIds = afterSchool.getAfterSchoolStudents().stream()
                     .map(afterSchoolStudent -> afterSchoolStudent.getStudent().getId())
                     .toList();
-            
+
             if (!allStudentIds.isEmpty()) {
                 List<StudentEntity> allStudents = fetchStudentsByIds(allStudentIds);
-                StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(afterSchool, allStudents);
+                StudentAssignmentResultVo studentAssignmentResultVo =
+                        afterSchoolStudentDomainService.assignStudents(afterSchool, allStudents);
                 afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
             }
-        }
-        else {
+        } else {
             updateStudentsIfPresent(requestDto.studentsId(), afterSchool);
+        }
+    }
+
+    @Transactional
+    public void updateMergedAfterSchool(AfterSchoolUpdateRequestDto requestDto) {
+        List<Long> ids = parseMergedAfterSchoolIds(requestDto.afterSchoolId());
+
+        if (ids.size() != 2) {
+            throw new IllegalArgumentException("8~11교시 수정은 2개의 방과후 ID가 필요합니다.");
+        }
+
+        AfterSchoolEntity first = getAfterSchoolById(ids.get(0));
+        AfterSchoolEntity second = getAfterSchoolById(ids.get(1));
+
+        supervisionBanDayRepository.deleteAfterSchoolBanDay(first.getTeacher().getId(), first.getWeekDay());
+        if (!first.getTeacher().getId().equals(second.getTeacher().getId())
+                || !first.getWeekDay().equals(second.getWeekDay())) {
+            supervisionBanDayRepository.deleteAfterSchoolBanDay(second.getTeacher().getId(), second.getWeekDay());
+        }
+
+        TeacherEntity teacher = resolveTeacher(requestDto.teacherId(), first);
+        PlaceEntity place = resolvePlace(requestDto.placeId(), first);
+        WeekDay weekDay = resolveWeekDay(requestDto.weekDay(), first);
+        String name = requestDto.name() != null ? requestDto.name() : first.getName();
+        Integer grade = requestDto.grade() != null ? requestDto.grade() : first.getGrade();
+        Integer year = requestDto.year() != null ? requestDto.year() : first.getYear();
+
+        boolean firstChanged = hasAnyChange(
+                teacher, place, weekDay, SchoolPeriod.EIGHT_AND_NINE_PERIOD, year, name, grade, first
+        );
+        boolean secondChanged = hasAnyChange(
+                teacher, place, weekDay, SchoolPeriod.TEN_AND_ELEVEN_PERIOD, year, name, grade, second
+        );
+
+        first.updateAfterSchool(
+                teacher,
+                place,
+                weekDay,
+                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
+                year,
+                name,
+                grade
+        );
+
+        second.updateAfterSchool(
+                teacher,
+                place,
+                weekDay,
+                SchoolPeriod.TEN_AND_ELEVEN_PERIOD,
+                year,
+                name,
+                grade
+        );
+
+        SupervisionBanDayEntity supervisionBanDayEntity = SupervisionBanDayEntity.builder()
+                .teacher(teacher)
+                .weekDay(weekDay)
+                .isAfterschool(true)
+                .build();
+
+        supervisionBanDayRepository.save(supervisionBanDayEntity);
+
+        if (requestDto.studentsId() != null) {
+            List<StudentEntity> students = fetchStudentsByIds(requestDto.studentsId());
+            validateStudentsGrade(students, grade);
+
+            StudentAssignmentResultVo firstResult = afterSchoolStudentDomainService.assignStudents(first, students);
+            StudentAssignmentResultVo secondResult = afterSchoolStudentDomainService.assignStudents(second, students);
+            afterSchoolScheduleService.save(List.of(firstResult, secondResult));
+        } else if ((firstChanged || secondChanged) && isDateInCurrentWeek(LocalDate.now().with(weekDay.toDayOfWeek()))) {
+            List<StudentAssignmentResultVo> results = new ArrayList<>();
+
+            List<Long> firstStudentIds = first.getAfterSchoolStudents().stream()
+                    .map(afterSchoolStudent -> afterSchoolStudent.getStudent().getId())
+                    .toList();
+            if (!firstStudentIds.isEmpty()) {
+                List<StudentEntity> firstStudents = fetchStudentsByIds(firstStudentIds);
+                results.add(afterSchoolStudentDomainService.assignStudents(first, firstStudents));
+            }
+
+            List<Long> secondStudentIds = second.getAfterSchoolStudents().stream()
+                    .map(afterSchoolStudent -> afterSchoolStudent.getStudent().getId())
+                    .toList();
+            if (!secondStudentIds.isEmpty()) {
+                List<StudentEntity> secondStudents = fetchStudentsByIds(secondStudentIds);
+                results.add(afterSchoolStudentDomainService.assignStudents(second, secondStudents));
+            }
+
+            if (!results.isEmpty()) {
+                afterSchoolScheduleService.save(results);
+            }
         }
     }
 
@@ -167,7 +267,7 @@ public class AfterSchoolService {
         afterSchoolBusinessTripRepository.deleteAllByAfterSchool(afterSchool);
         afterSchoolReinforcementRepository.deleteAllByAfterSchool(afterSchool);
         supervisionBanDayRepository.deleteAfterSchoolBanDay(afterSchool.getTeacher().getId(), afterSchool.getWeekDay());
-        
+
         afterSchoolRepository.delete(afterSchool);
     }
 
@@ -195,10 +295,9 @@ public class AfterSchoolService {
 
     public List<AfterSchoolByTeacherResponseDto> getAfterSchoolsByTeacherId(Long teacherId) {
         List<AfterSchoolEntity> afterSchools = afterSchoolRepository.findByTeacherIdWithRelations(teacherId);
-        
+
         List<AfterSchoolByTeacherResponseDto> responseList = afterSchools.stream()
                 .map(afterSchool -> {
-                    // 보강 횟수 계산
                     int reinforcementCount = afterSchoolReinforcementRepository
                             .findAllByChangeDayBetween(LocalDate.now().minusMonths(1), LocalDate.now().plusDays(1))
                             .stream()
@@ -218,41 +317,37 @@ public class AfterSchoolService {
                     );
                 })
                 .collect(Collectors.toList());
-                
+
         return mergeContinuousPeriods(responseList);
     }
-    
+
     private List<AfterSchoolByTeacherResponseDto> mergeContinuousPeriods(List<AfterSchoolByTeacherResponseDto> responseList) {
         Map<String, List<AfterSchoolByTeacherResponseDto>> groupedByWeekDay = responseList.stream()
                 .collect(Collectors.groupingBy(AfterSchoolByTeacherResponseDto::weekDay));
-                
+
         List<AfterSchoolByTeacherResponseDto> mergedList = new ArrayList<>();
-        
-        // 원본 순서를 유지하기 위해 원본 리스트를 순회
+
         for (AfterSchoolByTeacherResponseDto dto : responseList) {
             String weekDay = dto.weekDay();
             List<AfterSchoolByTeacherResponseDto> dayGroup = groupedByWeekDay.get(weekDay);
-            
-            // 이미 처리한 요일은 건너뛰기
+
             if (dayGroup == null) continue;
-            
+
             boolean hasEightNine = dayGroup.stream().anyMatch(d -> "8~9교시".equals(d.period()));
             boolean hasTenEleven = dayGroup.stream().anyMatch(d -> "10~11교시".equals(d.period()));
-            
+
             if (hasEightNine && hasTenEleven) {
-                // 8~9교시와 10~11교시를 찾아서 8~11교시로 합치기
                 AfterSchoolByTeacherResponseDto eightNineDto = dayGroup.stream()
                         .filter(d -> "8~9교시".equals(d.period()))
                         .findFirst()
                         .orElse(null);
-                
+
                 AfterSchoolByTeacherResponseDto tenElevenDto = dayGroup.stream()
                         .filter(d -> "10~11교시".equals(d.period()))
                         .findFirst()
                         .orElse(null);
-                
+
                 if (eightNineDto != null && tenElevenDto != null) {
-                    // 8~11교시로 합친 DTO 생성 (8~9교시 기준으로)
                     AfterSchoolByTeacherResponseDto mergedDto = new AfterSchoolByTeacherResponseDto(
                             eightNineDto.id(),
                             eightNineDto.weekDay(),
@@ -261,10 +356,9 @@ public class AfterSchoolService {
                             eightNineDto.place(),
                             eightNineDto.reinforcementCount() + tenElevenDto.reinforcementCount()
                     );
-                    
+
                     mergedList.add(mergedDto);
-                    
-                    // 나머지 교시들 추가 (8~9교시, 10~11교시 제외)
+
                     dayGroup.stream()
                             .filter(d -> !"8~9교시".equals(d.period()) && !"10~11교시".equals(d.period()))
                             .forEach(mergedList::add);
@@ -272,31 +366,28 @@ public class AfterSchoolService {
                     mergedList.addAll(dayGroup);
                 }
             } else {
-                // 연속 교시가 아니면 원본대로 추가
                 mergedList.add(dto);
             }
-            
-            // 처리한 요일을 맵에서 제거하여 중복 처리 방지
+
             groupedByWeekDay.remove(weekDay);
         }
-        
+
         return mergedList;
     }
-    
+
     private List<AfterSchoolResponseDto> mergeContinuousPeriodsForSearch(List<AfterSchoolResponseDto> responseList) {
         Map<String, List<AfterSchoolResponseDto>> groupedByWeekDay = responseList.stream()
                 .collect(Collectors.groupingBy(AfterSchoolResponseDto::weekDay));
-                
+
         List<AfterSchoolResponseDto> mergedList = new ArrayList<>();
-        
+
         for (Map.Entry<String, List<AfterSchoolResponseDto>> entry : groupedByWeekDay.entrySet()) {
             List<AfterSchoolResponseDto> dayGroup = entry.getValue();
             List<AfterSchoolResponseDto> processedDtos = new ArrayList<>();
-            
-            // 각 방과후별로(이름+선생님+장소) 8~9교시와 10~11교시 쌍 찾기
+
             for (AfterSchoolResponseDto dto : dayGroup) {
                 if (processedDtos.contains(dto)) continue;
-                
+
                 if ("8~9교시".equals(dto.period())) {
                     AfterSchoolResponseDto pair = findMatchingPeriod(dto, "10~11교시", dayGroup, processedDtos);
                     if (pair != null) {
@@ -318,36 +409,37 @@ public class AfterSchoolService {
                         processedDtos.add(dto);
                     }
                 } else {
-                    // 다른 교시는 원본대로 추가
                     mergedList.add(dto);
                     processedDtos.add(dto);
                 }
             }
         }
-        
+
         return mergedList;
     }
-    
-    private AfterSchoolResponseDto findMatchingPeriod(AfterSchoolResponseDto dto, String targetPeriod, 
-                                                     List<AfterSchoolResponseDto> dayGroup, 
-                                                     List<AfterSchoolResponseDto> processedDtos) {
+
+    private AfterSchoolResponseDto findMatchingPeriod(
+            AfterSchoolResponseDto dto,
+            String targetPeriod,
+            List<AfterSchoolResponseDto> dayGroup,
+            List<AfterSchoolResponseDto> processedDtos
+    ) {
         return dayGroup.stream()
                 .filter(d -> targetPeriod.equals(d.period()) &&
-                           d.name().equals(dto.name()) &&
-                           d.teacher().id().equals(dto.teacher().id()) &&
-                           d.place().id().equals(dto.place().id()) &&
-                           hasSameStudents(d.students(), dto.students()) &&
-                           !processedDtos.contains(d))
+                        d.name().equals(dto.name()) &&
+                        d.teacher().id().equals(dto.teacher().id()) &&
+                        d.place().id().equals(dto.place().id()) &&
+                        hasSameStudents(d.students(), dto.students()) &&
+                        !processedDtos.contains(d))
                 .findFirst()
                 .orElse(null);
     }
-    
+
     private boolean hasSameStudents(List<StudentInfo> students1, List<StudentInfo> students2) {
         if (students1.size() != students2.size()) {
             return false;
         }
-        
-        // 학생 ID로 비교 (순서는 상관없음)
+
         List<Long> ids1 = students1.stream()
                 .map(StudentInfo::id)
                 .sorted()
@@ -356,23 +448,24 @@ public class AfterSchoolService {
                 .map(StudentInfo::id)
                 .sorted()
                 .toList();
-                
+
         return ids1.equals(ids2);
     }
-    
-    private AfterSchoolResponseDto createMergedDto(AfterSchoolResponseDto eightNineDto, 
-                                                  AfterSchoolResponseDto tenElevenDto, 
-                                                  AfterSchoolResponseDto baseDto) {
+
+    private AfterSchoolResponseDto createMergedDto(
+            AfterSchoolResponseDto eightNineDto,
+            AfterSchoolResponseDto tenElevenDto,
+            AfterSchoolResponseDto baseDto
+    ) {
         List<StudentInfo> mergedStudents = new ArrayList<>(eightNineDto.students());
         tenElevenDto.students().forEach(student -> {
             if (!mergedStudents.contains(student)) {
                 mergedStudents.add(student);
             }
         });
-        
-        // 두 ID를 "ID1,ID2" 형태로 합치기
+
         String mergedId = eightNineDto.id() + "," + tenElevenDto.id();
-        
+
         return new AfterSchoolResponseDto(
                 mergedId,
                 baseDto.weekDay(),
@@ -435,15 +528,48 @@ public class AfterSchoolService {
         return weekDay != null ? weekDay : afterSchool.getWeekDay();
     }
 
-    private SchoolPeriod resolveSchoolPeriod(SchoolPeriod period, AfterSchoolEntity afterSchool) {
-        return period != null ? period : afterSchool.getPeriod();
+    private SchoolPeriod resolveSchoolPeriod(String period, AfterSchoolEntity afterSchool) {
+        if (period == null || period.isBlank()) {
+            return afterSchool.getPeriod();
+        }
+
+        return switch (period) {
+            case "SEVEN_PERIOD", "7교시" -> SchoolPeriod.SEVEN_PERIOD;
+            case "EIGHT_AND_NINE_PERIOD", "8~9교시" -> SchoolPeriod.EIGHT_AND_NINE_PERIOD;
+            case "TEN_AND_ELEVEN_PERIOD", "10~11교시" -> SchoolPeriod.TEN_AND_ELEVEN_PERIOD;
+            default -> throw new IllegalArgumentException("지원하지 않는 교시입니다: " + period);
+        };
+    }
+
+    private boolean isMergedUpdateRequest(AfterSchoolUpdateRequestDto requestDto) {
+        return (requestDto.afterSchoolId() != null && requestDto.afterSchoolId().contains(","))
+                || "8~11교시".equals(requestDto.period());
+    }
+
+    private Long parseSingleAfterSchoolId(String afterSchoolId) {
+        try {
+            return Long.parseLong(afterSchoolId.trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("단일 방과후 ID 형식이 잘못되었습니다: " + afterSchoolId);
+        }
+    }
+
+    private List<Long> parseMergedAfterSchoolIds(String afterSchoolId) {
+        try {
+            return Arrays.stream(afterSchoolId.split(","))
+                    .map(String::trim)
+                    .map(Long::parseLong)
+                    .toList();
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("묶음 방과후 ID 형식이 잘못되었습니다: " + afterSchoolId);
+        }
     }
 
     private void updateStudentsIfPresent(List<Long> studentIds, AfterSchoolEntity afterSchool) {
         if (studentIds == null) return;
         List<StudentEntity> students = fetchStudentsByIds(studentIds);
         validateStudentsGrade(students, afterSchool.getGrade());
-        
+
         StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(
                 afterSchool,
                 students
@@ -461,10 +587,8 @@ public class AfterSchoolService {
                 .build();
 
         afterSchoolBusinessTripRepository.save(businessTrip);
-        
-        // 1. 출장 날짜가 이번주인지 검사
+
         if (isDateInCurrentWeek(requestDto.day())) {
-            // 2. 이번주라면 해당 방과후를 듣는 학생들의 가장 최근 스케줄 삭제
             deleteRecentAfterSchoolSchedules(afterSchool, requestDto.day());
         }
     }
@@ -473,22 +597,20 @@ public class AfterSchoolService {
     public void createReinforcement(AfterSchoolReinforcementRequestDto requestDto) {
         AfterSchoolEntity afterSchool = getAfterSchoolById(requestDto.afterschoolId());
         PlaceEntity changePlace = getPlaceById(requestDto.changePlaceId());
-        if(placeRepository.existAfterSchoolPlaceByDayAndPeriodAndPlace(requestDto.day(), requestDto.changePeriod(), changePlace)) {
+        if (placeRepository.existAfterSchoolPlaceByDayAndPeriodAndPlace(requestDto.day(), requestDto.changePeriod(), changePlace)) {
             throw new PlaceAlreadyBookedException();
         }
-        
+
         AfterSchoolReinforcementEntity reinforcement = AfterSchoolReinforcementEntity.builder()
                 .changeDay(requestDto.day())
                 .afterSchool(afterSchool)
                 .changePeriod(requestDto.changePeriod())
                 .place(changePlace)
                 .build();
-        
+
         afterSchoolReinforcementRepository.save(reinforcement);
-        
-        // 1. 보강 날짜가 이번주인지 검사
+
         if (isDateInCurrentWeek(requestDto.day())) {
-            // 2. 이번주라면 해당 방과후를 듣는 학생들에게 방과후 보강 스케줄 생성
             createAfterSchoolReinforcementSchedules(afterSchool, requestDto.day(), requestDto.changePeriod());
         }
     }
@@ -500,20 +622,19 @@ public class AfterSchoolService {
         LocalDate startDay = branchEntity.getStartDay();
         LocalDate afterSchoolEndDay = branchEntity.getAfterSchoolEndDay();
         AfterSchoolEntity afterSchool = getAfterSchoolById(afterSchoolId);
-        
-        // 한 번의 쿼리로 해당 기간의 모든 출장 날짜를 조회
+
         List<LocalDate> existingBusinessTripDates = afterSchoolBusinessTripRepository
                 .findBusinessTripDatesByAfterSchoolAndDateRange(afterSchool, startDay, afterSchoolEndDay);
-        
+
         List<LocalDate> localDates = new ArrayList<>();
         DayOfWeek targetDayOfWeek = afterSchool.getWeekDay().toDayOfWeek();
-        
-        for(LocalDate day = startDay; day.isBefore(afterSchoolEndDay); day = day.plusDays(1)) {
-            if(!day.getDayOfWeek().equals(targetDayOfWeek)) continue;
-            if(existingBusinessTripDates.contains(day)) continue;
+
+        for (LocalDate day = startDay; day.isBefore(afterSchoolEndDay); day = day.plusDays(1)) {
+            if (!day.getDayOfWeek().equals(targetDayOfWeek)) continue;
+            if (existingBusinessTripDates.contains(day)) continue;
             localDates.add(day);
         }
-        
+
         return AfterSchoolAffordableBusinessResponseDto.builder()
                 .dates(localDates)
                 .build();
@@ -523,41 +644,36 @@ public class AfterSchoolService {
         LocalDate today = LocalDate.now();
         LocalDate startOfWeek = today.with(DayOfWeek.MONDAY);
         LocalDate endOfWeek = today.with(DayOfWeek.SUNDAY);
-        
+
         return !date.isBefore(startOfWeek) && !date.isAfter(endOfWeek);
     }
 
     private void deleteRecentAfterSchoolSchedules(AfterSchoolEntity afterSchool, LocalDate businessTripDay) {
         log.info("=== 출장 스케줄 삭제 시작 ===");
         log.info("방과후: {}, 출장날짜: {}, 교시: {}", afterSchool.getName(), businessTripDay, afterSchool.getPeriod());
-        
-        // 해당 방과후를 듣는 학생들의 출장 날짜 StudentSchedule 조회
+
         List<StudentScheduleEntity> afterSchoolSchedules = studentScheduleRepository
                 .findAllByAfterSchoolAndDayAndPeriod(afterSchool, businessTripDay, afterSchool.getPeriod());
-        
+
         log.info("찾은 StudentSchedule 수: {}", afterSchoolSchedules.size());
-        
-        // N+1 문제 해결: 한 번의 쿼리로 모든 StudentSchedule의 최상위 Schedule 삭제
+
         List<Long> studentScheduleIds = afterSchoolSchedules.stream()
                 .map(StudentScheduleEntity::getId)
                 .toList();
-        
+
         log.info("StudentSchedule IDs: {}", studentScheduleIds);
-        
+
         if (studentScheduleIds.isEmpty()) {
             log.info("StudentSchedule이 없어서 예외 발생");
             throw new AfterSchoolBusinessTripScheduleNotFoundException(afterSchool.getName());
         }
 
-        // 먼저 각 StudentSchedule의 최상위 Schedule ID들을 조회 (AFTER_SCHOOL 타입만)
         List<Long> scheduleIds = scheduleRepository.findTopScheduleIdsByStudentScheduleIds(studentScheduleIds, ScheduleType.AFTER_SCHOOL);
-        
+
         log.info("삭제할 Schedule IDs: {}", scheduleIds);
-        
+
         if (!scheduleIds.isEmpty()) {
-            // 그 다음 after_school_schedule 테이블의 참조 레코드들을 삭제
             afterSchoolScheduleRepository.deleteByScheduleIds(scheduleIds);
-            // 마지막으로 schedule 테이블의 레코드들을 삭제
             scheduleRepository.deleteByIds(scheduleIds);
             log.info("스케줄 삭제 완료");
         } else {
@@ -566,44 +682,49 @@ public class AfterSchoolService {
         log.info("=== 출장 스케줄 삭제 끝 ===");
     }
 
-    private boolean hasAnyChange(TeacherEntity teacher, PlaceEntity place, WeekDay weekDay, 
-                                SchoolPeriod schoolPeriod, Integer year, String name, Integer grade,
-                                AfterSchoolEntity afterSchool) {
+    private boolean hasAnyChange(
+            TeacherEntity teacher,
+            PlaceEntity place,
+            WeekDay weekDay,
+            SchoolPeriod schoolPeriod,
+            Integer year,
+            String name,
+            Integer grade,
+            AfterSchoolEntity afterSchool
+    ) {
         return !teacher.equals(afterSchool.getTeacher()) ||
-               !place.equals(afterSchool.getPlace()) ||
-               !weekDay.equals(afterSchool.getWeekDay()) ||
-               !schoolPeriod.equals(afterSchool.getPeriod()) ||
-               !year.equals(afterSchool.getYear()) ||
-               !name.equals(afterSchool.getName()) ||
-               !grade.equals(afterSchool.getGrade());
+                !place.equals(afterSchool.getPlace()) ||
+                !weekDay.equals(afterSchool.getWeekDay()) ||
+                !schoolPeriod.equals(afterSchool.getPeriod()) ||
+                !year.equals(afterSchool.getYear()) ||
+                !name.equals(afterSchool.getName()) ||
+                !grade.equals(afterSchool.getGrade());
     }
 
     private void validateStudentsGrade(List<StudentEntity> students, Integer requiredGrade) {
         List<StudentEntity> invalidGradeStudents = students.stream()
                 .filter(student -> !student.getGrade().equals(requiredGrade))
                 .toList();
-        
+
         if (!invalidGradeStudents.isEmpty()) {
             throw new InvalidStudentInfoException("방과후 수업 학년과 일치하지 않는 학생이 포함되어 있습니다.");
         }
     }
 
     private void createAfterSchoolReinforcementSchedules(
-            AfterSchoolEntity afterSchool, 
-            LocalDate reinforcementDay, 
+            AfterSchoolEntity afterSchool,
+            LocalDate reinforcementDay,
             SchoolPeriod reinforcementPeriod
     ) {
         log.info("=== 보강 스케줄 생성 시작 ===");
         log.info("방과후: {}, 보강날짜: {}, 보강교시: {}", afterSchool.getName(), reinforcementDay, reinforcementPeriod);
-        
-        // 해당 방과후를 듣는 모든 학생들을 가져와서 보강 스케줄 생성
+
         List<StudentEntity> afterSchoolStudents = afterSchool.getAfterSchoolStudents().stream()
                 .map(AfterSchoolStudentEntity::getStudent)
                 .toList();
 
         log.info("방과후를 듣는 학생 수: {}", afterSchoolStudents.size());
 
-        // N+1 문제 해결: Student Schedule 들을 일괄 생성
         List<StudentScheduleEntity> reinforcementStudentSchedules = afterSchoolStudents.stream()
                 .map(student -> StudentScheduleEntity.builder()
                         .student(student)
@@ -613,15 +734,14 @@ public class AfterSchoolService {
                 .toList();
 
         log.info("생성할 StudentSchedule 수: {}", reinforcementStudentSchedules.size());
-        
+
         studentScheduleRepository.saveAll(reinforcementStudentSchedules);
         log.info("StudentSchedule 저장 완료");
 
-        // N+1 문제 해결: Schedule 들을 일괄 생성
         List<ScheduleEntity> reinforcementSchedules = reinforcementStudentSchedules.stream()
                 .map(studentSchedule -> {
                     Integer lastStackOrder = scheduleRepository.findLastStackOrderByStudentScheduleId(studentSchedule.getId());
-                    log.debug("학생 {}, StudentSchedule ID: {}, 마지막 stackOrder: {}", 
+                    log.debug("학생 {}, StudentSchedule ID: {}, 마지막 stackOrder: {}",
                             studentSchedule.getStudent().getName(), studentSchedule.getId(), lastStackOrder);
                     return ScheduleEntity.createNewStudentSchedule(
                             studentSchedule,
@@ -632,11 +752,10 @@ public class AfterSchoolService {
                 .toList();
 
         log.info("생성할 보강 Schedule 수: {}", reinforcementSchedules.size());
-        
+
         scheduleRepository.saveAll(reinforcementSchedules);
         log.info("보강 스케줄 저장 완료");
-        
+
         log.info("=== 보강 스케줄 생성 끝 ===");
     }
-
 }
