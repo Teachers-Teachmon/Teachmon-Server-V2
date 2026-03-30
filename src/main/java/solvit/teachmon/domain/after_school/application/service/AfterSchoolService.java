@@ -16,7 +16,7 @@ import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDoma
 import solvit.teachmon.domain.after_school.domain.vo.StudentAssignmentResultVo;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolNotFoundException;
 import solvit.teachmon.domain.after_school.exception.AfterSchoolBusinessTripScheduleNotFoundException;
-import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolInfoException;
+import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolUpdateRequestException;
 import solvit.teachmon.domain.after_school.exception.PlaceAlreadyBookedException;
 import solvit.teachmon.domain.after_school.presentation.dto.response.*;
 import solvit.teachmon.domain.after_school.presentation.dto.response.StudentInfo;
@@ -82,7 +82,7 @@ public class AfterSchoolService {
         PlaceEntity place = getPlaceById(requestDto.placeId());
         BranchEntity branch = getBranchByYearAndId(requestDto.year(), requestDto.branch());
         List<StudentEntity> students = fetchStudentsByIds(requestDto.studentsId());
-        
+
         validateStudentsGrade(students, requestDto.grade());
 
         AfterSchoolEntity afterSchool = AfterSchoolEntity.builder()
@@ -97,7 +97,7 @@ public class AfterSchoolService {
                 .build();
 
         afterSchoolRepository.save(afterSchool);
-        
+
         StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(afterSchool, students);
         afterSchoolScheduleService.save(List.of(studentAssignmentResultVo));
 
@@ -115,23 +115,19 @@ public class AfterSchoolService {
         List<Long> afterSchoolIds = requestDto.afterSchoolIds();
         AfterSchoolUpdatePeriod requestedPeriod = requestDto.requestedPeriod();
 
-        if (afterSchoolIds.isEmpty()) {
-            throw new InvalidAfterSchoolInfoException("수정할 방과후 ID가 필요합니다.");
-        }
+        validateUpdateRequest(afterSchoolIds, requestedPeriod);
 
-        if (afterSchoolIds.size() == 1) {
-            if (requestedPeriod != null && requestedPeriod.isCombined()) {
-                throw new InvalidAfterSchoolInfoException("8~11교시 수정은 병합된 방과후 ID가 필요합니다.");
-            }
+        if (isSingleUpdate(afterSchoolIds)) {
             updateSingleAfterSchool(afterSchoolIds.getFirst(), requestDto, requestedPeriod);
             return;
         }
 
-        if (afterSchoolIds.size() != 2) {
-            throw new InvalidAfterSchoolInfoException("병합 방과후 수정은 두 개의 ID만 지원합니다.");
+        if (isCombinedUpdate(requestedPeriod)) {
+            updateCombinedAfterSchool(afterSchoolIds, requestDto);
+            return;
         }
 
-        updateCombinedAfterSchool(afterSchoolIds, requestDto, requestedPeriod);
+        shrinkCombinedAfterSchool(afterSchoolIds, requestDto, requestedPeriod);
     }
 
     private void updateSingleAfterSchool(
@@ -174,7 +170,7 @@ public class AfterSchoolService {
             List<Long> allStudentIds = afterSchool.getAfterSchoolStudents().stream()
                     .map(afterSchoolStudent -> afterSchoolStudent.getStudent().getId())
                     .toList();
-            
+
             if (!allStudentIds.isEmpty()) {
                 List<StudentEntity> allStudents = fetchStudentsByIds(allStudentIds);
                 StudentAssignmentResultVo studentAssignmentResultVo = afterSchoolStudentDomainService.assignStudents(afterSchool, allStudents);
@@ -186,26 +182,29 @@ public class AfterSchoolService {
         }
     }
 
-    private void updateCombinedAfterSchool(
+    private void updateCombinedAfterSchool(List<Long> afterSchoolIds, AfterSchoolUpdateRequestDto requestDto) {
+        updateSingleAfterSchool(afterSchoolIds.get(0), requestDto, AfterSchoolUpdatePeriod.EIGHT_AND_NINE_PERIOD);
+        updateSingleAfterSchool(afterSchoolIds.get(1), requestDto, AfterSchoolUpdatePeriod.TEN_AND_ELEVEN_PERIOD);
+    }
+
+    private void shrinkCombinedAfterSchool(
             List<Long> afterSchoolIds,
             AfterSchoolUpdateRequestDto requestDto,
             AfterSchoolUpdatePeriod requestedPeriod
     ) {
-        if (requestedPeriod == null || requestedPeriod.isCombined()) {
-            updateSingleAfterSchool(afterSchoolIds.get(0), requestDto, AfterSchoolUpdatePeriod.EIGHT_AND_NINE_PERIOD);
-            updateSingleAfterSchool(afterSchoolIds.get(1), requestDto, AfterSchoolUpdatePeriod.TEN_AND_ELEVEN_PERIOD);
-            return;
-        }
+        Long targetAfterSchoolId = resolveTargetAfterSchoolId(afterSchoolIds, requestedPeriod);
+        Long deleteAfterSchoolId = resolveDeleteAfterSchoolId(afterSchoolIds, requestedPeriod);
 
-        int targetIndex = requestedPeriod == AfterSchoolUpdatePeriod.TEN_AND_ELEVEN_PERIOD ? 1 : 0;
-        int deleteIndex = targetIndex == 0 ? 1 : 0;
-
-        deleteAfterSchool(afterSchoolIds.get(deleteIndex));
-        updateSingleAfterSchool(afterSchoolIds.get(targetIndex), requestDto, requestedPeriod);
+        deleteAfterSchoolInternal(deleteAfterSchoolId);
+        updateSingleAfterSchool(targetAfterSchoolId, requestDto, requestedPeriod);
     }
 
     @Transactional
     public void deleteAfterSchool(Long afterSchoolId) {
+        deleteAfterSchoolInternal(afterSchoolId);
+    }
+
+    private void deleteAfterSchoolInternal(Long afterSchoolId) {
         AfterSchoolEntity afterSchool = afterSchoolRepository.findById(afterSchoolId)
                 .orElseThrow(() -> new AfterSchoolNotFoundException(afterSchoolId));
 
@@ -220,6 +219,40 @@ public class AfterSchoolService {
         }
 
         afterSchoolRepository.delete(afterSchool);
+    }
+
+    private void validateUpdateRequest(List<Long> afterSchoolIds, AfterSchoolUpdatePeriod requestedPeriod) {
+        if (afterSchoolIds.isEmpty()) {
+            throw new InvalidAfterSchoolUpdateRequestException("수정할 방과후 ID가 필요합니다.");
+        }
+
+        if (isSingleUpdate(afterSchoolIds) && requestedPeriod != null && requestedPeriod.isCombined()) {
+            throw new InvalidAfterSchoolUpdateRequestException("8~11교시 수정은 병합된 방과후 ID가 필요합니다.");
+        }
+
+        if (!isSingleUpdate(afterSchoolIds) && afterSchoolIds.size() != 2) {
+            throw new InvalidAfterSchoolUpdateRequestException("병합 방과후 수정은 두 개의 ID만 지원합니다.");
+        }
+    }
+
+    private boolean isSingleUpdate(List<Long> afterSchoolIds) {
+        return afterSchoolIds.size() == 1;
+    }
+
+    private boolean isCombinedUpdate(AfterSchoolUpdatePeriod requestedPeriod) {
+        return requestedPeriod == null || requestedPeriod.isCombined();
+    }
+
+    private Long resolveTargetAfterSchoolId(List<Long> afterSchoolIds, AfterSchoolUpdatePeriod requestedPeriod) {
+        return requestedPeriod == AfterSchoolUpdatePeriod.TEN_AND_ELEVEN_PERIOD
+                ? afterSchoolIds.get(1)
+                : afterSchoolIds.get(0);
+    }
+
+    private Long resolveDeleteAfterSchoolId(List<Long> afterSchoolIds, AfterSchoolUpdatePeriod requestedPeriod) {
+        return requestedPeriod == AfterSchoolUpdatePeriod.TEN_AND_ELEVEN_PERIOD
+                ? afterSchoolIds.get(0)
+                : afterSchoolIds.get(1);
     }
 
     @Transactional

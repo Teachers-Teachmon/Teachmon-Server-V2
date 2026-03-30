@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import solvit.teachmon.domain.after_school.domain.enums.AfterSchoolUpdatePeriod;
-import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolInfoException;
+import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolUpdateRequestException;
 import solvit.teachmon.global.enums.WeekDay;
 
 import java.util.Arrays;
@@ -48,7 +48,7 @@ public record AfterSchoolUpdateRequestDto(
                     .map(Long::parseLong)
                     .toList();
         } catch (NumberFormatException exception) {
-            throw new InvalidAfterSchoolInfoException("after_school_id 형식이 올바르지 않습니다: " + afterSchoolId);
+            throw new InvalidAfterSchoolUpdateRequestException("after_school_id 형식이 올바르지 않습니다: " + afterSchoolId);
         }
     }
 

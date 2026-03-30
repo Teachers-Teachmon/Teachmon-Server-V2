@@ -14,7 +14,7 @@ import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolBusiness
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolReinforcementRepository;
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolRepository;
 import solvit.teachmon.domain.after_school.domain.service.AfterSchoolStudentDomainService;
-import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolInfoException;
+import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolUpdateRequestException;
 import solvit.teachmon.domain.after_school.presentation.dto.request.AfterSchoolUpdateRequestDto;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 import solvit.teachmon.domain.management.teacher.domain.repository.SupervisionBanDayRepository;
@@ -232,7 +232,7 @@ class AfterSchoolServiceUpdateFlowTest {
         );
 
         assertThatThrownBy(() -> afterSchoolService.updateAfterSchool(request))
-                .isInstanceOf(InvalidAfterSchoolInfoException.class)
+                .isInstanceOf(InvalidAfterSchoolUpdateRequestException.class)
                 .hasMessageContaining("병합된 방과후 ID");
 
         verify(afterSchoolRepository, never()).findWithAllRelations(anyLong());
