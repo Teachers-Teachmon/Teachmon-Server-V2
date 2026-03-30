@@ -17,7 +17,10 @@ import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchool
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolTodayResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.QAfterSchoolSearchResponseDto;
 import solvit.teachmon.domain.after_school.presentation.dto.response.StudentInfo;
+import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.entity.QBranchEntity;
+import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
+import solvit.teachmon.domain.branch.exception.BranchNotFoundException;
 import solvit.teachmon.domain.place.domain.entity.QPlaceEntity;
 import solvit.teachmon.domain.user.domain.entity.QTeacherEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
@@ -37,6 +40,7 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
     private static final QBranchEntity branch = QBranchEntity.branchEntity;
     private final JPAQueryFactory queryFactory;
     private final AfterSchoolStudentRepository afterSchoolStudentRepository;
+    private final BranchRepository branchRepository;
 
     @Override
     public Optional<AfterSchoolEntity> findWithAllRelations(Long afterSchoolId) {
@@ -122,10 +126,14 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
         QAfterSchoolEntity afterSchool = QAfterSchoolEntity.afterSchoolEntity;
         QPlaceEntity place = QPlaceEntity.placeEntity;
 
+        BranchEntity currentBranch = branchRepository.findCurrentBranch(LocalDate.now())
+                .orElseThrow(BranchNotFoundException::new);
+
         BooleanBuilder whereCondition = new BooleanBuilder();
         whereCondition.and(afterSchool.teacher.id.eq(teacherId))
-                     .and(afterSchool.isEnd.eq(false));
-        
+                     .and(afterSchool.isEnd.eq(false))
+                     .and(afterSchool.branch.id.eq(currentBranch.getId()));
+
         if (grade != null) {
             whereCondition.and(afterSchool.grade.eq(grade));
         }
@@ -169,13 +177,17 @@ public class AfterSchoolRepositoryImpl implements AfterSchoolQueryDslRepository 
             return List.of();
         }
 
+        BranchEntity currentBranch = branchRepository.findCurrentBranch(today)
+                .orElseThrow(BranchNotFoundException::new);
+
         List<AfterSchoolEntity> entities = queryFactory
                 .selectFrom(afterSchool)
                 .join(afterSchool.place, place).fetchJoin()
                 .join(afterSchool.branch, branch).fetchJoin()
                 .where(afterSchool.teacher.id.eq(teacherId)
                         .and(afterSchool.weekDay.eq(todayWeekDay))
-                        .and(afterSchool.isEnd.eq(false)))
+                        .and(afterSchool.isEnd.eq(false))
+                        .and(afterSchool.branch.id.eq(currentBranch.getId())))
                 .fetch();
 
         String todayFormatted = formatTodayDate(today, todayWeekDay);
