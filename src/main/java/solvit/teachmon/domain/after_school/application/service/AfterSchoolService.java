@@ -226,7 +226,11 @@ public class AfterSchoolService {
             throw new InvalidAfterSchoolUpdateRequestException("수정할 방과후 ID가 필요합니다.");
         }
 
-        if (isSingleUpdate(afterSchoolIds) && requestedPeriod != null && requestedPeriod.isCombined()) {
+        if (requestedPeriod == null){
+            throw new InvalidAfterSchoolUpdateRequestException("period는 필수 입니다.");
+        }
+
+        if (isSingleUpdate(afterSchoolIds) && requestedPeriod.isCombined()) {
             throw new InvalidAfterSchoolUpdateRequestException("8~11교시 수정은 병합된 방과후 ID가 필요합니다.");
         }
 
@@ -240,7 +244,7 @@ public class AfterSchoolService {
     }
 
     private boolean isCombinedUpdate(AfterSchoolUpdatePeriod requestedPeriod) {
-        return requestedPeriod == null || requestedPeriod.isCombined();
+        return requestedPeriod.isCombined();
     }
 
     private Long resolveTargetAfterSchoolId(List<Long> afterSchoolIds, AfterSchoolUpdatePeriod requestedPeriod) {
