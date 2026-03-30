@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import solvit.teachmon.domain.after_school.domain.repository.querydsl.impl.AfterSchoolRepositoryImpl;
 import solvit.teachmon.domain.after_school.presentation.dto.response.AfterSchoolSearchResponseDto;
+import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
 
 import java.util.List;
 
@@ -23,12 +24,15 @@ class AfterSchoolRepositoryImplTest {
 
     @Mock
     private AfterSchoolStudentRepository afterSchoolStudentRepository;
-    
+
+    @Mock
+    private BranchRepository branchRepository;
+
     private AfterSchoolRepositoryImpl afterSchoolRepositoryImpl;
 
     @BeforeEach
     void setUp() {
-        afterSchoolRepositoryImpl = new AfterSchoolRepositoryImpl(queryFactory, afterSchoolStudentRepository);
+        afterSchoolRepositoryImpl = new AfterSchoolRepositoryImpl(queryFactory, afterSchoolStudentRepository, branchRepository);
     }
 
     @Test
