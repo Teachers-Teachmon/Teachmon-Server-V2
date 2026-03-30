@@ -178,6 +178,28 @@ class AfterSchoolServiceUpdateFlowTest {
     }
 
     @Test
+    @DisplayName("병합 ID에 period가 null이면 예외가 발생한다")
+    void rejectNullPeriodForCombinedUpdate() {
+        AfterSchoolUpdateRequestDto request = new AfterSchoolUpdateRequestDto(
+                "1,2",
+                2026,
+                2,
+                WeekDay.MON,
+                null,
+                null,
+                null,
+                "주기 미변경 방과후",
+                null
+        );
+
+        assertThatThrownBy(() -> afterSchoolService.updateAfterSchool(request))
+                .isInstanceOf(InvalidAfterSchoolUpdateRequestException.class)
+                .hasMessageContaining("period는 필수");
+
+        verify(afterSchoolRepository, never()).findWithAllRelations(anyLong());
+    }
+
+    @Test
     @DisplayName("병합 ID를 8~9교시로 축소하면 10~11교시를 먼저 삭제한 뒤 8~9교시를 수정한다")
     void shrinkCombinedAfterSchoolToEightNinePeriod() {
         TeacherEntity teacher = mockTeacher(10L);
