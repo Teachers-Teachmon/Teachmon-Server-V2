@@ -63,7 +63,7 @@ public class AfterSchoolEntity extends BaseEntity {
     @Column(name = "is_end", nullable = false)
     private Boolean isEnd;
 
-    @OneToMany(mappedBy = "afterSchool", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "afterSchool", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<AfterSchoolScheduleEntity> afterSchoolSchedules = new ArrayList<>();
 
     @OneToMany(mappedBy = "afterSchool", cascade = CascadeType.ALL)

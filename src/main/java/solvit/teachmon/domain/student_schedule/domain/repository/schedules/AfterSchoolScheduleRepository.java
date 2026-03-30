@@ -15,4 +15,11 @@ public interface AfterSchoolScheduleRepository extends JpaRepository<AfterSchool
     @Modifying
     @Query("DELETE FROM AfterSchoolScheduleEntity a WHERE a.schedule.id IN :scheduleIds")
     void deleteByScheduleIds(@Param("scheduleIds") List<Long> scheduleIds);
+
+    @Query("SELECT a.schedule.id FROM AfterSchoolScheduleEntity a WHERE a.afterSchool.id = :afterSchoolId")
+    List<Long> findScheduleIdsByAfterSchoolId(@Param("afterSchoolId") Long afterSchoolId);
+
+    @Modifying
+    @Query("DELETE FROM AfterSchoolScheduleEntity a WHERE a.afterSchool.id = :afterSchoolId")
+    void deleteByAfterSchoolId(@Param("afterSchoolId") Long afterSchoolId);
 }
