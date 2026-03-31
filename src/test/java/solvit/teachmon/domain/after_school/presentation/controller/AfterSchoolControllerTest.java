@@ -67,11 +67,11 @@ class AfterSchoolControllerTest {
     @DisplayName("방과후 수정 시 200 상태코드를 반환한다")
     void shouldUpdateAfterSchoolSuccessfully() {
         AfterSchoolUpdateRequestDto request = new AfterSchoolUpdateRequestDto(
-                1L,
+                "1",
                 2024,
                 3,
                 WeekDay.TUE,
-                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
+                "EIGHT_AND_NINE_PERIOD",
                 2L,
                 2L,
                 "웹 개발 기초",
@@ -89,11 +89,11 @@ class AfterSchoolControllerTest {
     @DisplayName("존재하지 않는 방과후 수정 시 예외가 발생한다")
     void shouldThrowExceptionWhenAfterSchoolNotFoundInUpdate() {
         AfterSchoolUpdateRequestDto request = new AfterSchoolUpdateRequestDto(
-                999L,
+                "999",
                 2024,
                 2,
                 WeekDay.MON,
-                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
+                "EIGHT_AND_NINE_PERIOD",
                 1L,
                 1L,
                 "정보처리 산업기사 Java",

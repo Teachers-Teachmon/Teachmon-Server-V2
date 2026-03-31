@@ -137,11 +137,11 @@ class AfterSchoolServiceBanDayTest {
         given(placeRepository.findById(3L)).willReturn(Optional.of(newPlace));
 
         AfterSchoolUpdateRequestDto request = new AfterSchoolUpdateRequestDto(
-                1L,
+                "1",
                 2024,
                 1,
                 WeekDay.TUE,
-                SchoolPeriod.EIGHT_AND_NINE_PERIOD,
+                "EIGHT_AND_NINE_PERIOD",
                 2L,
                 3L,
                 "New",

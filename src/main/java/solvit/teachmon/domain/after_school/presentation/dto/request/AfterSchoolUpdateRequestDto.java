@@ -4,15 +4,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import solvit.teachmon.global.enums.SchoolPeriod;
+import solvit.teachmon.domain.after_school.domain.enums.AfterSchoolUpdatePeriod;
+import solvit.teachmon.domain.after_school.exception.InvalidAfterSchoolUpdateRequestException;
 import solvit.teachmon.global.enums.WeekDay;
 
+import java.util.Arrays;
 import java.util.List;
 
 public record AfterSchoolUpdateRequestDto(
         @JsonProperty("after_school_id")
         @NotNull(message = "방과후 수정 요청에서 after_school_id는 필수입니다.")
-        Long afterSchoolId,
+        String afterSchoolId,
 
         @Min(value = 2000, message = "연도는 2000년 이상이어야 합니다.")
         @Max(value = 2100, message = "연도는 2100년 이하여야 합니다.")
@@ -25,7 +27,7 @@ public record AfterSchoolUpdateRequestDto(
         @JsonProperty("week_day")
         WeekDay weekDay,
 
-        SchoolPeriod period,
+        String period,
 
         @JsonProperty("teacher_id")
         Long teacherId,
@@ -38,4 +40,19 @@ public record AfterSchoolUpdateRequestDto(
         @JsonProperty("students_id")
         List<Long> studentsId
 ) {
+    public List<Long> afterSchoolIds() {
+        try {
+            return Arrays.stream(afterSchoolId.split(","))
+                    .map(String::trim)
+                    .filter(value -> !value.isEmpty())
+                    .map(Long::parseLong)
+                    .toList();
+        } catch (NumberFormatException exception) {
+            throw new InvalidAfterSchoolUpdateRequestException("after_school_id 형식이 올바르지 않습니다: " + afterSchoolId);
+        }
+    }
+
+    public AfterSchoolUpdatePeriod requestedPeriod() {
+        return AfterSchoolUpdatePeriod.from(period);
+    }
 }
