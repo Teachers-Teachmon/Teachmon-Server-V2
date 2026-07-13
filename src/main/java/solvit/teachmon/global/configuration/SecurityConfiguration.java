@@ -23,7 +23,7 @@ import solvit.teachmon.global.security.filter.JwtAuthenticationExceptionFilter;
 import solvit.teachmon.global.security.filter.JwtAuthenticationFilter;
 import solvit.teachmon.global.security.jwt.JwtValidator;
 import solvit.teachmon.global.security.user.TeachmonUserDetailsService;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
 @EnableWebSecurity
@@ -50,7 +50,7 @@ public class SecurityConfiguration {
     public PathMatcher antPathMatcher() {return new AntPathMatcher();}
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)

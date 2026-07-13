@@ -18,7 +18,7 @@ import solvit.teachmon.domain.user.exception.TeacherNotFoundException;
 import solvit.teachmon.global.constants.HttpResponseConstants;
 import solvit.teachmon.global.exception.ErrorResponse;
 import solvit.teachmon.global.security.exception.InvalidJsonWebTokenException;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Arrays;
