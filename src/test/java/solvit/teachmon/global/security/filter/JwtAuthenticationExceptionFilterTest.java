@@ -1,6 +1,6 @@
 package solvit.teachmon.global.security.filter;
 
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -50,7 +50,7 @@ class JwtAuthenticationExceptionFilterTest {
         given(objectMapper.writeValueAsString(any())).willReturn("{}");
     }
 
-    private void verifyErrorResponse(int expectedStatus) {
+    private void verifyErrorResponse(int expectedStatus) throws Exception {
         verify(response).setStatus(expectedStatus);
         verify(response).setContentType("application/json");
         verify(response).setCharacterEncoding("UTF-8");

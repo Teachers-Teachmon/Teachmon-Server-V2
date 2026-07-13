@@ -3,12 +3,14 @@ package solvit.teachmon.domain.student_schedule.application.scheduler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import solvit.teachmon.domain.student_schedule.application.service.StudentScheduleSettingService;
 
 import java.time.LocalDate;
 
@@ -20,37 +22,38 @@ import static org.mockito.Mockito.*;
 class StudentScheduleSettingSchedulerTest {
 
     @Mock
-    private StudentScheduleSettingService studentScheduleSettingService;
+    private JobLauncher asyncJobLauncher;
+
+    @Mock
+    private Job studentScheduleJob;
 
     @InjectMocks
     private StudentScheduleSettingScheduler scheduler;
 
     @Test
-    @DisplayName("스케줄러가 실행되면 새로운 학생 스케줄을 생성하고 모든 타입의 스케줄을 설정한다")
-    void shouldCreateAndSettingScheduleWhenSchedulerRuns() {
-        // When: 스케줄러가 실행되면
+    @DisplayName("스케줄러가 실행되면 비동기 JobLauncher로 studentScheduleJob을 실행한다")
+    void shouldLaunchBatchJobWhenSchedulerRuns() throws Exception {
+        when(asyncJobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(mock(JobExecution.class));
+
         scheduler.settingStudentSchedule();
 
-        // Then: 학생 스케줄을 생성하고, 모든 타입의 스케줄을 설정해야 한다
-        ArgumentCaptor<LocalDate> captor = ArgumentCaptor.forClass(LocalDate.class);
-        verify(studentScheduleSettingService, times(1)).createNewStudentSchedule(captor.capture());
-        verify(studentScheduleSettingService, times(1)).settingAllTypeSchedule(captor.capture());
-
-        // 동일한 날짜를 사용해야 한다
-        assertThat(captor.getAllValues().get(0)).isEqualTo(captor.getAllValues().get(1));
+        verify(asyncJobLauncher, times(1)).run(eq(studentScheduleJob), any(JobParameters.class));
     }
 
     @Test
-    @DisplayName("스케줄러는 학생 스케줄 생성 후에 타입별 스케줄을 설정해야 한다")
-    void shouldSettingScheduleAfterCreatingStudentSchedule() {
-        // When: 스케줄러가 실행되면
+    @DisplayName("스케줄러가 전달하는 JobParameters에는 다음 주 월요일 baseDate만 포함된다")
+    void shouldIncludeOnlyBaseDateInJobParameters() throws Exception {
+        when(asyncJobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(mock(JobExecution.class));
+
         scheduler.settingStudentSchedule();
 
-        // Then: 학생 스케줄 생성이 먼저 실행되고, 그 다음 타입별 스케줄이 설정되어야 한다
-        ArgumentCaptor<LocalDate> captor = ArgumentCaptor.forClass(LocalDate.class);
-        InOrder inOrder = inOrder(studentScheduleSettingService);
-        inOrder.verify(studentScheduleSettingService).createNewStudentSchedule(captor.capture());
-        inOrder.verify(studentScheduleSettingService).settingAllTypeSchedule(captor.capture());
+        ArgumentCaptor<JobParameters> captor = ArgumentCaptor.forClass(JobParameters.class);
+        verify(asyncJobLauncher).run(eq(studentScheduleJob), captor.capture());
+
+        JobParameters jobParameters = captor.getValue();
+        LocalDate expectedBaseDate = LocalDate.now().with(java.time.DayOfWeek.MONDAY).plusWeeks(1);
+        assertThat(jobParameters.getLocalDate("baseDate")).isEqualTo(expectedBaseDate);
+        assertThat(jobParameters.getLong("timestamp")).isNull();
     }
 
     @Test
@@ -64,14 +67,13 @@ class StudentScheduleSettingSchedulerTest {
         // )
         //
         // 동작:
-        // - 매주 일요일 자정에 실행
-        // - 다음 주 월요일부터 목요일까지의 학생 스케줄을 생성
-        // - 각 스케줄 타입(자습, 방과후, 이석, 추가자습)에 대한 설정을 적용
+        // - 매주 일요일 자정에 studentScheduleJob을 비동기 실행
+        // - JobParameter로 다음 주 월요일 baseDate와 timestamp를 전달
+        // - 실제 스케줄 생성/적용은 Spring Batch Step에서 처리
         //
         // 예시:
         // - 1월 14일(일) 자정 실행
-        // - 1월 15일(월) ~ 1월 18일(목)의 스케줄 생성
-        // - 교시: 7교시, 8~9교시, 10~11교시만 생성
+        // - baseDate=1월 15일(월)로 Job 실행
     }
 
     @Test
@@ -79,32 +81,19 @@ class StudentScheduleSettingSchedulerTest {
     void schedulerWorkflow() {
         // 이 테스트는 스케줄러의 전체 동작 플로우를 문서화합니다.
         //
-        // 1단계: createNewStudentSchedule() 실행
-        //    - 다음 주(월~일)의 기존 스케줄 삭제
-        //    - 현재 연도 학생들 조회
-        //    - 각 학생별로 다음 주 월~목, 7/8-9/10-11교시 스케줄 생성
-        //    - 총 생성 개수: 학생 수 × 4일 × 3교시
+        // 1단계: StudentScheduleSettingScheduler가 asyncJobLauncher로 Job 실행
+        //    - Job 이름: studentScheduleJob
+        //    - JobParameter: baseDate, timestamp
         //
-        // 2단계: settingAllTypeSchedule() 실행
-        //    - SelfStudyScheduleSettingStrategy 실행
-        //      → 분기별 자습 정보를 기반으로 자습 스케줄 생성
-        //      → 각 학생에게 장소 배정
+        // 2단계: Step 0(Tasklet)에서 빈 StudentSchedule 틀 생성
+        //    - StudentScheduleGenerator로 기본 틀 생성
+        //    - maxStackOrderMap을 JobExecutionContext에 적재
         //
-        //    - AfterSchoolScheduleSettingStrategy 실행
-        //      → 방과후 수업 정보를 기반으로 방과후 스케줄 생성
-        //      → 출장인 경우 스킵
+        // 3단계: 병렬/순차 Step 실행
+        //    - step1: SELF_STUDY(chunk=100)
+        //    - step2: ADDITIONAL_SELF_STUDY(SELF_STUDY 이후 순차 실행)
+        //    - step3~5: FIXED_LEAVE_SEAT / AFTER_SCHOOL / AFTER_SCHOOL_REINFORCEMENT
         //
-        //    - LeaveSeatScheduleSettingStrategy 실행
-        //      → 고정 이석 정보를 기반으로 이석 스케줄 생성
-        //      → 이석 학생 정보 포함
-        //
-        //    - AdditionalSelfStudyScheduleSettingStrategy 실행
-        //      → 추가 자습 정보를 기반으로 추가 자습 스케줄 생성
-        //      → 각 학생에게 장소 배정
-        //
-        // 스케줄 우선순위:
-        //    - stackOrder로 관리
-        //    - 나중에 추가된 스케줄이 더 높은 우선순위를 가짐
-        //    - 예: EXIT, AWAY는 기본 스케줄을 덮어씀
+        // 4단계: Writer가 기존 타입 데이터 정리 후 저장하여 재실행 멱등성 보장
     }
 }
