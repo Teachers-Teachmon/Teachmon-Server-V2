@@ -16,6 +16,22 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long>,
     @Query("SELECT COALESCE(MAX(s.stackOrder), 0) FROM ScheduleEntity s WHERE s.studentSchedule.id = :studentScheduleId")
     Integer findLastStackOrderByStudentScheduleId(@Param("studentScheduleId") Long studentScheduleId);
 
+    /**
+     * 사전 데이터 로딩: StudentSchedule별 최대 stackOrder를 집계
+     * Tasklet에서 한 번 실행하여 ExecutionContext에 적재
+     */
+    @Query("""
+        SELECT s.studentSchedule.id AS studentScheduleId, COALESCE(MAX(s.stackOrder), 0) AS maxStackOrder
+        FROM ScheduleEntity s
+        GROUP BY s.studentSchedule.id
+    """)
+    List<MaxStackOrderProjection> findMaxStackOrderGroupByStudentScheduleId();
+
+    interface MaxStackOrderProjection {
+        Long getStudentScheduleId();
+        Integer getMaxStackOrder();
+    }
+
     @Modifying
     @Query("DELETE FROM ScheduleEntity s WHERE s.studentSchedule.id = :studentScheduleId AND s.type = :type")
     void deleteByStudentScheduleIdAndType(@Param("studentScheduleId") Long studentScheduleId, @Param("type") ScheduleType type);

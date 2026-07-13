@@ -37,4 +37,7 @@ public interface LeaveSeatRepository extends JpaRepository<LeaveSeatEntity, Long
            "JOIN FETCH ls.student " +
            "WHERE l.day >= :baseDate")
     List<LeaveSeatEntity> findAllFromDate(@Param("baseDate") LocalDate baseDate);
+
+    @Query("SELECT l FROM LeaveSeatEntity l JOIN FETCH l.place WHERE l.day BETWEEN :startDay AND :endDay")
+    List<LeaveSeatEntity> findAllByDayBetween(@Param("startDay") LocalDate startDay, @Param("endDay") LocalDate endDay);
 }

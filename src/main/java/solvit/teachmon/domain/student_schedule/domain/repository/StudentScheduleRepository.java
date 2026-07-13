@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolEntity;
 import solvit.teachmon.domain.leave_seat.domain.entity.FixedLeaveSeatEntity;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
+import solvit.teachmon.domain.student_schedule.application.batch.dto.StudentScheduleInfo;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
 import solvit.teachmon.global.enums.SchoolPeriod;
 
@@ -65,6 +66,14 @@ public interface StudentScheduleRepository extends JpaRepository<StudentSchedule
 
     @Query("SELECT s FROM StudentScheduleEntity s JOIN FETCH s.student WHERE s.day BETWEEN :startDay AND :endDay")
     List<StudentScheduleEntity> findAllByDayBetween(
+            @Param("startDay") LocalDate startDay,
+            @Param("endDay") LocalDate endDay
+    );
+
+    @Query("SELECT new solvit.teachmon.domain.student_schedule.application.batch.dto.StudentScheduleInfo(" +
+           "s.id, s.student.grade, s.student.classNumber, s.day, s.period) " +
+           "FROM StudentScheduleEntity s WHERE s.day BETWEEN :startDay AND :endDay")
+    List<StudentScheduleInfo> findAllInfoByDayBetween(
             @Param("startDay") LocalDate startDay,
             @Param("endDay") LocalDate endDay
     );

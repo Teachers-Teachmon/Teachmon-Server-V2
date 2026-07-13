@@ -1,6 +1,8 @@
 package solvit.teachmon.domain.self_study.domain.repository;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -19,4 +21,8 @@ public interface SelfStudyRepository extends JpaRepository<SelfStudyEntity, Long
 
     @Query("SELECT s FROM SelfStudyEntity s WHERE s.branch = :branch")
     List<SelfStudyEntity> findAllByBranch(BranchEntity branch);
+
+    @Lock(LockModeType.PESSIMISTIC_READ)
+    @Query("SELECT s FROM SelfStudyEntity s WHERE s.branch = :branch")
+    List<SelfStudyEntity> findAllByBranchWithPessimisticRead(@Param("branch") BranchEntity branch);
 }

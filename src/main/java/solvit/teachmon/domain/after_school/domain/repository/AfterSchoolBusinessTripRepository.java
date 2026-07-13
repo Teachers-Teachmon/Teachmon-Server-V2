@@ -40,6 +40,9 @@ public interface AfterSchoolBusinessTripRepository extends JpaRepository<AfterSc
                                                                    @Param("startDate") LocalDate startDate,
                                                                    @Param("endDate") LocalDate endDate);
 
+    @Query("SELECT b FROM AfterSchoolBusinessTripEntity b WHERE b.day BETWEEN :startDay AND :endDay")
+    List<AfterSchoolBusinessTripEntity> findAllByDayBetween(@Param("startDay") LocalDate startDay, @Param("endDay") LocalDate endDay);
+
     @Modifying
     @Query("DELETE FROM AfterSchoolBusinessTripEntity b WHERE b.afterSchool = :afterSchool")
     void deleteAllByAfterSchool(@Param("afterSchool") AfterSchoolEntity afterSchool);

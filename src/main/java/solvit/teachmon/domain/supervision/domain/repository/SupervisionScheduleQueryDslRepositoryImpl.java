@@ -83,54 +83,64 @@ public class SupervisionScheduleQueryDslRepositoryImpl implements SupervisionSch
     @Override
     public List<SupervisionRankResponseDto> findSupervisionRankings(String query, SupervisionSortOrder sortOrder) {
         QTeacherEntity teacher = QTeacherEntity.teacherEntity;
-        QSupervisionScheduleEntity selfStudySchedule = new QSupervisionScheduleEntity("selfStudySchedule");
-        QSupervisionScheduleEntity leaveSeatSchedule = new QSupervisionScheduleEntity("leaveSeatSchedule");
-        QSupervisionScheduleEntity seventhPeriodSchedule = new QSupervisionScheduleEntity("seventhPeriodSchedule");
+        QSupervisionScheduleEntity schedule = QSupervisionScheduleEntity.supervisionScheduleEntity;
 
-        var totalCount = selfStudySchedule.day.countDistinct().add(leaveSeatSchedule.day.countDistinct()).add(seventhPeriodSchedule.day.countDistinct());
-        
+        // LEFT JOIN 3회(타입별 alias) → LEFT JOIN 1회 + 조건부 집계(CASE WHEN)로 개선
+        // 기존: teacher × selfStudy × leaveSeat × seventhPeriod → Cartesian Product 발생
+        // 개선: supervision_schedule 테이블을 1회만 읽고 타입별로 COUNT DISTINCT 집계
+        var selfStudyCount = com.querydsl.core.types.dsl.Expressions.numberTemplate(
+                Long.class,
+                "COUNT(DISTINCT CASE WHEN {0} = {1} THEN {2} END)",
+                schedule.type, SupervisionType.SELF_STUDY_SUPERVISION, schedule.day);
+
+        var leaveSeatCount = com.querydsl.core.types.dsl.Expressions.numberTemplate(
+                Long.class,
+                "COUNT(DISTINCT CASE WHEN {0} = {1} THEN {2} END)",
+                schedule.type, SupervisionType.LEAVE_SEAT_SUPERVISION, schedule.day);
+
+        var seventhPeriodCount = com.querydsl.core.types.dsl.Expressions.numberTemplate(
+                Long.class,
+                "COUNT(DISTINCT CASE WHEN {0} = {1} THEN {2} END)",
+                schedule.type, SupervisionType.SEVENTH_PERIOD_SUPERVISION, schedule.day);
+
+        var totalCount = selfStudyCount.add(leaveSeatCount).add(seventhPeriodCount);
+
         var results = queryFactory
                 .select(
-                    teacher.name,
-                    selfStudySchedule.day.countDistinct().coalesce(0L),
-                    leaveSeatSchedule.day.countDistinct().coalesce(0L),
-                    seventhPeriodSchedule.day.countDistinct().coalesce(0L)
+                        teacher.name,
+                        selfStudyCount,
+                        leaveSeatCount,
+                        seventhPeriodCount
                 )
                 .from(teacher)
-                .leftJoin(selfStudySchedule).on(selfStudySchedule.teacher.eq(teacher)
-                    .and(selfStudySchedule.type.eq(SupervisionType.SELF_STUDY_SUPERVISION)))
-                .leftJoin(leaveSeatSchedule).on(leaveSeatSchedule.teacher.eq(teacher)
-                    .and(leaveSeatSchedule.type.eq(SupervisionType.LEAVE_SEAT_SUPERVISION)))
-                .leftJoin(seventhPeriodSchedule).on(seventhPeriodSchedule.teacher.eq(teacher)
-                    .and(seventhPeriodSchedule.type.eq(SupervisionType.SEVENTH_PERIOD_SUPERVISION)))
+                .leftJoin(schedule).on(schedule.teacher.eq(teacher))
                 .where(teacherNameContains(teacher, query))
                 .groupBy(teacher.id, teacher.name)
-                .orderBy(sortOrder == SupervisionSortOrder.DESC ? 
-                    totalCount.desc() : totalCount.asc())
+                .orderBy(sortOrder == SupervisionSortOrder.DESC ?
+                        totalCount.desc() : totalCount.asc())
                 .fetch();
 
         List<SupervisionRankResponseDto> rankList = new ArrayList<>();
         for (int i = 0; i < results.size(); i++) {
             var tuple = results.get(i);
-            Long selfStudyCount = tuple.get(1, Long.class);
-            Long leaveSeatCount = tuple.get(2, Long.class);
-            Long seventhPeriodCount = tuple.get(3, Long.class);
-            
-            int selfStudy = selfStudyCount != null ? selfStudyCount.intValue() : 0;
-            int leaveSeat = leaveSeatCount != null ? leaveSeatCount.intValue() : 0;
-            int seventhPeriod = seventhPeriodCount != null ? seventhPeriodCount.intValue() : 0;
-            
-            SupervisionRankResponseDto dto = SupervisionRankResponseDto.builder()
+            Long selfStudy = tuple.get(1, Long.class);
+            Long leaveSeat = tuple.get(2, Long.class);
+            Long seventhPeriod = tuple.get(3, Long.class);
+
+            int selfStudyInt = selfStudy != null ? selfStudy.intValue() : 0;
+            int leaveSeatInt = leaveSeat != null ? leaveSeat.intValue() : 0;
+            int seventhPeriodInt = seventhPeriod != null ? seventhPeriod.intValue() : 0;
+
+            rankList.add(SupervisionRankResponseDto.builder()
                     .rank(i + 1)
                     .name(tuple.get(teacher.name))
-                    .selfStudySupervisionCount(selfStudy)
-                    .leaveSeatSupervisionCount(leaveSeat)
-                    .seventhPeriodSupervisionCount(seventhPeriod)
-                    .totalSupervisionCount(selfStudy + leaveSeat + seventhPeriod)
-                    .build();
-            rankList.add(dto);
+                    .selfStudySupervisionCount(selfStudyInt)
+                    .leaveSeatSupervisionCount(leaveSeatInt)
+                    .seventhPeriodSupervisionCount(seventhPeriodInt)
+                    .totalSupervisionCount(selfStudyInt + leaveSeatInt + seventhPeriodInt)
+                    .build());
         }
-        
+
         return rankList;
     }
     
