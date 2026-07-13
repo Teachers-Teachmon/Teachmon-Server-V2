@@ -1,0 +1,66 @@
+flowchart LR
+
+
+  A[Scheduler<br/>일요일 00시] --> B[(ScheduledThreadPoolExecutor)]
+  B --> C[Scheduler Thread]
+  C --> D[JobLauncher<br/>Spring Batch]
+  D -->|Job Parameter<br/>일요일 00시| E[(Job Repository 기록)]
+  E -->|실행 시<br/>Job Repository 로그 체크 가능| E
+
+  D --> F[SimpleAsyncTaskExecutor]
+  F -->|비동기 스레드 생성| G[비동기 스레드]
+  G --> H[Tasklet]
+  H --> I[FlowBuilder]
+
+  I --> J[Thread Pool]
+  J --> J1[Thread]
+  J --> J2[Thread]
+  J --> J3[Thread]
+  J --> J4[Thread]
+
+  J1 --> S1
+  J2 --> S2
+  J3 --> S3
+  J4 --> S4
+
+  subgraph S1[Step Level 1 - Self_Study]
+    direction LR
+    L1[비관적 락 적용<br/>읽기 O / 쓰기 X]
+    R1[Reader<br/>Full_Scan]
+    P1[Processor<br/>Schedule Create]
+    W1[Writer<br/>Upsert]
+    L1 --> R1 --> P1 --> W1
+  end
+
+  subgraph S2[Step Level 2 - Fixed_LeaveSeat]
+    direction LR
+    L2[비관적 락 적용<br/>읽기 O / 쓰기 X]
+    R2[Reader<br/>Full_Scan]
+    P2[Processor<br/>Schedule Create]
+    W2[Writer<br/>Upsert]
+    L2 --> R2 --> P2 --> W2
+  end
+
+  subgraph S3[Step Level 3 - AfterSchool]
+    direction LR
+    L3[비관적 락 적용<br/>읽기 O / 쓰기 X]
+    R3[Reader<br/>Full_Scan]
+    P3[Processor<br/>Schedule Create]
+    W3[Writer<br/>Upsert]
+    L3 --> R3 --> P3 --> W3
+  end
+
+  subgraph S4[Step Level 4 - AfterSchool_Reinforcement]
+    direction LR
+    L4[비관적 락 적용<br/>읽기 O / 쓰기 X]
+    R4[Reader<br/>Index_Range_Scan]
+    P4[Processor<br/>Schedule Create]
+    W4[Writer<br/>Upsert]
+    L4 --> R4 --> P4 --> W4
+  end
+
+  DB[(DB<br/>MySQL)]
+  W1 --> DB
+  W2 --> DB
+  W3 --> DB
+  W4 --> DB
