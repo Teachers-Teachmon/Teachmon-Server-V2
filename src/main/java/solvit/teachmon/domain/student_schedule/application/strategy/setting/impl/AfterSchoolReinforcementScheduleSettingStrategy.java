@@ -2,9 +2,12 @@ package solvit.teachmon.domain.student_schedule.application.strategy.setting.imp
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import jakarta.persistence.EntityManager;
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolEntity;
 import solvit.teachmon.domain.after_school.domain.entity.AfterSchoolReinforcementEntity;
 import solvit.teachmon.domain.after_school.domain.repository.AfterSchoolReinforcementRepository;
+import solvit.teachmon.domain.student_schedule.application.batch.dto.StudentScheduleInfo;
+import solvit.teachmon.domain.student_schedule.application.batch.stepscope.StudentScheduleInfoMapHolder;
 import solvit.teachmon.domain.student_schedule.application.strategy.setting.StudentScheduleSettingStrategy;
 import solvit.teachmon.domain.student_schedule.domain.entity.ScheduleEntity;
 import solvit.teachmon.domain.student_schedule.domain.entity.StudentScheduleEntity;
@@ -16,7 +19,12 @@ import solvit.teachmon.domain.student_schedule.domain.repository.schedules.After
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @RequiredArgsConstructor
@@ -25,6 +33,8 @@ public class AfterSchoolReinforcementScheduleSettingStrategy implements StudentS
     private final AfterSchoolReinforcementRepository afterSchoolReinforcementRepository;
     private final AfterSchoolScheduleRepository afterSchoolScheduleRepository;
     private final StudentScheduleRepository studentScheduleRepository;
+    private final EntityManager entityManager;
+    private final StudentScheduleInfoMapHolder studentScheduleInfoMapHolder;
 
     @Override
     public ScheduleType getScheduleType() {
@@ -33,66 +43,81 @@ public class AfterSchoolReinforcementScheduleSettingStrategy implements StudentS
 
     @Override
     public void settingSchedule(LocalDate baseDate) {
-        List<AfterSchoolReinforcementEntity> afterSchoolReinforcements = findWeeklyAfterSchoolReinforcements(baseDate);
-
-        for(AfterSchoolReinforcementEntity reinforcement : afterSchoolReinforcements) {
-            if(isBeforeAfterSchoolReinforcement(reinforcement, baseDate))
-                continue;
-            AfterSchoolEntity afterSchool = reinforcement.getAfterSchool();
-            List<StudentScheduleEntity> studentSchedules = findStudentScheduleByReinforcement(reinforcement);
-            settingAfterSchoolReinforcementSchedule(studentSchedules, afterSchool);
-        }
+        settingSchedule(baseDate, new ConcurrentHashMap<>());
     }
 
-    private Boolean isBeforeAfterSchoolReinforcement(AfterSchoolReinforcementEntity reinforcement, LocalDate baseDate) {
-        return reinforcement.getChangeDay().isBefore(baseDate);
+    public void settingSchedule(LocalDate baseDate, ConcurrentHashMap<Long, AtomicInteger> stackOrderMap) {
+        settingSchedule(baseDate, stackOrderMap, null);
+    }
+
+    public void settingSchedule(
+            LocalDate baseDate,
+            ConcurrentHashMap<Long, AtomicInteger> stackOrderMap,
+            Map<String, List<StudentScheduleInfo>> preloadedStudentScheduleMap
+    ) {
+        List<AfterSchoolReinforcementEntity> afterSchoolReinforcements = findWeeklyAfterSchoolReinforcements(baseDate);
+
+        Map<String, List<StudentScheduleInfo>> studentScheduleMap;
+        if (preloadedStudentScheduleMap != null) {
+            studentScheduleMap = preloadedStudentScheduleMap;
+        } else {
+            studentScheduleMap = loadOrGetStudentScheduleMap(baseDate);
+        }
+
+        List<ScheduleEntity> schedulesToSave = new ArrayList<>();
+        List<AfterSchoolScheduleEntity> afterSchoolSchedulesToSave = new ArrayList<>();
+
+        for (AfterSchoolReinforcementEntity reinforcement : afterSchoolReinforcements) {
+            if (reinforcement.getChangeDay().isBefore(baseDate))
+                continue;
+
+            AfterSchoolEntity afterSchool = reinforcement.getAfterSchool();
+            String key = afterSchool.getGrade() + "_" + reinforcement.getChangeDay() + "_" + reinforcement.getChangePeriod();
+            List<StudentScheduleInfo> infos = studentScheduleMap.getOrDefault(key, Collections.emptyList());
+
+            for (StudentScheduleInfo info : infos) {
+                int stackOrder = stackOrderMap
+                        .computeIfAbsent(info.id(), id -> new AtomicInteger(0))
+                        .getAndIncrement();
+                StudentScheduleEntity ref = entityManager.getReference(StudentScheduleEntity.class, info.id());
+                ScheduleEntity newSchedule = ScheduleEntity.createNewStudentSchedule(
+                        ref, stackOrder, ScheduleType.AFTER_SCHOOL_REINFORCEMENT
+                );
+                schedulesToSave.add(newSchedule);
+                afterSchoolSchedulesToSave.add(AfterSchoolScheduleEntity.builder()
+                        .schedule(newSchedule)
+                        .afterSchool(afterSchool)
+                        .build());
+            }
+        }
+
+        scheduleRepository.saveAll(schedulesToSave);
+        afterSchoolScheduleRepository.saveAll(afterSchoolSchedulesToSave);
     }
 
     private List<AfterSchoolReinforcementEntity> findWeeklyAfterSchoolReinforcements(LocalDate baseDate) {
         LocalDate startDay = baseDate.with(DayOfWeek.MONDAY);
         LocalDate endDay = baseDate.with(DayOfWeek.SUNDAY);
-
         return afterSchoolReinforcementRepository.findAllByChangeDayBetween(startDay, endDay);
     }
 
-    private List<StudentScheduleEntity> findStudentScheduleByReinforcement(AfterSchoolReinforcementEntity reinforcement) {
-        return studentScheduleRepository.findAllByAfterSchoolAndDayAndPeriod(
-                reinforcement.getAfterSchool(),
-                reinforcement.getChangeDay(),
-                reinforcement.getChangePeriod()
-        );
-    }
-
-    private void settingAfterSchoolReinforcementSchedule(
-            List<StudentScheduleEntity> studentSchedules,
-            AfterSchoolEntity afterSchool
-    ) {
-        for(StudentScheduleEntity studentSchedule : studentSchedules) {
-            ScheduleEntity newSchedule = createNewSchedule(studentSchedule);
-            createAfterSchoolSchedule(newSchedule, afterSchool);
+    private Map<String, List<StudentScheduleInfo>> loadOrGetStudentScheduleMap(LocalDate baseDate) {
+        if (studentScheduleInfoMapHolder != null) {
+            Map<String, List<StudentScheduleInfo>> cached = studentScheduleInfoMapHolder.get();
+            if (!cached.isEmpty()) {
+                return cached;
+            }
         }
-    }
-
-    private void createAfterSchoolSchedule(
-            ScheduleEntity schedule,
-            AfterSchoolEntity afterSchool
-    ) {
-        // Create a regular after-school schedule (not a special reinforcement type)
-        AfterSchoolScheduleEntity afterSchoolSchedule = AfterSchoolScheduleEntity.builder()
-                .schedule(schedule)
-                .afterSchool(afterSchool)
-                .build();
-
-        afterSchoolScheduleRepository.save(afterSchoolSchedule);
-    }
-
-    private ScheduleEntity createNewSchedule(StudentScheduleEntity studentSchedule) {
-        // Create a regular AFTER_SCHOOL schedule (the "reinforcement" is just that it's on a different day/period)
-        Integer lastStackOrder = scheduleRepository.findLastStackOrderByStudentScheduleId(studentSchedule.getId());
-        ScheduleEntity newSchedule = ScheduleEntity.createNewStudentSchedule(studentSchedule, lastStackOrder, ScheduleType.AFTER_SCHOOL_REINFORCEMENT);
-
-        scheduleRepository.save(newSchedule);
-
-        return newSchedule;
+        LocalDate weekStart = baseDate.with(DayOfWeek.MONDAY);
+        LocalDate weekEnd = baseDate.with(DayOfWeek.SUNDAY);
+        return studentScheduleRepository.findAllByDayBetween(weekStart, weekEnd)
+                .stream()
+                .collect(java.util.stream.Collectors.groupingBy(ss ->
+                        ss.getStudent().getGrade() + "_" + ss.getDay() + "_" + ss.getPeriod(),
+                        java.util.stream.Collectors.mapping(
+                                ss -> new StudentScheduleInfo(ss.getId(), ss.getStudent().getGrade(), ss.getStudent().getClassNumber(), ss.getDay(), ss.getPeriod()),
+                                java.util.stream.Collectors.toList()
+                        )
+                ));
     }
 }

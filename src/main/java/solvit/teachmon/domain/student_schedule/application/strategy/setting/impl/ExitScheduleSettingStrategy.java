@@ -38,6 +38,7 @@ public class ExitScheduleSettingStrategy implements StudentScheduleSettingStrate
                     .findByStudentAndDayAndPeriod(exit.getStudent(), exit.getDay(), exit.getPeriod())
                     .ifPresent(studentSchedule -> {
                         ScheduleEntity newSchedule = createNewSchedule(studentSchedule);
+
                         createExitSchedule(newSchedule, exit);
                     });
         }

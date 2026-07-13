@@ -32,6 +32,9 @@ public class ScheduleEntity extends BaseEntity {
     @Column(name = "type", nullable = false)
     private ScheduleType type;
 
+    @Column(name = "level", nullable = false)
+    private Integer level;
+
     @OneToOne(
             mappedBy = "schedule",
             cascade = CascadeType.REMOVE,
@@ -75,10 +78,11 @@ public class ScheduleEntity extends BaseEntity {
     private AwayScheduleEntity awaySchedule;
 
     @Builder
-    private ScheduleEntity(StudentScheduleEntity studentSchedule, Integer stackOrder, ScheduleType type) {
+    private ScheduleEntity(StudentScheduleEntity studentSchedule, Integer stackOrder, ScheduleType type, Integer level) {
         this.studentSchedule = studentSchedule;
         this.stackOrder = stackOrder;
         this.type = type;
+        this.level = level != null ? level : type.getLevel();
     }
 
     public static ScheduleEntity createNewStudentSchedule(StudentScheduleEntity studentSchedule, Integer nowStackOrder, ScheduleType type) {
@@ -86,6 +90,7 @@ public class ScheduleEntity extends BaseEntity {
                 .studentSchedule(studentSchedule)
                 .stackOrder(nowStackOrder + 1)
                 .type(type)
+                .level(type.getLevel())
                 .build();
     }
 }

@@ -19,8 +19,14 @@ import solvit.teachmon.domain.student_schedule.domain.repository.schedules.Addit
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static solvit.teachmon.domain.place.domain.entity.PlaceEntity.calculateNextClassNumber;
 
@@ -40,84 +46,106 @@ public class AdditionalSelfStudyScheduleSettingStrategy implements StudentSchedu
 
     @Override
     public void settingSchedule(LocalDate baseDate) {
+        settingSchedule(baseDate, new ConcurrentHashMap<>());
+    }
+
+    public void settingSchedule(LocalDate baseDate, ConcurrentHashMap<Long, AtomicInteger> stackOrderMap) {
+        settingSchedule(baseDate, stackOrderMap, java.util.Collections.emptySet());
+    }
+
+    public void settingSchedule(
+            LocalDate baseDate,
+            ConcurrentHashMap<Long, AtomicInteger> stackOrderMap,
+            Set<String> occupiedPlaceSet
+    ) {
         List<AdditionalSelfStudyEntity> additionalSelfStudies = findWeeklyAdditionalSelfStudies(baseDate);
 
-        for(AdditionalSelfStudyEntity additionalSelfStudy : additionalSelfStudies) {
-            if(isBeforeAdditionalSelfStudy(additionalSelfStudy, baseDate))
+        // 전체 places를 한 번에 조회 → grade별 Map으로 구성 (findAllByGradePrefix N+1 제거)
+        Map<Integer, Map<Integer, PlaceEntity>> placesByGradeMap = buildPlacesByGradeMap();
+
+        List<ScheduleEntity> schedulesToSave = new ArrayList<>();
+        List<AdditionalSelfStudyScheduleEntity> additionalSelfStudySchedulesToSave = new ArrayList<>();
+
+        for (AdditionalSelfStudyEntity additionalSelfStudy : additionalSelfStudies) {
+            if (additionalSelfStudy.getDay().isBefore(baseDate))
                 continue;
+
             List<StudentScheduleEntity> studentSchedules = studentScheduleGenerator.findOrCreateStudentSchedules(
                     additionalSelfStudy.getGrade(),
                     additionalSelfStudy.getDay(),
                     additionalSelfStudy.getPeriod()
             );
-            settingAdditionalSelfStudySchedule(studentSchedules, additionalSelfStudy);
+
+            for (StudentScheduleEntity studentSchedule : studentSchedules) {
+                PlaceEntity place = findAdditionalSelfStudyPlace(studentSchedule, placesByGradeMap, occupiedPlaceSet);
+                int stackOrder = stackOrderMap
+                        .computeIfAbsent(studentSchedule.getId(), id -> new AtomicInteger(0))
+                        .getAndIncrement();
+                ScheduleEntity newSchedule = ScheduleEntity.createNewStudentSchedule(
+                        studentSchedule, stackOrder, ScheduleType.ADDITIONAL_SELF_STUDY
+                );
+                schedulesToSave.add(newSchedule);
+                additionalSelfStudySchedulesToSave.add(AdditionalSelfStudyScheduleEntity.builder()
+                        .schedule(newSchedule)
+                        .place(place)
+                        .additionalSelfStudy(additionalSelfStudy)
+                        .build());
+            }
         }
+
+        scheduleRepository.saveAll(schedulesToSave);
+        additionalSelfStudyScheduleRepository.saveAll(additionalSelfStudySchedulesToSave);
     }
 
-    private Boolean isBeforeAdditionalSelfStudy(AdditionalSelfStudyEntity additionalSelfStudy, LocalDate baseDate) {
-        return additionalSelfStudy.getDay().isBefore(baseDate);
+    private Map<Integer, Map<Integer, PlaceEntity>> buildPlacesByGradeMap() {
+        Map<Integer, Map<Integer, PlaceEntity>> result = new HashMap<>();
+        for (PlaceEntity place : placeRepository.findAll()) {
+            String name = place.getName();
+            if (!name.contains("-")) continue;
+            try {
+                int grade = Integer.parseInt(name.substring(0, name.indexOf('-')));
+                int classNum = Integer.parseInt(name.substring(name.indexOf('-') + 1));
+                result.computeIfAbsent(grade, k -> new HashMap<>()).put(classNum, place);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return result;
     }
 
     private List<AdditionalSelfStudyEntity> findWeeklyAdditionalSelfStudies(LocalDate baseDate) {
         LocalDate startDay = baseDate.with(DayOfWeek.MONDAY);
         LocalDate endDay = baseDate.with(DayOfWeek.SUNDAY);
-
         return additionalSelfStudyRepository.findAllByDayBetween(startDay, endDay);
     }
 
-
-    private void settingAdditionalSelfStudySchedule(
-            List<StudentScheduleEntity> studentSchedules,
-            AdditionalSelfStudyEntity additionalSelfStudy
+    private PlaceEntity findAdditionalSelfStudyPlace(
+            StudentScheduleEntity studentSchedule,
+            Map<Integer, Map<Integer, PlaceEntity>> placesByGradeMap,
+            Set<String> occupiedPlaceSet
     ) {
-        for(StudentScheduleEntity studentSchedule : studentSchedules) {
-            ScheduleEntity newSchedule = createNewSchedule(studentSchedule);
-            createAdditionalSelfStudySchedule(newSchedule, additionalSelfStudy, findAdditionalSelfStudyPlace(studentSchedule));
-        }
-    }
-
-    private PlaceEntity findAdditionalSelfStudyPlace(StudentScheduleEntity studentSchedule) {
         StudentEntity student = studentSchedule.getStudent();
-        Map<Integer, PlaceEntity> placesMap = placeRepository.findAllByGradePrefix(student.getGrade());
+        Map<Integer, PlaceEntity> placesMap = placesByGradeMap.get(student.getGrade());
+        if (placesMap == null) {
+            placesMap = placeRepository.findAllByGradePrefix(student.getGrade());
+        }
 
         Integer targetPoint = student.getClassNumber();
-        for(int count = 0; count < 4; count++) {
+        for (int count = 0; count < 4; count++) {
             PlaceEntity place = placesMap.get(targetPoint);
 
-            // 해당 반 교실이 존재하지 않으면 다음 반으로 넘어감
-            if(place == null) {
+            if (place == null) {
                 targetPoint = calculateNextClassNumber(targetPoint);
                 continue;
             }
 
-            if(!placeRepository.checkPlaceAvailability(
-                    studentSchedule.getDay(), studentSchedule.getPeriod(), place
-            ))
+            boolean available = occupiedPlaceSet.isEmpty()
+                    ? !placeRepository.checkPlaceAvailability(studentSchedule.getDay(), studentSchedule.getPeriod(), place)
+                    : !occupiedPlaceSet.contains(studentSchedule.getDay() + "_" + studentSchedule.getPeriod() + "_" + place.getId());
+            if (available)
                 return place;
             targetPoint = calculateNextClassNumber(targetPoint);
         }
 
         throw new NoAvailablePlaceException();
-    }
-
-    private void createAdditionalSelfStudySchedule(ScheduleEntity schedule, AdditionalSelfStudyEntity additionalSelfStudy, PlaceEntity place) {
-        // 자습 스케줄 생성
-        AdditionalSelfStudyScheduleEntity additionalSelfStudySchedule = AdditionalSelfStudyScheduleEntity.builder()
-                .schedule(schedule)
-                .place(place)
-                .additionalSelfStudy(additionalSelfStudy)
-                .build();
-
-        additionalSelfStudyScheduleRepository.save(additionalSelfStudySchedule);
-    }
-
-    private ScheduleEntity createNewSchedule(StudentScheduleEntity studentSchedule) {
-        // 새로운 스케줄 생성
-        Integer lastStackOrder = scheduleRepository.findLastStackOrderByStudentScheduleId(studentSchedule.getId());
-        ScheduleEntity newSchedule = ScheduleEntity.createNewStudentSchedule(studentSchedule, lastStackOrder, ScheduleType.ADDITIONAL_SELF_STUDY);
-
-        scheduleRepository.save(newSchedule);
-
-        return newSchedule;
     }
 }
