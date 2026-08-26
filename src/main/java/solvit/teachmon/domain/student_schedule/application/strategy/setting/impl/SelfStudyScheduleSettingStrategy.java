@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import solvit.teachmon.domain.branch.domain.entity.BranchEntity;
 import solvit.teachmon.domain.branch.domain.repository.BranchRepository;
-import solvit.teachmon.domain.branch.exception.BranchNotFoundException;
 import solvit.teachmon.domain.management.student.domain.entity.StudentEntity;
 import solvit.teachmon.domain.place.domain.entity.PlaceEntity;
 import solvit.teachmon.domain.place.domain.repository.PlaceRepository;
@@ -43,22 +42,34 @@ public class SelfStudyScheduleSettingStrategy implements StudentScheduleSettingS
 
     @Override
     public void settingSchedule(LocalDate baseDate) {
-        BranchEntity branch = branchRepository.findByDay(baseDate)
-                .orElseThrow(BranchNotFoundException::new);
+        // baseDate(그 주의 월요일)가 속한 분기가 아니라, baseDate ~ 일요일까지 걸쳐있는
+        // 모든 분기를 가져온다. 분기 전환 주에는 이 기간에 분기가 2개 걸릴 수 있다.
+        List<BranchEntity> branches = branchRepository.findAllOverlapping(baseDate, baseDate.plusDays(6));
 
-        // 해당 분기의 모든 자습 가져오기
-        List<SelfStudyEntity> selfStudies = selfStudyRepository.findAllByBranch(branch);
+        for (BranchEntity branch : branches) {
+            // 해당 분기의 모든 자습 가져오기
+            List<SelfStudyEntity> selfStudies = selfStudyRepository.findAllByBranch(branch);
 
-        for(SelfStudyEntity selfStudy : selfStudies) {
-            // 이전 날짜면 넘어가기
-            if(isBeforeSelfStudy(selfStudy, baseDate))
-                continue;
-            // 각 자습별 학년들의 student schedule 가져오기
-            List<StudentScheduleEntity> studentSchedules = findStudentScheduleBySelfStudy(selfStudy, baseDate);
+            for (SelfStudyEntity selfStudy : selfStudies) {
+                LocalDate selfStudyDay = calculateSelfStudyDay(selfStudy, baseDate);
 
-            // 각 student schedule 별로 self study 설정해주기
-            settingSelfStudySchedule(studentSchedules, selfStudy);
+                // 이번 주에 해당하는 날짜가 이 분기 기간 밖이면 넘어가기
+                if (isOutOfBranchPeriod(selfStudyDay, branch))
+                    continue;
+                // 이전 날짜면 넘어가기
+                if (isBeforeSelfStudy(selfStudy, baseDate))
+                    continue;
+                // 각 자습별 학년들의 student schedule 가져오기
+                List<StudentScheduleEntity> studentSchedules = findStudentScheduleBySelfStudy(selfStudy, baseDate);
+
+                // 각 student schedule 별로 self study 설정해주기
+                settingSelfStudySchedule(studentSchedules, selfStudy);
+            }
         }
+    }
+
+    private boolean isOutOfBranchPeriod(LocalDate day, BranchEntity branch) {
+        return day.isBefore(branch.getStartDay()) || day.isAfter(branch.getEndDay());
     }
 
     private Boolean isBeforeSelfStudy(SelfStudyEntity selfStudy, LocalDate baseDate) {
